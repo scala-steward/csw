@@ -1,6 +1,6 @@
 package csw.services.location.scaladsl
 
-import akka.actor.{ActorRef, ActorSystem}
+import akka.actor.{ActorRef, ActorSystem, Terminated}
 import akka.cluster.Cluster
 import akka.cluster.ddata.DistributedData
 import akka.stream.{ActorMaterializer, Materializer}
@@ -8,7 +8,7 @@ import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
 import csw.services.location.common.Networks
 
 import scala.collection.JavaConverters._
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class ActorRuntime(name: String, _settings: Map[String, Any] = Map.empty) {
 
@@ -34,4 +34,5 @@ class ActorRuntime(name: String, _settings: Map[String, Any] = Map.empty) {
   val replicator: ActorRef = DistributedData(actorSystem).replicator
 
   def makeMat(): Materializer = ActorMaterializer()
+  def terminate(): Future[Terminated] = actorSystem.terminate()
 }
