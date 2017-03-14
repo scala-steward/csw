@@ -11,7 +11,7 @@ class JmDnsEventStream(jmDns: JmDNS, actorRuntime: ActorRuntime) {
 
   import actorRuntime._
 
-  private val (source, queueF) = SourceExtensions.coupling[Location]
+  private val (source, queueF) = SourceExtensions.queueCoupling[Location]
 
   val broadcast: LocationBroadcast = new LocationBroadcast(source, actorRuntime)
 

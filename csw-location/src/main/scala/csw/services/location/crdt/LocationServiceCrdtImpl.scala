@@ -7,7 +7,8 @@ import akka.pattern.ask
 import akka.stream.KillSwitch
 import akka.stream.scaladsl.Source
 import akka.util.Timeout
-import csw.services.location.common.Constants
+import csw.services.location.common.SourceExtensions.RichSource
+import csw.services.location.common.{Constants, SourceExtensions}
 import csw.services.location.scaladsl.ActorRuntime
 import csw.services.location.scaladsl.models._
 
@@ -87,11 +88,14 @@ class LocationServiceCrdtImpl(actorRuntime: ActorRuntime) { outer =>
     await(list).filter(_.connection.connectionType == connectionType)
   }
 
-  def track(connection: Connection): Source[ServiceLocation, KillSwitch] = {
+  def track(connection: Connection): Source[TrackingEvent, KillSwitch] = {
+    val (source, actorF) = SourceExtensions.actorCoupling[Any]
     val key = LWWRegisterKey[ServiceLocation](connection.name)
-
-    Subscribe(key, null)
-    ???
+    actorF.foreach(actorRef => replicator ! Subscribe(key, actorRef))
+    source.collect {
+      case c@Changed(`key`)   => Updated(c.get(key).value)
+      case DataDeleted(`key`) => Deleted(connection)
+    }.killable
   }
 
   private def registrationResult(location: ServiceLocation): RegistrationResult = new RegistrationResult {
