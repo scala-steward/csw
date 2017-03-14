@@ -1,6 +1,3 @@
-import Dependencies._
-
-
 val enableCoverage = System.getProperty("enableCoverage", "true")
 val plugins:Seq[Plugins] = if(enableCoverage.toBoolean) Seq(Coverage) else Seq.empty
 
@@ -16,19 +13,19 @@ lazy val `csw-location` = project
   .enablePlugins(plugins:_*)
   .settings(
     libraryDependencies ++= Seq(
-      `akka-stream`,
-      `jmdns`,
-      `scala-java8-compat`,
-      `akka-remote`,
-      `scala-async`,
-      `enumeratum`
+      Akka.`akka-stream`,
+      Akka.`akka-distributed-data-experimental`,
+      Libs.`jmdns`,
+      Libs.`scala-java8-compat`,
+      Libs.`scala-async`,
+      Libs.`enumeratum`
     ),
     libraryDependencies ++= Seq(
-      `akka-stream-testkit` % Test,
-      `scalatest` % Test,
-      `scalamock-scalatest-support` % Test,
-      `junit` % Test,
-      `junit-interface` % Test
+      Akka.`akka-stream-testkit` % Test,
+      Libs.`scalatest` % Test,
+      Libs.`scalamock-scalatest-support` % Test,
+      Libs.`junit` % Test,
+      Libs.`junit-interface` % Test
     )
   )
 
@@ -38,11 +35,11 @@ lazy val `trackLocation` = project
   .dependsOn(`csw-location`)
   .settings(
     libraryDependencies ++= Seq(
-      `akka-actor`,
-      `scopt`,
-      `scalatest` % Test,
-      `scalamock-scalatest-support` % Test,
-      `scala-logging` % Test
+      Akka.`akka-actor`,
+      Libs.`scopt`,
+      Libs.`scalatest` % Test,
+      Libs.`scalamock-scalatest-support` % Test,
+      Libs.`scala-logging` % Test
     )
   )
 
