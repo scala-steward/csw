@@ -1,12 +1,9 @@
 package csw.services.location.crdt
 
-import java.net.URI
-
-import csw.services.location.common.Networks
 import csw.services.location.common.TestFutureExtension.RichFuture
 import csw.services.location.scaladsl.ActorRuntime
 import csw.services.location.scaladsl.models.Connection.TcpConnection
-import csw.services.location.scaladsl.models.{ComponentId, ComponentType, ResolvedTcpLocation}
+import csw.services.location.scaladsl.models.{ComponentId, ComponentType}
 import org.scalatest.{FunSuite, Matchers}
 
 class LocationServiceCrdtImplTest extends FunSuite with Matchers {
@@ -18,18 +15,19 @@ class LocationServiceCrdtImplTest extends FunSuite with Matchers {
     val Port = 1234
     val componentId = ComponentId("redis1", ComponentType.Service)
     val connection = TcpConnection(componentId)
-    val uri = new URI(s"tcp://${Networks.getPrimaryIpv4Address.getHostAddress}:$Port")
-    val location = ResolvedTcpLocation(connection, uri)
+    val location = TcpServiceLocation(connection, Port)
 
     val result = crdtImpl.register(location).await
 
     crdtImpl.resolve(connection).await shouldBe location
+    crdtImpl.list.await shouldBe List(location)
 
     result.unregister().await
 
     intercept[RuntimeException] {
       crdtImpl.resolve(connection).await
     }
+    crdtImpl.list.await shouldBe List.empty
   }
 
 }

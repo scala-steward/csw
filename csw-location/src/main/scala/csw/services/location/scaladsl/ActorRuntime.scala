@@ -1,7 +1,8 @@
 package csw.services.location.scaladsl
 
-import akka.actor.ActorSystem
+import akka.actor.{ActorRef, ActorSystem}
 import akka.cluster.Cluster
+import akka.cluster.ddata.DistributedData
 import akka.stream.{ActorMaterializer, Materializer}
 import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
 import csw.services.location.common.Networks
@@ -29,7 +30,8 @@ class ActorRuntime(name: String, _settings: Map[String, Any] = Map.empty) {
   implicit val actorSystem: ActorSystem = ActorSystem(name, config)
   implicit val ec: ExecutionContext = actorSystem.dispatcher
   implicit val mat: Materializer = makeMat()
-  implicit val node = Cluster(actorSystem)
+  implicit val cluster: Cluster = Cluster(actorSystem)
+  val replicator: ActorRef = DistributedData(actorSystem).replicator
 
   def makeMat(): Materializer = ActorMaterializer()
 }
