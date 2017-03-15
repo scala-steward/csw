@@ -22,7 +22,8 @@ class LocationServiceCompTest
 
   val actorRuntimePort = 2554
 
-  private val actorRuntime = new ActorRuntime("test", Map("akka.remote.netty.tcp.port" -> actorRuntimePort))
+  private val extraSettings = Map("akka.remote.netty.tcp.port" -> actorRuntimePort)
+  private val actorRuntime = new ActorRuntime("test", ConfigData.config(extraSettings))
   private val locationService = LocationServiceFactory.make(actorRuntime)
 
   override protected def afterEach(): Unit = {

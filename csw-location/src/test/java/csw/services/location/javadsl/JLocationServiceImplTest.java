@@ -41,7 +41,7 @@ public class JLocationServiceImplTest {
 
     @BeforeClass
     public static void setUp() {
-        actorRuntime = JActorRuntime.actorRuntime("test-java");
+        actorRuntime = new ActorRuntime("test-java");
         locationService = JLocationServiceFactory.make(actorRuntime);
     }
 

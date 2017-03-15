@@ -4,28 +4,13 @@ import akka.actor.{ActorRef, ActorSystem, Terminated}
 import akka.cluster.Cluster
 import akka.cluster.ddata.DistributedData
 import akka.stream.{ActorMaterializer, Materializer}
-import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
-import csw.services.location.common.Networks
+import com.typesafe.config.Config
 
-import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
-class ActorRuntime(name: String, _settings: Map[String, Any] = Map.empty) {
+class ActorRuntime(name: String, config: Config) {
 
-  private val hostname = Networks.getPrimaryIpv4Address.getHostAddress
-  private val port = sys.props.getOrElse("akka.port", "2552")
-  private val seedHost = sys.props.getOrElse("akka.seed", hostname)
-  private val seedNode = s"akka.tcp://$name@$seedHost:2552"
-
-  val config: Config = {
-    val settings: Map[String, Any] = Map(
-      "akka.remote.netty.tcp.hostname" -> hostname,
-      "akka.remote.netty.tcp.port" -> port,
-      "akka.cluster.seed-nodes" -> List(seedNode).asJava
-    ) ++ _settings
-
-    ConfigFactory.parseMap(settings.asJava).withFallback(ConfigFactory.load())
-  }
+  def this(name: String) = this(name, ConfigData.config(Map.empty))
 
   implicit val actorSystem: ActorSystem = ActorSystem(name, config)
   implicit val ec: ExecutionContext = actorSystem.dispatcher
