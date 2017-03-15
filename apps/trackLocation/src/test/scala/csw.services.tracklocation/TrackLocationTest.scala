@@ -30,7 +30,7 @@ class TrackLocationTest
   private val actorRuntimePort = 2553
 
   private val extraSettings = Map("akka.remote.netty.tcp.port" -> actorRuntimePort)
-  private val actorRuntime = new ActorRuntime("track-location-test", ConfigData.config(extraSettings))
+  private val actorRuntime = new ActorRuntime("track-location-test", new ConfigData("test").config(extraSettings))
   import actorRuntime._
   private val locationService = LocationServiceFactory.make(actorRuntime)
 

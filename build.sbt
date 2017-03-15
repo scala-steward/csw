@@ -18,6 +18,7 @@ lazy val `csw-location` = project
       Libs.`jmdns`,
       Libs.`scala-java8-compat`,
       Libs.`scala-async`,
+      Libs.`chill-akka`,
       Libs.`enumeratum`
     ),
     libraryDependencies ++= Seq(

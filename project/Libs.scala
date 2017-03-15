@@ -12,6 +12,7 @@ object Libs {
   val `enumeratum` = "com.beachape" %% "enumeratum" % "1.5.8"
   val `junit` = "junit" % "junit" % "4.12"
   val `junit-interface` = "com.novocode" % "junit-interface" % "0.11"
+  val `chill-akka` = "com.twitter" %% "chill-akka" % "0.9.2"
 }
 
 object Akka {

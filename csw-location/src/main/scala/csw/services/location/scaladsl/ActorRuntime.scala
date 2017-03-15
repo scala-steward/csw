@@ -10,7 +10,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class ActorRuntime(name: String, config: Config) {
 
-  def this(name: String) = this(name, ConfigData.config(Map.empty))
+  def this(name: String) = this(name, new ConfigData(name).config(Map.empty))
 
   implicit val actorSystem: ActorSystem = ActorSystem(name, config)
   implicit val ec: ExecutionContext = actorSystem.dispatcher

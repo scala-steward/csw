@@ -8,7 +8,7 @@ import csw.services.location.common.Networks
 import csw.services.location.scaladsl.models.Connection
 import csw.services.location.scaladsl.models.Connection.{AkkaConnection, HttpConnection, TcpConnection}
 
-sealed trait ServiceLocation {
+sealed trait ServiceLocation extends Serializable {
   def connection: Connection
   def uri: URI
 }
