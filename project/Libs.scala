@@ -15,6 +15,7 @@ object Libs {
   val `chill-akka` = "com.twitter" %% "chill-akka" % "0.9.2" //Apache License 2.0
   val `akka-management-cluster-http` = "com.lightbend.akka" %% "akka-management-cluster-http" % "0.1-RC1" //N/A at the moment
   val `akka-http` = "com.typesafe.akka" %% "akka-http" % "10.0.5" //Apache License 2.0
+  val `svnkit` = "org.tmatesoft.svnkit" % "svnkit" % "1.8.11" // TMate Open Source License
 }
 
 object Akka {

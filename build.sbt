@@ -40,6 +40,27 @@ lazy val `csw-location` = project
     )
   )
 
+lazy val `cs` = project
+  .enablePlugins(PublishBintray, GenJavadocPlugin, AutoMultiJvm)
+  .enablePlugins(plugins:_*)
+  .settings(
+    libraryDependencies ++= Seq(
+      Akka.`akka-stream`,
+      Akka.`akka-remote`,
+      Libs.`scala-java8-compat`,
+      Libs.`scala-async`,
+      Libs.`akka-http`,
+      Libs.`svnkit`
+    ),
+    libraryDependencies ++= Seq(
+      Akka.`akka-stream-testkit` % Test,
+      Libs.`scalatest` % Test,
+      Libs.`junit` % Test,
+      Libs.`junit-interface` % Test,
+      Libs.`mockito-core` % Test
+    )
+  )
+
 lazy val `track-location-agent` = project
   .in(file("apps/track-location-agent"))
   .enablePlugins(DeployApp)
