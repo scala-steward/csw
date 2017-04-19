@@ -5,7 +5,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 import csw.services.config.api.scaladsl.ConfigService
 import csw.services.config.server.files._
 import csw.services.config.server.http.{ConfigExceptionHandler, ConfigServiceRoute, HttpService}
-import csw.services.config.server.svn.{SvnConfigService, SvnRepo}
+import csw.services.config.server.svn.{SvnConfigService, SvnRepo, SvnWCRepo}
 import csw.services.location.scaladsl.{LocationService, LocationServiceFactory}
 
 class ServerWiring {
@@ -16,6 +16,7 @@ class ServerWiring {
   lazy val actorRuntime     = new ActorRuntime(actorSystem, settings)
   lazy val oversizeFileRepo = new OversizeFileRepo(actorRuntime.blockingIoDispatcher)
   lazy val svnRepo          = new SvnRepo(settings, actorRuntime.blockingIoDispatcher)
+  lazy val svnWCRepo        = new SvnWCRepo(settings, actorRuntime.blockingIoDispatcher)
 
   lazy val oversizeFileService          = new OversizeFileService(settings, oversizeFileRepo)
   lazy val configService: ConfigService = new SvnConfigService(settings, oversizeFileService, actorRuntime, svnRepo)

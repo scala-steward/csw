@@ -15,7 +15,7 @@ import org.tmatesoft.svn.core.wc2.{SvnOperationFactory, SvnTarget}
 
 import scala.concurrent.Future
 
-class SvnRepo(settings: Settings, blockingIoDispatcher: MessageDispatcher) {
+class SvnRepo(settings: Settings, blockingIoDispatcher: MessageDispatcher) extends Repo(blockingIoDispatcher) {
 
   private implicit val _blockingIoDispatcher = blockingIoDispatcher
 
@@ -149,14 +149,6 @@ class SvnRepo(settings: Settings, blockingIoDispatcher: MessageDispatcher) {
     } recover {
       case ex: SVNException => Nil
     }
-
-  // Gets the svn revision from the given id, defaulting to HEAD
-  def svnRevision(id: Option[Long] = None): Future[SVNRevision] = Future {
-    id match {
-      case Some(value) => SVNRevision.create(value)
-      case None        => SVNRevision.HEAD
-    }
-  }
 
   def pathExists(path: Path, id: Option[Long]): Future[Boolean] = Future {
     checkPath(path, SVNNodeKind.FILE, id.getOrElse(SVNRepository.INVALID_REVISION))

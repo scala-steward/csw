@@ -15,10 +15,7 @@ import scala.async.Async._
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
-class SvnConfigService(settings: Settings,
-                       fileService: OversizeFileService,
-                       actorRuntime: ActorRuntime,
-                       svnRepo: SvnRepo)
+class SvnConfigService(settings: Settings, fileService: OversizeFileService, actorRuntime: ActorRuntime, svnRepo: Repo)
     extends ConfigService {
 
   import actorRuntime._
