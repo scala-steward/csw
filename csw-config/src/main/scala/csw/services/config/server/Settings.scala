@@ -18,7 +18,8 @@ class Settings(config: Config) {
   val `service-port`: Int              = `csw-config-server`.getInt("service-port")
   val `blocking-io-dispatcher`: String = `csw-config-server`.getString("blocking-io-dispatcher")
 
-  val repositoryFile: File = Paths.get(`repository-dir`).toFile
-  val svnUrl: SVNURL       = SVNURL.fromFile(repositoryFile)
+  val repositoryFile: File  = Paths.get(`repository-dir`).toFile
+  val workingCopyFile: File = Paths.get("/tmp/wc").toFile
+  val svnUrl: SVNURL        = SVNURL.fromFile(repositoryFile)
 
 }

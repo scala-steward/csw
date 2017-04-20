@@ -11,6 +11,7 @@ class TestFileUtils(settings: Settings) {
     val oversizeFileDir = Paths.get(settings.`oversize-files-dir`).toFile
     deleteDirectoryRecursively(oversizeFileDir)
     deleteDirectoryRecursively(settings.repositoryFile)
+    deleteDirectoryRecursively(settings.workingCopyFile)
   }
 
   /**
