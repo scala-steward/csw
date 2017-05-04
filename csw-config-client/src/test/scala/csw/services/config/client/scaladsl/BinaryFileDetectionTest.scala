@@ -4,7 +4,7 @@ import java.io.InputStream
 import java.nio.file.Paths
 
 import csw.services.config.api.models.ConfigData
-import csw.services.config.api.scaladsl.ConfigService
+import csw.services.config.api.scaladsl.{ConfigAdminService, ConfigService}
 import csw.services.config.client.internal.ActorRuntime
 import csw.services.config.server.ServerWiring
 import csw.services.config.server.commons.TestFileUtils
@@ -26,7 +26,7 @@ class BinaryFileDetectionTest extends FunSuite with Matchers with BeforeAndAfter
   private val actorRuntime = new ActorRuntime()
   import actorRuntime._
 
-  val configService: ConfigService = ConfigClientFactory.make(actorSystem, clientLocationService)
+  private val configAdminService = ConfigClientFactory.makeAdmin(actorSystem, clientLocationService)
 
   override protected def beforeEach(): Unit =
     serverWiring.svnRepo.initSvnRepo()
@@ -55,14 +55,14 @@ class BinaryFileDetectionTest extends FunSuite with Matchers with BeforeAndAfter
     val path       = Paths.get(getClass.getClassLoader.getResource(fileName).toURI)
     val configData = ConfigData.fromPath(path)
     val configId =
-      configService.create(Paths.get(fileName), configData, annex = false, s"committing file: $fileName").await
+      configAdminService.create(Paths.get(fileName), configData, annex = false, s"committing file: $fileName").await
 
-    val expectedContent = configService.getById(Paths.get(fileName), configId).await.get.toInputStream.toByteArray
+    val expectedContent = configAdminService.getById(Paths.get(fileName), configId).await.get.toInputStream.toByteArray
     val diskFile        = getClass.getClassLoader.getResourceAsStream(fileName)
     expectedContent shouldBe diskFile.toByteArray
 
     val svnConfigData =
-      configService
+      configAdminService
         .getById(Paths.get(s"$fileName${serverWiring.settings.`sha1-suffix`}"), configId)
         .await
         .get

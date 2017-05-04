@@ -83,21 +83,21 @@ class ConfigCliTest(ignore: Int) extends LSNodeSpec(config = new TwoClientsAndSe
       enterBarrier("server-started")
       val actorRuntime = new ActorRuntime(ActorSystem())
       import actorRuntime._
-      val configService = ConfigClientFactory.make(actorSystem, locationService)
+      val configAdminService = ConfigClientFactory.makeAdmin(actorSystem, locationService)
 
       enterBarrier("member1-create")
-      val actualConfigValue = configService.getLatest(Paths.get(repoPath1)).await.get.toStringF.await
+      val actualConfigValue = configAdminService.getLatest(Paths.get(repoPath1)).await.get.toStringF.await
       actualConfigValue shouldBe inputFileContents
 
       enterBarrier("member1-update")
-      val actualUpdatedConfigValue = configService.getLatest(Paths.get(repoPath1)).await.get.toStringF.await
+      val actualUpdatedConfigValue = configAdminService.getLatest(Paths.get(repoPath1)).await.get.toStringF.await
       actualUpdatedConfigValue shouldBe updatedInputFileContents
 
       enterBarrier("member1-setActive")
-      val actualActiveConfigValue = configService.getActive(Paths.get(repoPath1)).await.get.toStringF.await
+      val actualActiveConfigValue = configAdminService.getActive(Paths.get(repoPath1)).await.get.toStringF.await
       actualActiveConfigValue shouldBe inputFileContents
 
-      configService.create(Paths.get(repoPath2), ConfigData.fromString(inputFileContents)).await
+      configAdminService.create(Paths.get(repoPath2), ConfigData.fromString(inputFileContents)).await
       enterBarrier("member2-create")
     }
     enterBarrier("after-1")

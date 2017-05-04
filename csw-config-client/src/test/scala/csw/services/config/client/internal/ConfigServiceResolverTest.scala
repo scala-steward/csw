@@ -19,11 +19,11 @@ class ConfigServiceResolverTest extends FunSuite with Matchers with MockitoSugar
   import actorRuntime._
 
   test("should throw exception if not able to resolve config service http server") {
-    val locationService = LocationServiceFactory.make()
-    val configService   = ConfigClientFactory.make(actorSystem, locationService)
+    val locationService    = LocationServiceFactory.make()
+    val configAdminService = ConfigClientFactory.makeAdmin(actorSystem, locationService)
 
     val exception = intercept[RuntimeException] {
-      Await.result(configService.list(), 7.seconds)
+      Await.result(configAdminService.list(), 7.seconds)
     }
 
     exception.getMessage shouldEqual (s"config service connection=${configConnection.name} can not be resolved")

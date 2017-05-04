@@ -1,13 +1,13 @@
 package csw.services.csclient.cli
 
 import csw.services.config.api.models.{ConfigData, ConfigId}
-import csw.services.config.api.scaladsl.ConfigService
+import csw.services.config.api.scaladsl.{ConfigAdminService, ConfigService}
 import csw.services.config.client.internal.ActorRuntime
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
 
-class CommandLineRunner(configService: ConfigService, actorRuntime: ActorRuntime) {
+class CommandLineRunner(configAdminService: ConfigAdminService, actorRuntime: ActorRuntime) {
 
   import actorRuntime._
 
@@ -16,22 +16,23 @@ class CommandLineRunner(configService: ConfigService, actorRuntime: ActorRuntime
     def create(): Unit = {
       val configData = ConfigData.fromPath(options.inputFilePath.get)
       val configId =
-        await(configService.create(options.relativeRepoPath.get, configData, annex = options.annex, options.comment))
+        await(configAdminService.create(options.relativeRepoPath.get, configData, annex = options.annex,
+            options.comment))
       println(s"File : ${options.relativeRepoPath.get} is created with id : ${configId.id}")
     }
 
     def update(): Unit = {
       val configData = ConfigData.fromPath(options.inputFilePath.get)
-      val configId   = await(configService.update(options.relativeRepoPath.get, configData, options.comment))
+      val configId   = await(configAdminService.update(options.relativeRepoPath.get, configData, options.comment))
       println(s"File : ${options.relativeRepoPath.get} is updated with id : ${configId.id}")
     }
 
     def get(): Unit = {
       val configDataOpt = (options.date, options.id, options.latest) match {
-        case (Some(date), _, _) ⇒ await(configService.getByTime(options.relativeRepoPath.get, date))
-        case (_, Some(id), _)   ⇒ await(configService.getById(options.relativeRepoPath.get, ConfigId(id)))
-        case (_, _, true)       ⇒ await(configService.getLatest(options.relativeRepoPath.get))
-        case (_, _, _)          ⇒ await(configService.getActive(options.relativeRepoPath.get))
+        case (Some(date), _, _) ⇒ await(configAdminService.getByTime(options.relativeRepoPath.get, date))
+        case (_, Some(id), _)   ⇒ await(configAdminService.getById(options.relativeRepoPath.get, ConfigId(id)))
+        case (_, _, true)       ⇒ await(configAdminService.getLatest(options.relativeRepoPath.get))
+        case (_, _, _)          ⇒ await(configAdminService.getActive(options.relativeRepoPath.get))
       }
 
       configDataOpt match {
@@ -43,33 +44,33 @@ class CommandLineRunner(configService: ConfigService, actorRuntime: ActorRuntime
     }
 
     def exists(): Unit = {
-      val exists = await(configService.exists(options.relativeRepoPath.get))
+      val exists = await(configAdminService.exists(options.relativeRepoPath.get))
       println(s"File ${options.relativeRepoPath.get} exists in the repo? : $exists")
     }
 
     def delete(): Unit = {
-      await(configService.delete(options.relativeRepoPath.get))
+      await(configAdminService.delete(options.relativeRepoPath.get))
       println(s"File ${options.relativeRepoPath.get} deletion is completed.")
     }
 
     def list(): Unit = {
-      val fileInfoes = await(configService.list(pattern = options.pattern))
+      val fileInfoes = await(configAdminService.list(pattern = options.pattern))
       fileInfoes.foreach(i ⇒ println(s"${i.path}\t${i.id.id}\t${i.comment}"))
     }
 
     def history(): Unit = {
-      val histList = await(configService.history(options.relativeRepoPath.get, options.maxFileVersions))
+      val histList = await(configAdminService.history(options.relativeRepoPath.get, options.maxFileVersions))
       histList.foreach(h => println(s"${h.id.id}\t${h.time}\t${h.comment}"))
     }
 
     def setActive(): Unit = {
       val maybeConfigId = options.id.map(id ⇒ ConfigId(id))
-      await(configService.setActive(options.relativeRepoPath.get, maybeConfigId.get, options.comment))
+      await(configAdminService.setActive(options.relativeRepoPath.get, maybeConfigId.get, options.comment))
       println(s"${options.relativeRepoPath.get} file with id:${maybeConfigId.get.id} is set as default")
     }
 
     def resetActive(): Unit = {
-      await(configService.resetActive(options.relativeRepoPath.get, options.comment))
+      await(configAdminService.resetActive(options.relativeRepoPath.get, options.comment))
       println(s"${options.relativeRepoPath.get} file is reset to default")
     }
 

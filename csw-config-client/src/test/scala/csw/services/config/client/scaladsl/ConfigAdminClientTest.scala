@@ -1,6 +1,6 @@
 package csw.services.config.client.scaladsl
 
-import csw.services.config.api.scaladsl.ConfigService
+import csw.services.config.api.scaladsl.{ConfigAdminService, ConfigService}
 import csw.services.config.client.internal.ActorRuntime
 import csw.services.config.server.commons.TestFutureExtension.RichFuture
 import csw.services.config.server.{ConfigServiceTest, ServerWiring}
@@ -16,7 +16,8 @@ class ConfigAdminClientTest extends ConfigServiceTest {
   private val actorRuntime = new ActorRuntime()
   import actorRuntime._
 
-  override val configService: ConfigService = ConfigClientFactory.make(actorSystem, clientLocationService)
+  override val configAdminService: ConfigAdminService =
+    ConfigClientFactory.makeAdmin(actorSystem, clientLocationService)
 
   override protected def beforeAll(): Unit = {
     super.beforeAll()

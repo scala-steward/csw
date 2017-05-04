@@ -8,7 +8,7 @@ import java.{lang ⇒ jl, util ⇒ ju}
 
 import csw.services.config.api.commons.FileType
 import csw.services.config.api.models.{ConfigData, ConfigFileInfo, ConfigFileRevision, ConfigId}
-import csw.services.config.api.scaladsl.ConfigService
+import csw.services.config.api.scaladsl.{ConfigAdminService, ConfigService}
 
 /**
  * Defines an interface for storing and retrieving configuration information
@@ -144,5 +144,5 @@ trait IConfigService {
   /**
    * Returns the Scala API for this instance of config service
    */
-  def asScala: ConfigService
+  def asScala: ConfigAdminService
 }

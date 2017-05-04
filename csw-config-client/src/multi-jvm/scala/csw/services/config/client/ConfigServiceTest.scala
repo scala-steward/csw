@@ -39,7 +39,7 @@ class ConfigServiceTest(ignore: Int) extends LSNodeSpec(config = new OneClientAn
       enterBarrier("server-started")
       val actorRuntime = new ActorRuntime(ActorSystem())
       import actorRuntime._
-      val configService = ConfigClientFactory.make(actorSystem, locationService)
+      val configAdminService = ConfigClientFactory.makeAdmin(actorSystem, locationService)
 
       val configValue: String =
         """
@@ -49,8 +49,8 @@ class ConfigServiceTest(ignore: Int) extends LSNodeSpec(config = new OneClientAn
           |""".stripMargin
 
       val file = Paths.get("test.conf")
-      configService.create(file, ConfigData.fromString(configValue), annex = false, "commit test file").await
-      val actualConfigValue = configService.getLatest(file).await.get.toStringF.await
+      configAdminService.create(file, ConfigData.fromString(configValue), annex = false, "commit test file").await
+      val actualConfigValue = configAdminService.getLatest(file).await.get.toStringF.await
       actualConfigValue shouldBe configValue
     }
   }

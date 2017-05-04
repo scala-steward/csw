@@ -7,17 +7,17 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.Uri.{Path, Query}
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.unmarshalling.Unmarshal
-import csw.services.config.api.commons.{BinaryUtils, FileType}
 import csw.services.config.api.commons.ConfigStreamExts.RichSource
+import csw.services.config.api.commons.{BinaryUtils, FileType}
 import csw.services.config.api.exceptions.{FileAlreadyExists, FileNotFound, InvalidFilePath}
 import csw.services.config.api.models.{JsonSupport, _}
-import csw.services.config.api.scaladsl.ConfigService
+import csw.services.config.api.scaladsl.ConfigAdminService
 
 import scala.async.Async._
 import scala.concurrent.Future
 
 class ConfigAdminClient(configServiceResolver: ConfigServiceResolver, actorRuntime: ActorRuntime)
-    extends ConfigService
+    extends ConfigAdminService
     with JsonSupport {
 
   import actorRuntime._
