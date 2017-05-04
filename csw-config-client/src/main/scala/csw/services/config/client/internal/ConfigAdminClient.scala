@@ -16,7 +16,7 @@ import csw.services.config.api.scaladsl.ConfigService
 import scala.async.Async._
 import scala.concurrent.Future
 
-class ConfigClient(configServiceResolver: ConfigServiceResolver, actorRuntime: ActorRuntime)
+class ConfigAdminClient(configServiceResolver: ConfigServiceResolver, actorRuntime: ActorRuntime)
     extends ConfigService
     with JsonSupport {
 
