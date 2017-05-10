@@ -4,7 +4,6 @@ import java.nio.file.{Path, Paths}
 import java.time.Instant
 
 import akka.stream.scaladsl.StreamConverters
-import com.typesafe.scalalogging.LazyLogging
 import csw.services.config.api.exceptions.{FileAlreadyExists, FileNotFound}
 import csw.services.config.api.models.{FileType, _}
 import csw.services.config.api.scaladsl.ConfigService
@@ -12,6 +11,7 @@ import csw.services.config.server.files.AnnexFileService
 import csw.services.config.server.{ActorRuntime, Settings}
 import csw.services.location.internal.StreamExt.RichSource
 import org.tmatesoft.svn.core.wc.SVNRevision
+import wvlet.log.LogSupport
 
 import scala.async.Async._
 import scala.concurrent.Future
@@ -19,7 +19,7 @@ import scala.util.control.NonFatal
 
 class SvnConfigService(settings: Settings, fileService: AnnexFileService, actorRuntime: ActorRuntime, svnRepo: SvnRepo)
     extends ConfigService
-    with LazyLogging {
+    with LogSupport {
 
   import actorRuntime._
 

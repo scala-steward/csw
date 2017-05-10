@@ -1,8 +1,8 @@
 package csw.services.location.commons
 
 import com.typesafe.config.{Config, ConfigFactory}
-import com.typesafe.scalalogging.LazyLogging
 import csw.services.location.internal.Networks
+import wvlet.log.LogSupport
 
 import scala.collection.JavaConverters._
 
@@ -49,7 +49,7 @@ import scala.collection.JavaConverters._
  *
  */
 case class ClusterSettings(clusterName: String = Constants.ClusterName, values: Map[String, Any] = Map.empty)
-    extends LazyLogging {
+    extends LogSupport {
   val InterfaceNameKey  = "interfaceName"
   val ClusterSeedsKey   = "clusterSeeds"
   val ClusterPortKey    = "clusterPort"

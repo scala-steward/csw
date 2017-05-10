@@ -7,12 +7,12 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.Uri.{Path, Query}
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.unmarshalling.Unmarshal
-import com.typesafe.scalalogging.LazyLogging
 import csw.services.config.api.commons.ConfigStreamExts.RichSource
 import csw.services.config.api.commons.{BinaryUtils, JsonSupport}
 import csw.services.config.api.exceptions.{FileAlreadyExists, FileNotFound, InvalidInput}
 import csw.services.config.api.models._
 import csw.services.config.api.scaladsl.ConfigService
+import wvlet.log.{LogFormatter, LogSupport, Logger}
 
 import scala.async.Async._
 import scala.concurrent.Future
@@ -20,7 +20,7 @@ import scala.concurrent.Future
 class ConfigClient(configServiceResolver: ConfigServiceResolver, actorRuntime: ActorRuntime)
     extends ConfigService
     with JsonSupport
-    with LazyLogging {
+    with LogSupport {
 
   import actorRuntime._
 

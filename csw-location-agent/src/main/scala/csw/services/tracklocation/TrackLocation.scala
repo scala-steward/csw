@@ -2,12 +2,12 @@ package csw.services.tracklocation
 
 import akka.Done
 import akka.actor.CoordinatedShutdown
-import com.typesafe.scalalogging.LazyLogging
 import csw.services.location.commons.{ClusterSettings, CswCluster}
 import csw.services.location.models.Connection.TcpConnection
 import csw.services.location.models._
 import csw.services.location.scaladsl.LocationServiceFactory
 import csw.services.tracklocation.models.Command
+import wvlet.log.LogSupport
 
 import scala.collection.immutable.Seq
 import scala.concurrent.duration.DurationDouble
@@ -18,7 +18,7 @@ import scala.util.control.NonFatal
 /**
  * Starts a given external program, registers it with the location service and unregisters it when the program exits.
  */
-class TrackLocation(names: List[String], command: Command, clusterSettings: ClusterSettings) extends LazyLogging {
+class TrackLocation(names: List[String], command: Command, clusterSettings: ClusterSettings) extends LogSupport {
 
   private val cswCluster      = CswCluster.withSettings(clusterSettings)
   private val locationService = LocationServiceFactory.withCluster(cswCluster)

@@ -1,8 +1,8 @@
 package csw.apps.clusterseed
 
-import com.typesafe.scalalogging.LazyLogging
 import csw.apps.clusterseed.cli.{ArgsParser, Options}
 import csw.services.location.commons.{ClusterAwareSettings, ClusterSettings, CswCluster}
+import wvlet.log.LogSupport
 
 class Main(clusterSettings: ClusterSettings) {
   def start(args: Array[String]): Unit =
@@ -14,7 +14,7 @@ class Main(clusterSettings: ClusterSettings) {
     }
 }
 
-object Main extends App with LazyLogging {
+object Main extends App with LogSupport {
   if (ClusterAwareSettings.seedNodes.isEmpty) {
     logger.error(
       "clusterSeeds setting is not specified either as env variable or system property. Please check online documentation for this set-up."

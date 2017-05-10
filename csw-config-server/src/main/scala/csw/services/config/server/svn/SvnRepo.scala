@@ -6,7 +6,6 @@ import java.time.Instant
 import java.util.regex.Pattern
 
 import akka.dispatch.MessageDispatcher
-import com.typesafe.scalalogging.LazyLogging
 import csw.services.config.api.models.FileType
 import csw.services.config.server.Settings
 import csw.services.config.server.commons.SVNDirEntryExt.RichSvnDirEntry
@@ -17,10 +16,11 @@ import org.tmatesoft.svn.core.io.diff.SVNDeltaGenerator
 import org.tmatesoft.svn.core.io.{SVNRepository, SVNRepositoryFactory}
 import org.tmatesoft.svn.core.wc.{SVNClientManager, SVNRevision}
 import org.tmatesoft.svn.core.wc2.{ISvnObjectReceiver, SvnOperationFactory, SvnTarget}
+import wvlet.log.LogSupport
 
 import scala.concurrent.Future
 
-class SvnRepo(settings: Settings, blockingIoDispatcher: MessageDispatcher) extends LazyLogging {
+class SvnRepo(settings: Settings, blockingIoDispatcher: MessageDispatcher) extends LogSupport {
 
   private implicit val _blockingIoDispatcher = blockingIoDispatcher
 

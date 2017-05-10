@@ -4,12 +4,12 @@ import akka.Done
 import akka.actor.CoordinatedShutdown
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.Http.ServerBinding
-import com.typesafe.scalalogging.LazyLogging
 import csw.services.config.server.{ActorRuntime, Settings}
 import csw.services.location.commons.ClusterAwareSettings
 import csw.services.location.models.Connection.HttpConnection
 import csw.services.location.models._
 import csw.services.location.scaladsl.LocationService
+import wvlet.log.LogSupport
 
 import scala.async.Async._
 import scala.concurrent.Future
@@ -19,7 +19,7 @@ class HttpService(locationService: LocationService,
                   configServiceRoute: ConfigServiceRoute,
                   settings: Settings,
                   actorRuntime: ActorRuntime)
-    extends LazyLogging {
+    extends LogSupport {
 
   import actorRuntime._
 

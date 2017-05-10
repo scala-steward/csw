@@ -11,9 +11,19 @@ import csw.services.config.server.files.Sha1
 import csw.services.config.server.{ConfigServiceTest, ServerWiring}
 import csw.services.location.commons.ClusterAwareSettings
 import csw.services.location.scaladsl.LocationServiceFactory
+import wvlet.log.LogFormatter.AppLogFormatter
+import wvlet.log.{FileHandler, LogFormatter, Logger}
 
 //DEOPSCSW-138:Split Config API into Admin API and Client API
 class ConfigAdminApiTest extends ConfigServiceTest {
+
+  Logger.setDefaultFormatter(LogFormatter.SourceCodeLogFormatter)
+
+  Logger.setDefaultHandler(
+      new FileHandler(
+        fileName = "your-app.log", // Log file name
+        formatter = AppLogFormatter // Any log formatter you like
+      ))
 
   private val clientLocationService = LocationServiceFactory.withSettings(ClusterAwareSettings.onPort(3552))
 

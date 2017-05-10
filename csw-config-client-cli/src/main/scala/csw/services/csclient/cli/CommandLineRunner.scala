@@ -2,15 +2,15 @@ package csw.services.csclient.cli
 
 import java.nio.file.Path
 
-import com.typesafe.scalalogging.LazyLogging
 import csw.services.config.api.models._
 import csw.services.config.api.scaladsl.ConfigService
 import csw.services.config.client.internal.ActorRuntime
+import wvlet.log.LogSupport
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
 
-class CommandLineRunner(configService: ConfigService, actorRuntime: ActorRuntime) extends LazyLogging {
+class CommandLineRunner(configService: ConfigService, actorRuntime: ActorRuntime) extends LogSupport {
 
   import actorRuntime._
 

@@ -4,6 +4,7 @@ import akka.actor.ActorSystem
 import csw.services.config.api.scaladsl.{ConfigClientService, ConfigService}
 import csw.services.config.client.internal.{ActorRuntime, ConfigClient, ConfigServiceResolver}
 import csw.services.location.scaladsl.LocationService
+import wvlet.log.{LogFormatter, Logger}
 
 object ConfigClientFactory {
   def adminApi(actorSystem: ActorSystem, locationService: LocationService): ConfigService = {

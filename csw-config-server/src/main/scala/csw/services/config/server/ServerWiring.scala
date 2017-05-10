@@ -8,8 +8,17 @@ import csw.services.config.server.http.{ConfigExceptionHandler, ConfigServiceRou
 import csw.services.config.server.svn.{SvnConfigService, SvnRepo}
 import csw.services.location.commons.{ClusterSettings, CswCluster}
 import csw.services.location.scaladsl.{LocationService, LocationServiceFactory}
+import wvlet.log.LogFormatter.AppLogFormatter
+import wvlet.log.{FileHandler, LogFormatter, Logger}
 
 class ServerWiring {
+  Logger.setDefaultFormatter(LogFormatter.SourceCodeLogFormatter)
+  Logger.setDefaultHandler(
+      new FileHandler(
+        fileName = "your-app.log", // Log file name
+        formatter = AppLogFormatter // Any log formatter you like
+      ))
+
   lazy val config: Config = ConfigFactory.load()
   lazy val settings       = new Settings(config)
 
