@@ -138,7 +138,8 @@ class SvnConfigService(settings: Settings, fileService: AnnexFileService, actorR
   override def list(fileType: Option[FileType] = None, pattern: Option[String] = None): Future[List[ConfigFileInfo]] =
     async {
       await(svnRepo.list(fileType, pattern)).map { entry =>
-        ConfigFileInfo(Paths.get(entry.getRelativePath), ConfigId(entry.getRevision), entry.getCommitMessage)
+        val commitMessage = if (entry.getCommitMessage != null) entry.getCommitMessage else ""
+        ConfigFileInfo(Paths.get(entry.getRelativePath), ConfigId(entry.getRevision), commitMessage)
       }
     }
 
@@ -277,7 +278,10 @@ class SvnConfigService(settings: Settings, fileService: AnnexFileService, actorR
 
   private def hist(path: Path, from: Instant, to: Instant, maxResults: Int): Future[List[ConfigFileRevision]] = async {
     await(svnRepo.hist(path, from, to, maxResults))
-      .map(e => ConfigFileRevision(ConfigId(e.getRevision), e.getMessage, e.getDate.toInstant))
+      .map(e => {
+        val message = if (e.getMessage != null) e.getMessage else ""
+        ConfigFileRevision(ConfigId(e.getRevision), message, e.getDate.toInstant)
+      })
   }
 
   // File used to store the SHA-1 of the actual file, if annexd.

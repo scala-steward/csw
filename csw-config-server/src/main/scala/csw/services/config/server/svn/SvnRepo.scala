@@ -11,8 +11,8 @@ import csw.services.config.api.models.FileType
 import csw.services.config.server.Settings
 import csw.services.config.server.commons.SVNDirEntryExt.RichSvnDirEntry
 import org.tmatesoft.svn.core._
-import org.tmatesoft.svn.core.auth.BasicAuthenticationManager
 import org.tmatesoft.svn.core.internal.io.fs.FSRepositoryFactory
+import org.tmatesoft.svn.core.internal.io.svn.SVNRepositoryFactoryImpl
 import org.tmatesoft.svn.core.io.diff.SVNDeltaGenerator
 import org.tmatesoft.svn.core.io.{SVNRepository, SVNRepositoryFactory}
 import org.tmatesoft.svn.core.wc.{SVNClientManager, SVNRevision}
@@ -26,9 +26,16 @@ class SvnRepo(settings: Settings, blockingIoDispatcher: MessageDispatcher) exten
 
   def initSvnRepo(): Unit =
     try {
-      // Create the new main repo
-      FSRepositoryFactory.setup()
-      SVNRepositoryFactory.createLocalRepository(settings.repositoryFile, false, false)
+      val protocol = settings.svnUrl.getProtocol
+
+      if (protocol == "file") {
+        FSRepositoryFactory.setup()
+        SVNRepositoryFactory.createLocalRepository(settings.repositoryFile, false, true)
+      } else if (protocol == "svn") {
+        SVNRepositoryFactoryImpl.setup()
+        SVNRepositoryFactory.createLocalRepository(settings.repositoryFile, false, true)
+        SVNRepositoryFactory.create(settings.svnUrl)
+      }
       logger.info(s"New Repository created at ${settings.svnUrl}")
     } catch {
       //If the repo already exists, print stracktrace and continue to boot
@@ -131,12 +138,15 @@ class SvnRepo(settings: Settings, blockingIoDispatcher: MessageDispatcher) exten
     // svn always stores file in the repo without '/' prefix.
     // Hence if input pattern is provided like '/root/', then prefix '/' need to be striped to get the list of files from root folder.
     val compiledPattern            = pattern.map(pat ⇒ Pattern.compile(pat.stripPrefix("/")))
+    val repository                 = SVNRepositoryFactory.create(settings.svnUrl)
     var entries: List[SVNDirEntry] = List.empty
     val receiver: ISvnObjectReceiver[SVNDirEntry] = { (_, entry: SVNDirEntry) ⇒
       if (entry.isFile && entry.isNotActiveFile(settings.`active-config-suffix`) && entry.matchesFileType(fileType,
             settings.`sha1-suffix`)) {
         entry.stripAnnexSuffix(settings.`sha1-suffix`)
         if (entry.matches(compiledPattern)) {
+          entry
+            .setCommitMessage(repository.getRevisionPropertyValue(entry.getRevision, SVNRevisionProperty.LOG).getString)
           entries = entry :: entries
         }
       }
@@ -203,9 +213,9 @@ class SvnRepo(settings: Settings, blockingIoDispatcher: MessageDispatcher) exten
 
   // Gets an object for accessing the svn repository (not reusing a single instance since not thread safe)
   private def svnHandle(): SVNRepository = {
-    val svn         = SVNRepositoryFactory.create(settings.svnUrl)
-    val authManager = BasicAuthenticationManager.newInstance(settings.`svn-user-name`, Array[Char]())
-    svn.setAuthenticationManager(authManager)
+    val svn = SVNRepositoryFactory.create(settings.svnUrl)
+//    val authManager = BasicAuthenticationManager.newInstance("user1", "password1".toArray)
+//    svn.setAuthenticationManager(authManager)
     svn
   }
 

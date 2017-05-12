@@ -28,13 +28,15 @@ class ConfigClientApiTest extends FunSuite with Matchers with BeforeAndAfterEach
   val configAdminService: ConfigService        = ConfigClientFactory.adminApi(actorSystem, clientLocationService)
 
   override protected def beforeEach(): Unit =
-    serverWiring.svnRepo.initSvnRepo()
+    testFileUtils.initRepoForTest(serverWiring.svnRepo)
 
   override protected def afterEach(): Unit =
     testFileUtils.deleteServerFiles()
 
-  override protected def beforeAll(): Unit =
+  override protected def beforeAll(): Unit = {
     httpService.registeredLazyBinding.await
+    testFileUtils.deleteServerFiles()
+  }
 
   override protected def afterAll(): Unit = {
     httpService.shutdown().await

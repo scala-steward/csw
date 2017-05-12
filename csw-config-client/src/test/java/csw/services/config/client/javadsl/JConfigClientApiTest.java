@@ -49,7 +49,7 @@ public class JConfigClientApiTest {
 
     @Before
     public void initSvnRepo() {
-        serverWiring.svnRepo().initSvnRepo();
+        testFileUtils.initRepoForTest(serverWiring.svnRepo());
     }
 
     @After

@@ -4,6 +4,8 @@ import java.io.File
 import java.nio.file.Paths
 
 import csw.services.config.server.Settings
+import csw.services.config.server.svn.SvnRepo
+import org.tmatesoft.svn.core.io.SVNRepositoryFactory
 
 class TestFileUtils(settings: Settings) {
 
@@ -34,6 +36,11 @@ class TestFileUtils(settings: Settings) {
       }
       dir.delete()
     }
+  }
+
+  def initRepoForTest(svnRepo: SvnRepo): Unit = {
+    svnRepo.initSvnRepo()
+    SVNRepositoryFactory.createLocalRepository(settings.repositoryFile, false, false)
   }
 
 }

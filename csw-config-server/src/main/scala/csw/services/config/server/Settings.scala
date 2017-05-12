@@ -21,7 +21,8 @@ class Settings(config: Config) {
   val `annex-min-file-size`: Long      = `csw-config-server`.getBytes("annex-min-file-size")
   val `max-content-length`: String     = `akka.http.server.parsing`.getString("max-content-length")
 
-  val repositoryFile: File               = Paths.get(`repository-dir`).toFile
-  val svnUrl: SVNURL                     = SVNURL.fromFile(repositoryFile)
+  val svnUrl: SVNURL                     = SVNURL.parseURIEncoded(`repository-dir`)
+  val repositoryFile: File               = Paths.get(svnUrl.getPath).toFile
   val annexMinFileSizeAsMetaInfo: String = `csw-config-server`.getString("annex-min-file-size")
+
 }

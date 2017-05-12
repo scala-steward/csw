@@ -57,7 +57,7 @@ public class JConfigAdminApiTest {
 
     @Before
     public void initSvnRepo() {
-        serverWiring.svnRepo().initSvnRepo();
+        testFileUtils.initRepoForTest(serverWiring.svnRepo());
     }
 
     @After

@@ -22,6 +22,9 @@ object Common extends AutoPlugin {
     scmInfo := Some(ScmInfo(url("https://github.com/tmtsoftware/csw-prod"), "git@github.com:tmtsoftware/csw-prod.git")),
     licenses := Seq(("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))),
 
+    resolvers +=
+      "svnkit-repo" at "https://maven.tmatesoft.com/content/repositories/releases/",
+
     scalacOptions ++= Seq(
       "-encoding", "UTF-8",
       "-feature",

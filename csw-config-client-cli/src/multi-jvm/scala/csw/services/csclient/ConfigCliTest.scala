@@ -40,7 +40,7 @@ class ConfigCliTest(ignore: Int) extends LSNodeSpec(config = new TwoClientsAndSe
     runOn(server) {
       // Start server on first node
       val serverWiring = ServerWiring.make(locationService)
-      serverWiring.svnRepo.initSvnRepo()
+      testFileUtils.initRepoForTest(serverWiring.svnRepo)
       serverWiring.httpService.registeredLazyBinding.await
       enterBarrier("server-started")
       enterBarrier("member1-create")

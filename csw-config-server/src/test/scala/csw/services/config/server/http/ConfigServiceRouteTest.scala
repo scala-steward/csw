@@ -9,6 +9,7 @@ import csw.services.config.api.models.{ConfigData, ConfigFileInfo, ConfigFileRev
 import csw.services.config.server.ServerWiring
 import csw.services.config.server.commons.TestFileUtils
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, FunSuite, Matchers}
+import org.tmatesoft.svn.core.io.SVNRepositoryFactory
 
 class ConfigServiceRouteTest
     extends FunSuite
@@ -37,7 +38,7 @@ class ConfigServiceRouteTest
     testFileUtils.deleteServerFiles()
 
   override protected def beforeEach(): Unit =
-    svnRepo.initSvnRepo()
+    testFileUtils.initRepoForTest(svnRepo)
 
   override protected def afterEach(): Unit =
     testFileUtils.deleteServerFiles()

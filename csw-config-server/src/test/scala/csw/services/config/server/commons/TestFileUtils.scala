@@ -4,13 +4,15 @@ import java.io.File
 import java.nio.file.Paths
 
 import csw.services.config.server.Settings
+import csw.services.config.server.svn.SvnRepo
+import org.tmatesoft.svn.core.io.SVNRepositoryFactory
 
 class TestFileUtils(settings: Settings) {
 
   def deleteServerFiles(): Unit = {
     val annexFileDir = Paths.get(settings.`annex-files-dir`).toFile
     deleteDirectoryRecursively(annexFileDir)
-    deleteDirectoryRecursively(settings.repositoryFile)
+    deleteDirectoryRecursively(settings.repositoryFile) //tmp/csw
   }
 
   /**
@@ -36,4 +38,8 @@ class TestFileUtils(settings: Settings) {
     }
   }
 
+  def initRepoForTest(svnRepo: SvnRepo): Unit = {
+    svnRepo.initSvnRepo()
+    SVNRepositoryFactory.createLocalRepository(settings.repositoryFile, false, false)
+  }
 }
