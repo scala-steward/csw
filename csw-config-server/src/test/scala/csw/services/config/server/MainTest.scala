@@ -32,10 +32,8 @@ class MainTest extends FunSuite with Matchers with BeforeAndAfterEach with Befor
   private val settings      = new Settings(ConfigFactory.load())
   private val testFileUtils = new TestFileUtils(settings)
 
-  override protected def afterEach(): Unit =
-    testFileUtils.deleteServerFiles()
-
   override protected def afterAll(): Unit = {
+    testFileUtils.deleteServerFiles()
     actorSystem.terminate().await
     locationService.shutdown().await
   }
@@ -52,7 +50,7 @@ class MainTest extends FunSuite with Matchers with BeforeAndAfterEach with Befor
   }
 
   test("should init svn repo and register with location service if --initRepo option is provided") {
-    SVNRepositoryFactory.createLocalRepository(settings.repositoryFile, false, false)
+    SVNRepositoryFactory.createLocalRepository(settings.repositoryFile, false, true)
     val httpService = new Main(clusterSettings).start(Array("--initRepo")).get
 
     try {
@@ -72,7 +70,7 @@ class MainTest extends FunSuite with Matchers with BeforeAndAfterEach with Befor
   }
 
   test("should not initialize svn repo if --initRepo option is not provided and should use existing repo if available") {
-    SVNRepositoryFactory.createLocalRepository(settings.repositoryFile, false, false)
+    SVNRepositoryFactory.createLocalRepository(settings.repositoryFile, false, true)
     // temporary start a server to create a repo and then shutdown the server
     val tmpHttpService = new Main(clusterSettings).start(Array("--initRepo")).get
     tmpHttpService.shutdown().await

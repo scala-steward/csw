@@ -40,6 +40,6 @@ class TestFileUtils(settings: Settings) {
 
   def initRepoForTest(svnRepo: SvnRepo): Unit = {
     svnRepo.initSvnRepo()
-    SVNRepositoryFactory.createLocalRepository(settings.repositoryFile, false, false)
+    SVNRepositoryFactory.createLocalRepository(settings.repositoryFile, false, true)
   }
 }

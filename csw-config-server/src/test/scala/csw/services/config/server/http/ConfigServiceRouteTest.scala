@@ -9,7 +9,6 @@ import csw.services.config.api.models.{ConfigData, ConfigFileInfo, ConfigFileRev
 import csw.services.config.server.ServerWiring
 import csw.services.config.server.commons.TestFileUtils
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, FunSuite, Matchers}
-import org.tmatesoft.svn.core.io.SVNRepositoryFactory
 
 class ConfigServiceRouteTest
     extends FunSuite
@@ -34,13 +33,10 @@ class ConfigServiceRouteTest
   private val configValue2 = "name = NFIRAOS Trombone Assembly"
   private val configFile2  = ConfigData.fromString(configValue2)
 
-  override protected def beforeAll(): Unit =
-    testFileUtils.deleteServerFiles()
-
   override protected def beforeEach(): Unit =
     testFileUtils.initRepoForTest(svnRepo)
 
-  override protected def afterEach(): Unit =
+  override protected def afterAll: Unit =
     testFileUtils.deleteServerFiles()
 
   /**

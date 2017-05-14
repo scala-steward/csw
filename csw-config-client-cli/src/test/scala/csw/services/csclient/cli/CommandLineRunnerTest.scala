@@ -26,14 +26,13 @@ class CommandLineRunnerTest extends FunSuite with Matchers with BeforeAndAfterAl
 
   override protected def beforeEach(): Unit = testFileUtils.initRepoForTest(serverWiring.svnRepo)
 
-  override protected def afterEach(): Unit = {
-    testFileUtils.deleteServerFiles()
+  override protected def afterEach(): Unit =
     if (Files.exists(Paths.get(outputFilePath))) {
       Files.delete(Paths.get(outputFilePath))
     }
-  }
 
   override protected def afterAll(): Unit = {
+    testFileUtils.deleteServerFiles()
     httpService.shutdown().await
     wiring.actorRuntime.shutdown().await
     Files.delete(Paths.get(inputFilePath))

@@ -19,7 +19,7 @@ class AnnexFileServiceTest extends FunSuite with Matchers with BeforeAndAfterAll
 
   import actorRuntime._
 
-  val contents =
+  val contents: String =
     """
       |test {We think, this is some annex text!!!!}
       |test2 {We think, this is some annex text!!!!}
