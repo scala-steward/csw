@@ -2,16 +2,16 @@ package csw.services.csclient.cli
 
 import java.nio.file.Path
 
-import com.typesafe.scalalogging.LazyLogging
+import com.persist.logging._
 import csw.services.config.api.exceptions.FileNotFound
 import csw.services.config.api.models._
 import csw.services.config.api.scaladsl.ConfigService
 import csw.services.config.client.internal.ActorRuntime
 
-import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
 
-class CommandLineRunner(configService: ConfigService, actorRuntime: ActorRuntime) extends LazyLogging {
+class CommandLineRunner(configService: ConfigService, actorRuntime: ActorRuntime) extends ClassLogging {
 
   import actorRuntime._
 
@@ -57,17 +57,21 @@ class CommandLineRunner(configService: ConfigService, actorRuntime: ActorRuntime
   def list(options: Options): List[ConfigFileInfo] =
     (options.annex, options.normal) match {
       case (true, true) ⇒
+        log.info("in list", id = RequestId())
         println("Please provide either normal or annex. See --help to know more.")
         List.empty[ConfigFileInfo]
       case (true, _) ⇒
+        log.info("in list", id = RequestId())
         val fileEntries = await(configService.list(Some(FileType.Annex), options.pattern))
         fileEntries.foreach(i ⇒ println(s"${i.path}\t${i.id.id}\t${i.comment}"))
         fileEntries
       case (_, true) ⇒
+        log.info("in list", id = RequestId())
         val fileEntries = await(configService.list(Some(FileType.Normal), options.pattern))
         fileEntries.foreach(i ⇒ println(s"${i.path}\t${i.id.id}\t${i.comment}"))
         fileEntries
       case (_, _) ⇒
+        log.info("in list", id = RequestId())
         val fileEntries = await(configService.list(pattern = options.pattern))
         fileEntries.foreach(i ⇒ println(s"${i.path}\t${i.id.id}\t${i.comment}"))
         fileEntries

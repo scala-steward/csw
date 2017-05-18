@@ -17,6 +17,7 @@ object Libs {
   val svnkit                         = "org.tmatesoft.svnkit"       % "svnkit"                        % "1.8.11" //TMate Open Source License
   val `commons-codec`                = "commons-codec"              % "commons-codec"                 % "1.10" //Apache 2.0
   val `spray-json`                   = "io.spray"                   %% "spray-json"                   % "1.3.3" force ()
+  val `persist_logging`              = "com.persist"                % "persist-logging_2.12"          % "1.3.2"
 }
 
 object Akka {

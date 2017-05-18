@@ -1,5 +1,7 @@
 package csw.services.location.internal
 
+import java.time.Instant
+
 import akka.Done
 import akka.cluster.ddata.Replicator._
 import akka.cluster.ddata._
@@ -7,6 +9,7 @@ import akka.pattern.ask
 import akka.stream.scaladsl.{Sink, Source}
 import akka.stream.{KillSwitch, OverflowStrategy}
 import akka.util.Timeout
+import com.persist.logging._
 import csw.services.location.commons.CswCluster
 import csw.services.location.exceptions.{
   OtherLocationIsRegistered,
@@ -99,6 +102,8 @@ private[location] class LocationServiceImpl(cswCluster: CswCluster) extends Loca
    * Resolves the location for a connection from the local cache
    */
   def find(connection: Connection): Future[Option[Location]] = async {
+    log.trace(Map("@msg" → "in find", "time" → Instant.now().toString))
+    log.debug("hello")
     await(list).find(_.connection == connection)
   }
 
@@ -106,6 +111,7 @@ private[location] class LocationServiceImpl(cswCluster: CswCluster) extends Loca
    * Resolve a location for the given connection
    */
   override def resolve(connection: Connection, within: FiniteDuration): Future[Option[Location]] = async {
+    log.info("in resolve")
     val foundInLocalCache = await(find(connection))
     if (foundInLocalCache.isDefined) foundInLocalCache else await(resolveWithin(connection, within))
   }

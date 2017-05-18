@@ -8,6 +8,7 @@ import akka.cluster.http.management.ClusterHttpManagement
 import akka.cluster.{Cluster, MemberStatus}
 import akka.stream.{ActorMaterializer, Materializer}
 import akka.util.Timeout
+import com.persist.logging.LoggingSystem
 import csw.services.location.ClusterConfirmationActor
 import csw.services.location.ClusterConfirmationActor.HasJoinedCluster
 
@@ -21,6 +22,7 @@ import scala.util.control.NonFatal
  * ''Note: '' It is highly recommended that explicit creation of CswCluster should be for advanced usages or testing purposes only
  */
 class CswCluster private (_actorSystem: ActorSystem) {
+  val loggingSystem = LoggingSystem(_actorSystem, "name1", "verion1", ClusterSettings().hostname)
 
   /**
    * Identifies the hostname where ActorSystem is running
@@ -28,9 +30,10 @@ class CswCluster private (_actorSystem: ActorSystem) {
   val hostname: String = _actorSystem.settings.config.getString("akka.remote.netty.tcp.hostname")
 
   implicit val actorSystem: ActorSystem = _actorSystem
-  implicit val ec: ExecutionContext     = actorSystem.dispatcher
-  implicit val mat: Materializer        = makeMat()
-  implicit val cluster                  = Cluster(actorSystem)
+
+  implicit val ec: ExecutionContext = actorSystem.dispatcher
+  implicit val mat: Materializer    = makeMat()
+  implicit val cluster              = Cluster(actorSystem)
 
   /**
    * Gives the replicator for the current ActorSystem
@@ -46,6 +49,11 @@ class CswCluster private (_actorSystem: ActorSystem) {
    * Creates an ActorMaterializer for current ActorSystem
    */
   def makeMat(): Materializer = ActorMaterializer()
+
+  coordinatedShutdown.addTask(
+    CoordinatedShutdown.PhaseBeforeActorSystemTerminate,
+    "loggingShutdown"
+  )(() => loggingSystem.stop.map(_ ⇒ Done))
 
   /**
    * aaa

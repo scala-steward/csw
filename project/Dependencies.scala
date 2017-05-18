@@ -15,6 +15,7 @@ object Dependencies {
     AkkaHttp.`akka-http`,
     Libs.`scala-logging`,
     Libs.`logback-classic`,
+    Libs.`persist_logging`,
     Libs.`scalatest`               % Test,
     Libs.`junit`                   % Test,
     Libs.`junit-interface`         % Test,
@@ -37,6 +38,7 @@ object Dependencies {
     Libs.`scopt`,
     Libs.`scala-logging`,
     Libs.`logback-classic`,
+    Libs.`persist_logging`,
     Libs.`scalatest`               % Test,
     Libs.`scala-logging`           % Test,
     Akka.`akka-multi-node-testkit` % Test

@@ -3,6 +3,7 @@ package csw.services.location.scaladsl
 import akka.Done
 import akka.stream.KillSwitch
 import akka.stream.scaladsl.Source
+import com.persist.logging._
 import csw.services.location.models._
 
 import scala.concurrent.Future
@@ -11,7 +12,7 @@ import scala.concurrent.duration.FiniteDuration
 /**
  * A LocationService interface to manage registrations. All operations are non-blocking.
  */
-trait LocationService {
+trait LocationService extends ClassLogging {
 
   /**
    * Registers a connection -> location in cluster
