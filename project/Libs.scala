@@ -21,6 +21,7 @@ object Libs {
   val `persist-json`                 = "com.persist"            %% "persist-json"                 % "1.2.0"
   val `joda-time`                    = "joda-time"              % "joda-time"                     % "2.9.9"
   val `scala-reflect`                = "org.scala-lang"         % "scala-reflect"                 % ScalaVersion
+  val `scala-compiler`               = "org.scala-lang"         % "scala-compiler"                % ScalaVersion
 }
 
 object Akka {

@@ -35,7 +35,8 @@ lazy val `csw-prod` = project
 
 lazy val `csw-logging-macros` = project
   .settings(
-    libraryDependencies += Libs.`scala-reflect`
+    libraryDependencies += Libs.`scala-reflect`,
+    libraryDependencies += Libs.`scala-compiler`
   )
 
 //Logging service
