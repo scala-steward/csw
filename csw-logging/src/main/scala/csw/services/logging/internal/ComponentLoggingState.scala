@@ -1,30 +1,31 @@
 package csw.services.logging.internal
 
 import csw.services.logging.internal.LoggingLevels._
-import csw.services.logging.macros.DefaultSourceLocation
-
-import scala.collection.mutable
 
 /**
   * Created by gillies on 6/29/17.
   */
 private[logging] trait ComponentLoggingState {
 
-  // Queue of messages sent before logger is started
-  private[logging] val msgs = new mutable.Queue[LogActorMessages]()
 
-  // Deal with messages send before logger was ready
+
+  //private[this] val loggingConfig = system.settings.config.getConfig("csw-logging")
+
+  //private[this] val levels = loggingConfig.getString("logLevel")
+
   /*
-  msgs.synchronized {
-    if (msgs.nonEmpty) {
-      log.info(s"Saw ${msgs.size} messages before logger start")(() => DefaultSourceLocation)
-      for (msg <- msgs) {
-        MessageHandler.sendMsg(msg)
-      }
-    }
-    msgs.clear()
+  private[this] val defaultLevel: Level = if (Level.hasLevel(levels)) {
+    Level(levels)
+  } else {
+    throw new Exception("Bad value for csw-logging.logLevel")
   }
   */
+  val defaultLevel = Level("DEBUG")  // Temporary while trying to get working
+
+  var logLevel: Level = defaultLevel
+
+
+
 
   @volatile var doTrace: Boolean = false
   @volatile var doDebug: Boolean = false

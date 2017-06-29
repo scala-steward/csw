@@ -2,18 +2,34 @@ package csw.services.logging.scaladsl
 
 import csw.services.logging.RichMsg
 import csw.services.logging.internal.LoggingLevels._
-import csw.services.logging.internal.{ComponentLoggingState, Log, LogAltMessage}
+import csw.services.logging.internal.LoggingState.{loggerStopping, maybeLogActor}
+import csw.services.logging.internal._
 import csw.services.logging.macros.{SourceFactory, SourceLocation}
 import org.jboss.netty.logging.{InternalLoggerFactory, Slf4JLoggerFactory}
 
+import scala.collection.mutable
+
 class LoggerImpl private[logging] (componentName: Option[String], actorName: Option[String]) extends Logger with ComponentLoggingState {
+
+  // Deal with messages send before logger was ready
+  /*
+  msgs.synchronized {
+    if (msgs.nonEmpty) {
+      log.info(s"Saw ${msgs.size} messages before logger start")(() => DefaultSourceLocation)
+      for (msg <- msgs) {
+        MessageHandler.sendMsg(msg)
+      }
+    }
+    msgs.clear()
+  }
+  */
 
   // Fix to avoid 'java.util.concurrent.RejectedExecutionException: Worker has already been shutdown'
   InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory)
 
   private def all(level: Level, id: AnyId, msg: => Any, ex: Throwable, sourceLocation: SourceLocation): Unit = {
     val t = System.currentTimeMillis()
-    sendMsg(Log(componentName, level, id, t, actorName, msg, sourceLocation, ex))
+    MessageHandler.sendMsg(Log(componentName, level, id, t, actorName, msg, sourceLocation, ex))
   }
 
   private def has(id: AnyId, level: Level): Boolean =
@@ -49,5 +65,5 @@ class LoggerImpl private[logging] (componentName: Option[String], actorName: Opt
                                             ex: Throwable,
                                             id: AnyId,
                                             time: Long): Unit =
-    sendMsg(LogAltMessage(category, time, m ++ Map("@category" -> category), id, ex))
+    MessageHandler.sendMsg(LogAltMessage(category, time, m ++ Map("@category" -> category), id, ex))
 }

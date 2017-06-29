@@ -4,10 +4,15 @@ import TimeActorMessages.{TimeEnd, TimeStart}
 import csw.services.logging.internal.LoggingState._
 import csw.services.logging.scaladsl.RequestId
 
+import scala.collection.mutable
+
 /**
  * Acts as a single point of entry for messages from various loggers and redirects them to the log actor
  */
 object MessageHandler {
+
+  // Queue of messages sent before logger is started
+  private[logging] val msgs = new mutable.Queue[LogActorMessages]()
 
   /**
    * Sends message to LogActor or maintains it in a queue till the log actor is not available

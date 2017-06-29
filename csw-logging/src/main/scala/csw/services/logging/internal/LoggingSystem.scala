@@ -10,7 +10,6 @@ import csw.services.logging.appenders.LogAppenderBuilder
 import csw.services.logging.internal.TimeActorMessages.TimeDone
 import csw.services.logging.macros.DefaultSourceLocation
 import csw.services.logging.models.{FilterSet, LogMetadata}
-import csw.services.logging.scaladsl.GenericLogger
 import org.slf4j.LoggerFactory
 
 import scala.compat.java8.FutureConverters.FutureOps
@@ -30,8 +29,7 @@ class LoggingSystem(name: String,
                     version: String,
                     host: String,
                     system: ActorSystem,
-                    appenderBuilders: Seq[LogAppenderBuilder])
-    extends GenericLogger.Simple {
+                    appenderBuilders: Seq[LogAppenderBuilder]) {
 
   import LoggingLevels._
 
@@ -98,7 +96,7 @@ class LoggingSystem(name: String,
     None
   }
 
-  setFilter(Some(filterSet.check))
+  //setFilter(Some(filterSet.check))
 
   if (time) {
     // Start timing actor
@@ -184,19 +182,23 @@ class LoggingSystem(name: String,
    *                and returns false if
    *                that message is to be discarded.
    */
+  /*
   def setFilter(filter: Option[(Map[String, RichMsg], Level) => Boolean]): Unit =
     logActor ! SetFilter(filter)
+    */
 
   /**
    * Add a filter to get logs of a given component at a level different than the other components
    * @param componentName name of the component
    * @param level log level to be set for the given component
    */
+  /*
   def addFilter(componentName: String, level: LoggingLevels.Level): Unit = {
     filterSet = filterSet.add(componentName, level)
     setFilter(Some(filterSet.check))
     setLevel(filterSet.filters.values.min)
   }
+  */
 
   /**
    * Get the basic logging configuration values
