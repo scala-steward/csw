@@ -10,15 +10,6 @@ import scala.concurrent.Promise
  */
 private[logging] object LoggingState {
 
-  // Queue of messages sent before logger is started
-  private[logging] val msgs = new mutable.Queue[LogActorMessages]()
-
-  @volatile var doTrace: Boolean = false
-  @volatile var doDebug: Boolean = false
-  @volatile var doInfo: Boolean  = true
-  @volatile var doWarn: Boolean  = true
-  @volatile var doError: Boolean = true
-
 //  private[logging] var loggingSys: LoggingSystem = null
 
   private[logging] var maybeLogActor: Option[ActorRef] = None

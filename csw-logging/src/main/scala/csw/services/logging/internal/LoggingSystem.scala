@@ -79,7 +79,7 @@ class LoggingSystem(name: String,
   val standardHeaders: Map[String, RichMsg] =
     Map[String, RichMsg]("@host" -> host, "@name" -> name, "@version" -> version)
 
-  setLevel(defaultLevel)
+  //setLevel(defaultLevel)
   LoggingState.loggerStopping = false
   LoggingState.doTime = false
   LoggingState.timeActorOption = None
@@ -110,6 +110,7 @@ class LoggingSystem(name: String,
   }
 
   // Deal with messages send before logger was ready
+  /*
   LoggingState.msgs.synchronized {
     if (LoggingState.msgs.nonEmpty) {
       log.info(s"Saw ${LoggingState.msgs.size} messages before logger start")(() => DefaultSourceLocation)
@@ -119,6 +120,7 @@ class LoggingSystem(name: String,
     }
     LoggingState.msgs.clear()
   }
+  */
 
   /**
    * Get logging levels.
@@ -130,6 +132,7 @@ class LoggingSystem(name: String,
    * Changes the logger API logging level.
    * @param level the new logging level for the logger API.
    */
+  /*
   def setLevel(level: Level): Unit = {
     import LoggingState._
     logLevel = level
@@ -139,6 +142,7 @@ class LoggingSystem(name: String,
     doWarn = level.pos <= WARN.pos
     doError = level.pos <= ERROR.pos
   }
+  */
 
   /**
    * Get Akka logging levels

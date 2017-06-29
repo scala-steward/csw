@@ -2,19 +2,18 @@ package csw.services.logging.scaladsl
 
 import csw.services.logging.RichMsg
 import csw.services.logging.internal.LoggingLevels._
-import csw.services.logging.internal.LoggingState._
-import csw.services.logging.internal.{Log, LogAltMessage, MessageHandler}
+import csw.services.logging.internal.{ComponentLoggingState, Log, LogAltMessage}
 import csw.services.logging.macros.{SourceFactory, SourceLocation}
 import org.jboss.netty.logging.{InternalLoggerFactory, Slf4JLoggerFactory}
 
-class LoggerImpl private[logging] (componentName: Option[String], actorName: Option[String]) extends Logger {
+class LoggerImpl private[logging] (componentName: Option[String], actorName: Option[String]) extends Logger with ComponentLoggingState {
 
   // Fix to avoid 'java.util.concurrent.RejectedExecutionException: Worker has already been shutdown'
   InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory)
 
   private def all(level: Level, id: AnyId, msg: => Any, ex: Throwable, sourceLocation: SourceLocation): Unit = {
     val t = System.currentTimeMillis()
-    MessageHandler.sendMsg(Log(componentName, level, id, t, actorName, msg, sourceLocation, ex))
+    sendMsg(Log(componentName, level, id, t, actorName, msg, sourceLocation, ex))
   }
 
   private def has(id: AnyId, level: Level): Boolean =
@@ -50,5 +49,5 @@ class LoggerImpl private[logging] (componentName: Option[String], actorName: Opt
                                             ex: Throwable,
                                             id: AnyId,
                                             time: Long): Unit =
-    MessageHandler.sendMsg(LogAltMessage(category, time, m ++ Map("@category" -> category), id, ex))
+    sendMsg(LogAltMessage(category, time, m ++ Map("@category" -> category), id, ex))
 }
