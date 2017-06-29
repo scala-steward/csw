@@ -2,7 +2,6 @@ package csw.services.logging.internal
 
 import akka.actor._
 
-import scala.collection.mutable
 import scala.concurrent.Promise
 
 /**

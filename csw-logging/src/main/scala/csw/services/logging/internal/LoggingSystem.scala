@@ -108,17 +108,12 @@ class LoggingSystem(name: String,
   }
 
   // Deal with messages send before logger was ready
-  /*
-  LoggingState.msgs.synchronized {
-    if (LoggingState.msgs.nonEmpty) {
-      log.info(s"Saw ${LoggingState.msgs.size} messages before logger start")(() => DefaultSourceLocation)
-      for (msg <- LoggingState.msgs) {
-        MessageHandler.sendMsg(msg)
-      }
-    }
-    LoggingState.msgs.clear()
+
+  val msgsSize:Int = MessageHandler.checkMsgSize
+  if (msgsSize > 0) {
+    log.info (s"Saw ${msgsSize} messages before logger start") (() => DefaultSourceLocation)
+    MessageHandler.sendStoredMsgs()
   }
-  */
 
   /**
    * Get logging levels.

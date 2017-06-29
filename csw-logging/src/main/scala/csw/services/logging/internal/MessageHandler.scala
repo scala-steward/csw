@@ -14,6 +14,16 @@ object MessageHandler {
   // Queue of messages sent before logger is started
   private[logging] val msgs = new mutable.Queue[LogActorMessages]()
 
+  private[logging] def sendStoredMsgs():Unit = {
+    // Deal with messages send before logger was ready
+    msgs.synchronized {
+      msgs.foreach(MessageHandler.sendMsg(_))
+      msgs.clear()
+    }
+  }
+
+  private[logging] def checkMsgSize:Int = msgs.size
+
   /**
    * Sends message to LogActor or maintains it in a queue till the log actor is not available
    * @param msg
