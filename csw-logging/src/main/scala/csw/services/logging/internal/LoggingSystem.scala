@@ -9,7 +9,7 @@ import csw.services.logging.RichMsg
 import csw.services.logging.appenders.LogAppenderBuilder
 import csw.services.logging.internal.TimeActorMessages.TimeDone
 import csw.services.logging.macros.DefaultSourceLocation
-import csw.services.logging.models.LogMetadata
+import csw.services.logging.models.{ComponentDefaults, LogMetadata}
 import csw.services.logging.scaladsl.GenericLogger
 import org.slf4j.LoggerFactory
 
@@ -34,8 +34,7 @@ class LoggingSystem(name: String,
 
   import LoggingLevels._
 
-  private[this] val loggingConfig =
-    system.settings.config.getConfig("csw-logging")
+  private[this] val loggingConfig = system.settings.config.getConfig("csw-logging")
 
   private[this] val levels = loggingConfig.getString("logLevel")
   private[this] val defaultLevel: Level = if (Level.hasLevel(levels)) {
@@ -43,7 +42,6 @@ class LoggingSystem(name: String,
   } else {
     throw new Exception("Bad value for csw-logging.logLevel")
   }
- // @volatile var logLevel: Level = defaultLevel
 
   private[this] val akkaLogLevelS = loggingConfig.getString("akkaLogLevel")
   private[this] val defaultAkkaLogLevel: Level =
@@ -70,7 +68,8 @@ class LoggingSystem(name: String,
   private[this] val done                          = Promise[Unit]
   private[this] val timeActorDonePromise          = Promise[Unit]
 
-  //@volatile private[this] var filterSet = FilterSet.from(loggingConfig)
+  private[this] var defaultLoggingLevelsSet = ComponentDefaults.from(loggingConfig)
+  println(s"Its: $defaultLoggingLevelsSet")
 
   /**
    * Standard headers.
@@ -97,8 +96,6 @@ class LoggingSystem(name: String,
     None
   }
 
-  //setFilter(Some(filterSet.check))
-
   if (time) {
     // Start timing actor
     LoggingState.doTime = true
@@ -117,26 +114,10 @@ class LoggingSystem(name: String,
   }
 
   /**
-   * Get logging levels.
+   * Get default logging level for a component.
    * @return the current and default logging levels.
    */
-  //def getLevel: Levels = Levels(logLevel, defaultLevel)
-
-  /**
-   * Changes the logger API logging level.
-   * @param level the new logging level for the logger API.
-   */
-  /*
-  def setLevel(level: Level): Unit = {
-    import LoggingState._
-    logLevel = level
-    doTrace = level.pos <= TRACE.pos
-    doDebug = level.pos <= DEBUG.pos
-    doInfo = level.pos <= INFO.pos
-    doWarn = level.pos <= WARN.pos
-    doError = level.pos <= ERROR.pos
-  }
-  */
+  def getLevel(componentName: String): Level = defaultLoggingLevelsSet.defaults.getOrElse(componentName, LoggingLevels.ERROR)
 
   /**
    * Get Akka logging levels
@@ -169,38 +150,10 @@ class LoggingSystem(name: String,
   }
 
   /**
-   * Sets or removes the logging filter.
-   * Filter applies only to the common log.
-   * You may want to increase the logging level after adding the filter.
-   * Note that a filter together with an increased logging level will
-   * require more processing overhead.
-   * @param filter  takes the complete common log message and the logging level
-   *                and returns false if
-   *                that message is to be discarded.
-   */
-  /*
-  def setFilter(filter: Option[(Map[String, RichMsg], Level) => Boolean]): Unit =
-    logActor ! SetFilter(filter)
-    */
-
-  /**
-   * Add a filter to get logs of a given component at a level different than the other components
-   * @param componentName name of the component
-   * @param level log level to be set for the given component
-   */
-  /*
-  def addFilter(componentName: String, level: LoggingLevels.Level): Unit = {
-    filterSet = filterSet.add(componentName, level)
-    setFilter(Some(filterSet.check))
-    setLevel(filterSet.filters.values.min)
-  }
-  */
-
-  /**
    * Get the basic logging configuration values
    * @return LogMetadata which comprises of current root log level, akka log level, sl4j log level and current set of filters
    */
-  def getLogMetadata: LogMetadata = LogMetadata(getAkkaLevel.current, getSlf4jLevel.current)
+  def getLogMetadata: LogMetadata = LogMetadata(getAkkaLevel.current, getSlf4jLevel.current, defaultLoggingLevelsSet)
 
   /**
    * Shut down the logging system.

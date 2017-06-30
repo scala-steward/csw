@@ -84,7 +84,7 @@ class LoggingTest extends LoggingTestSuite {
     //  TromboneHcd component is logging 6 messages
     //  As per the filter, hcd should log 5 message of all the levels except TRACE
     val tromboneHCD = new TromboneHcd()
-//    tromboneHCD.setLevel(level)
+//    tromboneHCD.setLevel(logLevel)
     tromboneHCD.startLogging(logMsgMap)
     Thread.sleep(200)
 
@@ -155,7 +155,7 @@ class LoggingTest extends LoggingTestSuite {
       //loggingSystem.setLevel(logLevel)
 
       val tromboneAssembly = new TromboneAssembly()
-//      tromboneAssembly.setLevel(logLevel)
+      tromboneAssembly.setLevel(logLevel)
       tromboneAssembly.startLogging(logMsgMap)
       Thread.sleep(200)
 

@@ -1,10 +1,14 @@
 package csw.services.logging.components
 
+import csw.services.logging.internal.LoggingLevels.Level
 import csw.services.logging.scaladsl.ComponentLogger
 
 object TromboneAssemblyLogger extends ComponentLogger("tromboneAssembly")
 
 class TromboneAssembly() extends TromboneAssemblyLogger.Simple {
+
+  def setLevel(level: Level): Unit = log.setLogLevel(level)
+
   def startLogging(logs: Map[String, String]): Unit = {
     log.trace(logs("trace"))
     log.debug(logs("debug"))

@@ -13,7 +13,7 @@ import csw.services.location.models.Connection.AkkaConnection
 import csw.services.location.models.{AkkaRegistration, ComponentId, ComponentType}
 import csw.services.logging.internal.LoggingLevels.{Level, WARN}
 import csw.services.logging.internal.{GetComponentLogMetadata, LoggingLevels, LoggingSystem, SetComponentLogLevel}
-import csw.services.logging.models.LogMetadata
+import csw.services.logging.models.{ComponentDefaults, LogMetadata}
 import csw.services.logging.scaladsl.ComponentLogger
 
 import scala.concurrent.Await
@@ -72,12 +72,11 @@ class LogAdminTest extends AdminLogTestSuite with HttpSupport {
     val logLevel   = Level(config.getString("logLevel"))
     val akkaLevel  = Level(config.getString("akkaLogLevel"))
     val slf4jLevel = Level(config.getString("slf4jLogLevel"))
-    //val filterSet  = FilterSet.from(config)
+    val componentDefaultsSet  = ComponentDefaults.from(config)
 
-    logMetadata1 shouldBe LogMetadata(akkaLevel, slf4jLevel)
+    logMetadata1 shouldBe LogMetadata(akkaLevel, slf4jLevel, componentDefaultsSet)
 
     // updating default and akka log level
-    //loggingSystem.setLevel(LoggingLevels.ERROR)
     tromboneActorRef ! SetComponentLogLevel(LoggingLevels.ERROR)
     loggingSystem.setAkkaLevel(LoggingLevels.WARN)
 
@@ -85,7 +84,7 @@ class LogAdminTest extends AdminLogTestSuite with HttpSupport {
     val getLogMetadataResponse2 = Await.result(Http().singleRequest(getLogMetadataRequest), 5.seconds)
     val logMetadata2            = Await.result(Unmarshal(getLogMetadataResponse2).to[LogMetadata], 5.seconds)
 
-    logMetadata2 shouldBe LogMetadata(WARN, slf4jLevel)
+    logMetadata2 shouldBe LogMetadata(WARN, slf4jLevel, componentDefaultsSet)
 
     // reset log levels to default
     //loggingSystem.setLevel(logLevel)
