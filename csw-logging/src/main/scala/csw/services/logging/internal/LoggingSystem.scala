@@ -69,7 +69,6 @@ class LoggingSystem(name: String,
   private[this] val timeActorDonePromise          = Promise[Unit]
 
   private[this] var defaultLoggingLevelsSet = ComponentDefaults.from(loggingConfig)
-  println(s"Its: $defaultLoggingLevelsSet")
 
   /**
    * Standard headers.
