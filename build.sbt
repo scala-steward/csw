@@ -118,6 +118,12 @@ lazy val `csw-config-client-cli` = project
     libraryDependencies ++= Dependencies.CswConfigClientCli
   )
 
+lazy val `csw-framework` = project
+  .dependsOn(`csw-params`)
+  .settings(
+    libraryDependencies ++= Dependencies.Framework
+  )
+
 //Integration test project
 lazy val integration = project
   .enablePlugins(DeployApp)

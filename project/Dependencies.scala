@@ -96,6 +96,12 @@ object Dependencies {
     Akka.`akka-stream-testkit`     % Test
   )
 
+  val Framework = Seq(
+    Akka.`akka-typed`,
+    Akka.`akka-typed-testkit` % Test,
+    Libs.`scalatest`          % Test
+  )
+
   val CswClusterSeed = Seq(
     AkkaHttp.`akka-http`,
     Libs.`scopt`,
