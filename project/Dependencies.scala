@@ -88,7 +88,9 @@ object Dependencies {
   val CswClusterSeed = Seq(
     AkkaHttp.`akka-http`,
     Libs.`scopt`,
-    Libs.`scalatest` % Test
+    Libs.`scala-java8-compat`,
+    Libs.`scalatest`             % Test,
+    AkkaHttp.`akka-http-testkit` % Test
   )
 
   val CswProdExamples = Seq(
