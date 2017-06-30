@@ -20,5 +20,5 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol with Cluster
   }
 
   implicit val filterSetFormat: RootJsonFormat[FilterSet]     = jsonFormat1(FilterSet.apply)
-  implicit val logMetadataFormat: RootJsonFormat[LogMetadata] = jsonFormat4(LogMetadata.apply)
+  implicit val logMetadataFormat: RootJsonFormat[LogMetadata] = jsonFormat2(LogMetadata.apply)
 }

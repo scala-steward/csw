@@ -20,12 +20,10 @@ private[logging] trait ComponentLoggingState {
     throw new Exception("Bad value for csw-logging.logLevel")
   }
   */
-  val defaultLevel = Level("DEBUG")  // Temporary while trying to get working
+  val defaultLevel = Level("TRACE")  // Temporary while trying to get working -- needs to come from config file?
 
-  var logLevel: Level = defaultLevel
-
-
-
+  var componentLogLevel: Level = LoggingLevels.TRACE
+  setComponentLevel(componentLogLevel)
 
   @volatile var doTrace: Boolean = false
   @volatile var doDebug: Boolean = false
@@ -45,8 +43,8 @@ private[logging] trait ComponentLoggingState {
     *
     * @param level the new logging level for the logger API.
     */
-  def setLevel(level: Level): Unit = {
-    logLevel = level
+  def setComponentLevel(level: Level): Unit = {
+    componentLogLevel = level
     doTrace = level.pos <= TRACE.pos
     doDebug = level.pos <= DEBUG.pos
     doInfo = level.pos <= INFO.pos

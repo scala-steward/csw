@@ -6,7 +6,7 @@ import csw.services.logging.internal._
 import csw.services.logging.macros.{SourceFactory, SourceLocation}
 import org.jboss.netty.logging.{InternalLoggerFactory, Slf4JLoggerFactory}
 
-class LoggerImpl private[logging] (componentName: Option[String], actorName: Option[String]) extends Logger with ComponentLoggingState {
+class LoggerImpl private[logging](componentName: Option[String], actorName: Option[String]) extends Logger with ComponentLoggingState {
 
   // Fix to avoid 'java.util.concurrent.RejectedExecutionException: Worker has already been shutdown'
   InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory)
@@ -25,6 +25,8 @@ class LoggerImpl private[logging] (componentName: Option[String], actorName: Opt
         }
       case noId => false
     }
+
+  def setLogLevel(level: Level):Unit = setComponentLevel(level)
 
   def trace(msg: => RichMsg, ex: Throwable, id: AnyId)(implicit factory: SourceFactory): Unit =
     if (doTrace || has(id, TRACE)) all(TRACE, id, msg, ex, factory.get())

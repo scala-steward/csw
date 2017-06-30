@@ -9,7 +9,8 @@ import csw.services.logging.RichMsg
 import csw.services.logging.appenders.LogAppenderBuilder
 import csw.services.logging.internal.TimeActorMessages.TimeDone
 import csw.services.logging.macros.DefaultSourceLocation
-import csw.services.logging.models.{FilterSet, LogMetadata}
+import csw.services.logging.models.LogMetadata
+import csw.services.logging.scaladsl.GenericLogger
 import org.slf4j.LoggerFactory
 
 import scala.compat.java8.FutureConverters.FutureOps
@@ -29,7 +30,7 @@ class LoggingSystem(name: String,
                     version: String,
                     host: String,
                     system: ActorSystem,
-                    appenderBuilders: Seq[LogAppenderBuilder]) {
+                    appenderBuilders: Seq[LogAppenderBuilder]) extends GenericLogger.Simple {
 
   import LoggingLevels._
 
@@ -42,7 +43,7 @@ class LoggingSystem(name: String,
   } else {
     throw new Exception("Bad value for csw-logging.logLevel")
   }
-  @volatile var logLevel: Level = defaultLevel
+ // @volatile var logLevel: Level = defaultLevel
 
   private[this] val akkaLogLevelS = loggingConfig.getString("akkaLogLevel")
   private[this] val defaultAkkaLogLevel: Level =
@@ -69,7 +70,7 @@ class LoggingSystem(name: String,
   private[this] val done                          = Promise[Unit]
   private[this] val timeActorDonePromise          = Promise[Unit]
 
-  @volatile private[this] var filterSet = FilterSet.from(loggingConfig)
+  //@volatile private[this] var filterSet = FilterSet.from(loggingConfig)
 
   /**
    * Standard headers.
@@ -119,7 +120,7 @@ class LoggingSystem(name: String,
    * Get logging levels.
    * @return the current and default logging levels.
    */
-  def getLevel: Levels = Levels(logLevel, defaultLevel)
+  //def getLevel: Levels = Levels(logLevel, defaultLevel)
 
   /**
    * Changes the logger API logging level.
@@ -199,8 +200,7 @@ class LoggingSystem(name: String,
    * Get the basic logging configuration values
    * @return LogMetadata which comprises of current root log level, akka log level, sl4j log level and current set of filters
    */
-  def getLogMetadata: LogMetadata =
-    LogMetadata(getLevel.current, getAkkaLevel.current, getSlf4jLevel.current, filterSet)
+  def getLogMetadata: LogMetadata = LogMetadata(getAkkaLevel.current, getSlf4jLevel.current)
 
   /**
    * Shut down the logging system.

@@ -20,7 +20,7 @@ class BasicLogger(componentName: Option[String]) {
    * Mix in this trait into your class to obtain a reference to a logger initialized with name of the component
    */
   trait Simple {
-    protected val log: Logger = new LoggerImpl(componentName, None)
+     val log: Logger = new LoggerImpl(componentName, None)
   }
 
   /**

@@ -5,7 +5,7 @@ import csw.apps.clusterseed.admin.internal.AdminWiring
 import csw.services.location.commons.ClusterAwareSettings
 import csw.services.location.models.Connection.AkkaConnection
 import csw.services.location.models.{AkkaRegistration, ComponentId, ComponentType}
-import csw.services.logging.internal.{GetComponentLogMetadata, SetComponentLogLevel}
+import csw.services.logging.internal.GetComponentLogMetadata
 import csw.services.logging.scaladsl.ComponentLogger
 
 import scala.concurrent.Await
@@ -56,7 +56,7 @@ class DemoApp extends AppLogger.Simple {
     val actorRef = actorSystem.actorOf(
       Props(new Actor {
         override def receive: Receive = {
-          case SetComponentLogLevel(level) ⇒ loggingSystem.addFilter(componentName, level)
+          //case SetComponentLogLevel(level) ⇒ loggingSystem.addFilter(componentName, level)
           case GetComponentLogMetadata     ⇒ sender ! loggingSystem.getLogMetadata
           case unknown                     ⇒ log.error(s"Unknown message received => $unknown")
         }

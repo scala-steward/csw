@@ -11,9 +11,9 @@ import csw.apps.clusterseed.utils.AdminLogTestSuite
 import csw.services.location.commons.ClusterAwareSettings
 import csw.services.location.models.Connection.AkkaConnection
 import csw.services.location.models.{AkkaRegistration, ComponentId, ComponentType}
-import csw.services.logging.internal.LoggingLevels.{ERROR, Level, WARN}
+import csw.services.logging.internal.LoggingLevels.{Level, WARN}
 import csw.services.logging.internal.{GetComponentLogMetadata, LoggingLevels, LoggingSystem, SetComponentLogLevel}
-import csw.services.logging.models.{FilterSet, LogMetadata}
+import csw.services.logging.models.LogMetadata
 import csw.services.logging.scaladsl.ComponentLogger
 
 import scala.concurrent.Await
@@ -41,8 +41,8 @@ class TromboneHcd(componentName: String, loggingSystem: LoggingSystem) extends T
     case LogWarn                     => log.warn("Level is warn")
     case LogError                    => log.error("Level is error")
     case LogFatal                    => log.fatal("Level is fatal")
-    case SetComponentLogLevel(level) ⇒ loggingSystem.addFilter(componentName, level)
-    case GetComponentLogMetadata     ⇒ sender ! loggingSystem.getLogMetadata
+    case SetComponentLogLevel(level) => log.setLogLevel(level)
+    case GetComponentLogMetadata     => sender ! loggingSystem.getLogMetadata
     case x: Any                      => log.error(Map("@reason" -> "Unexpected actor message", "message" -> x.toString))
   }
 }
@@ -51,6 +51,7 @@ class LogAdminTest extends AdminLogTestSuite with HttpSupport {
   import adminWiring.actorRuntime._
   val componentName    = "tromboneHcd"
   val tromboneActorRef = actorSystem.actorOf(TromboneHcd.props(componentName, loggingSystem), name = "TromboneActor")
+
   val connection       = AkkaConnection(ComponentId(componentName, ComponentType.HCD))
   Await.result(adminWiring.locationService.register(AkkaRegistration(connection, tromboneActorRef)), 5.seconds)
 
@@ -71,27 +72,32 @@ class LogAdminTest extends AdminLogTestSuite with HttpSupport {
     val logLevel   = Level(config.getString("logLevel"))
     val akkaLevel  = Level(config.getString("akkaLogLevel"))
     val slf4jLevel = Level(config.getString("slf4jLogLevel"))
-    val filterSet  = FilterSet.from(config)
+    //val filterSet  = FilterSet.from(config)
 
-    logMetadata1 shouldBe LogMetadata(logLevel, akkaLevel, slf4jLevel, filterSet)
+    logMetadata1 shouldBe LogMetadata(akkaLevel, slf4jLevel)
 
     // updating default and akka log level
-    loggingSystem.setLevel(LoggingLevels.ERROR)
+    //loggingSystem.setLevel(LoggingLevels.ERROR)
+    tromboneActorRef ! SetComponentLogLevel(LoggingLevels.ERROR)
     loggingSystem.setAkkaLevel(LoggingLevels.WARN)
 
     // verify getLogMetadata http request gives updated log levels in response
     val getLogMetadataResponse2 = Await.result(Http().singleRequest(getLogMetadataRequest), 5.seconds)
     val logMetadata2            = Await.result(Unmarshal(getLogMetadataResponse2).to[LogMetadata], 5.seconds)
 
-    logMetadata2 shouldBe LogMetadata(ERROR, WARN, slf4jLevel, filterSet)
+    logMetadata2 shouldBe LogMetadata(WARN, slf4jLevel)
 
     // reset log levels to default
-    loggingSystem.setLevel(logLevel)
+    //loggingSystem.setLevel(logLevel)
+    tromboneActorRef ! SetComponentLogLevel(logLevel)
     loggingSystem.setAkkaLevel(akkaLevel)
   }
 
   // DEOPSCSW-127: Runtime update for logging characteristics
   test("should able to set filter of the component dynamically through http end point") {
+
+    // Initialize to INFO - should come from a config file
+    tromboneActorRef ! SetComponentLogLevel(LoggingLevels.INFO)
 
     def sendLogMsgs(): Unit = {
       tromboneActorRef ! LogTrace

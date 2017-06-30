@@ -1,5 +1,6 @@
 package csw.services.logging.scaladsl
 import csw.services.logging._
+import csw.services.logging.internal.LoggingLevels.Level
 import csw.services.logging.macros.SourceFactory
 
 trait Logger {
@@ -74,4 +75,11 @@ trait Logger {
                                    ex: Throwable = noException,
                                    id: AnyId = noId,
                                    time: Long = System.currentTimeMillis()): Unit
+
+
+  /**
+    * Sets the log level of the component creating the Log
+    */
+  def setLogLevel(level :Level): Unit
+
 }

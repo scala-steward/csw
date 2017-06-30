@@ -1,8 +1,9 @@
 package csw.services.logging.scaladsl
 
+import akka.actor.Props
 import csw.services.logging.components.TromboneActor
 import csw.services.logging.components.TromboneActor._
-import csw.services.logging.internal.LoggingLevels
+import csw.services.logging.internal.{LoggingLevels, SetComponentLogLevel}
 import csw.services.logging.internal.LoggingLevels.Level
 import csw.services.logging.utils.LoggingTestSuite
 
@@ -58,12 +59,17 @@ class ActorLoggingTest extends LoggingTestSuite {
   // DEOPSCSW-126 : Configurability of logging characteristics for component / log instance
   test("should load default filter provided in configuration file and applied to actor messages") {
 
+    //  As per the filter, hcd should log 3 message of level ERROR and FATAL
+    tromboneActorRef ! SetComponentLogLevel(LoggingLevels.ERROR)
+
     sendMessagesToActor()
     //  TromboneHcd component is logging 7 messages
-    //  As per the filter, hcd should log 3 message of level ERROR and FATAL
+
     val groupByComponentNamesLog =
       logBuffer.groupBy(json ⇒ json("@componentName").toString)
     val tromboneHcdLogs = groupByComponentNamesLog("tromboneHcdActor")
+
+    println("LogBuff: " + logBuffer)
 
     tromboneHcdLogs.size shouldBe 3
 
