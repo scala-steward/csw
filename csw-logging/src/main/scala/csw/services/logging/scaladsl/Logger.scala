@@ -2,6 +2,7 @@ package csw.services.logging.scaladsl
 import csw.services.logging._
 import csw.services.logging.internal.LoggingLevels.Level
 import csw.services.logging.macros.SourceFactory
+import csw.services.logging.models.LogMetadata
 
 trait Logger {
 
@@ -76,10 +77,16 @@ trait Logger {
                                    id: AnyId = noId,
                                    time: Long = System.currentTimeMillis()): Unit
 
+  /**
+   * Set the component log level programmatically, used for dynamically changing log level of running application/components.
+   */
+  def setLogLevel(level: Level): Unit
 
   /**
-    * Sets the log level of the component creating the Log
-    */
-  def setLogLevel(level :Level): Unit
+   * Get the component current log configuration, used for dynamically fetching log level information of running application/components.
+   *
+   * @return LogMetadata of component
+   */
+  def getLogMetadata: LogMetadata
 
 }

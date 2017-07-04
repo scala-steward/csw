@@ -1,41 +1,42 @@
 package csw.services.logging.internal
 
+import com.typesafe.config.ConfigFactory
 import csw.services.logging.internal.LoggingLevels._
+import csw.services.logging.models.LogMetadata
 
-/**
-  * Created by gillies on 6/29/17.
-  */
-private[logging] trait ComponentLoggingState {
+import scala.util.Try
 
+private[logging] class ComponentLoggingState(componentName: String) {
 
+  private[this] val loggingConfig = ConfigFactory.load().getConfig("csw-logging")
+  // Get the default log level from the configuration file.
+  // This is used when component does not specify their initial log level inside config block : component-default-logging-levels
+  private[this] lazy val defaultLogLevel = loggingConfig.getString("logLevel")
 
-  //private[this] val loggingConfig = system.settings.config.getConfig("csw-logging")
+  private[this] def akkaLogLevel = LoggingState.akkaLogLevel.getOrElse(Level(loggingConfig.getString("akkaLogLevel")))
 
-  //private[this] val levels = loggingConfig.getString("logLevel")
+  private[this] def slf4jLogLevel =
+    LoggingState.slf4jLogLevel.getOrElse(Level(loggingConfig.getString("slf4jLogLevel")))
 
-  /*
-  private[this] val defaultLevel: Level = if (Level.hasLevel(levels)) {
-    Level(levels)
-  } else {
-    throw new Exception("Bad value for csw-logging.logLevel")
-  }
-  */
-  val initialLogLevel = Level("TRACE")  // Temporary while trying to get working -- needs to come from config file?
+  private[this] val logLevel = Try {
+    loggingConfig.getConfig("component-default-logging-levels").getString(componentName)
+  }.getOrElse(defaultLogLevel)
 
-  var componentLogLevel: Level = LoggingLevels.TRACE
-  setComponentLevel(componentLogLevel)
+  private[this] var componentLogLevel = Level(logLevel)
 
   @volatile var doTrace: Boolean = false
   @volatile var doDebug: Boolean = false
-  @volatile var doInfo: Boolean = true
-  @volatile var doWarn: Boolean = true
+  @volatile var doInfo: Boolean  = true
+  @volatile var doWarn: Boolean  = true
   @volatile var doError: Boolean = true
 
+  setComponentLevel(componentLogLevel)
+
   /**
-    * Changes the logger API logging level.
-    *
-    * @param level the new logging level for the logger API.
-    */
+   * Set component log level
+   *
+   * @param level the new logging level for the logger API.
+   */
   def setComponentLevel(level: Level): Unit = {
     componentLogLevel = level
     doTrace = level.pos <= TRACE.pos
@@ -44,4 +45,12 @@ private[logging] trait ComponentLoggingState {
     doWarn = level.pos <= WARN.pos
     doError = level.pos <= ERROR.pos
   }
+
+  /**
+   * Get the current log configuration of component.
+   *
+   * @return LogMetadata of component
+   */
+  def getComponentMetadata: LogMetadata = LogMetadata(componentLogLevel, akkaLogLevel, slf4jLogLevel)
+
 }

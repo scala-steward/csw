@@ -2,6 +2,7 @@ package csw.services.logging.scaladsl
 
 import akka.actor.ActorPath
 import akka.serialization.Serialization
+import csw.services.logging.internal.ComponentLoggingState
 
 /**
  * Extend this object to obtain a reference to a Simple or Actor Logger without a component name
@@ -16,11 +17,14 @@ class ComponentLogger(componentName: String) extends BasicLogger(Some(componentN
 
 class BasicLogger(componentName: Option[String]) {
 
+  val componentLoggingState = new ComponentLoggingState(componentName.getOrElse("logLevel"))
+
   /**
    * Mix in this trait into your class to obtain a reference to a logger initialized with name of the component
    */
   trait Simple {
-     val log: Logger = new LoggerImpl(componentName, None)
+    val log: Logger = new LoggerImpl(componentName, None, componentLoggingState)
+
   }
 
   /**
@@ -28,6 +32,6 @@ class BasicLogger(componentName: Option[String]) {
    */
   trait Actor extends akka.actor.Actor {
     private val actorName     = Some(ActorPath.fromString(Serialization.serializedActorPath(self)).toString)
-    protected val log: Logger = new LoggerImpl(componentName, actorName)
+    protected val log: Logger = new LoggerImpl(componentName, actorName, componentLoggingState)
   }
 }

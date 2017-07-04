@@ -81,15 +81,12 @@ class LoggingTest extends LoggingTestSuite {
   // DEOPSCSW-126 : Configurability of logging characteristics for component / log instance
   test("should load default filter provided in configuration file and applied to normal logging messages") {
 
-    //  TromboneHcd component is logging 6 messages
-    //  As per the filter, hcd should log 5 message of all the levels except TRACE
     val tromboneHCD = new TromboneHcd()
-//    tromboneHCD.setLevel(logLevel)
     tromboneHCD.startLogging(logMsgMap)
     Thread.sleep(200)
 
     //  TromboneHcd component is logging 6 messages each of unique level
-    //  As per the filter, hcd should log 5 message of all level except TRACE
+    //  As per the default log level of tromboneHcd (DEBUG), hcd should log 5 message of all level except TRACE
     logBuffer.size shouldBe 5
 
     val groupByComponentNamesLog = logBuffer.groupBy(json ⇒ json("@componentName").toString)
@@ -113,13 +110,11 @@ class LoggingTest extends LoggingTestSuite {
     new TromboneAssembly().startLogging(logMsgMap)
     Thread.sleep(300)
 
-    //  TromboneAssembly component is logging 6 messages each of unique level
-    //  As per the default loglevel = trace, assembly should log all 6 message
-    logBuffer.size shouldBe 6
-
     val groupByComponentNamesLog = logBuffer.groupBy(json ⇒ json("@componentName").toString)
     val tromboneAssemblyLogs     = groupByComponentNamesLog("tromboneAssembly")
 
+    //  TromboneAssembly component is logging 6 messages each of unique level
+    //  As per the default loglevel = trace, assembly should log all 6 message
     tromboneAssemblyLogs.size shouldBe 6
 
     // check that log level should be greater than or equal to debug and
@@ -152,8 +147,6 @@ class LoggingTest extends LoggingTestSuite {
     }
 
     forAll(testData) { (logLevel: Level, logCount: Int) =>
-      //loggingSystem.setLevel(logLevel)
-
       val tromboneAssembly = new TromboneAssembly()
       tromboneAssembly.setLevel(logLevel)
       tromboneAssembly.startLogging(logMsgMap)
@@ -225,5 +218,4 @@ class LoggingTest extends LoggingTestSuite {
       traceMsgBlock.contains("message") shouldBe true
     }
   }
-
 }

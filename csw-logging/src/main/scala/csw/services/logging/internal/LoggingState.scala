@@ -1,6 +1,7 @@
 package csw.services.logging.internal
 
 import akka.actor._
+import csw.services.logging.internal.LoggingLevels.Level
 
 import scala.concurrent.Promise
 
@@ -9,7 +10,8 @@ import scala.concurrent.Promise
  */
 private[logging] object LoggingState {
 
-//  private[logging] var loggingSys: LoggingSystem = null
+  private[logging] var akkaLogLevel: Option[Level]  = None
+  private[logging] var slf4jLogLevel: Option[Level] = None
 
   private[logging] var maybeLogActor: Option[ActorRef] = None
   @volatile private[logging] var loggerStopping        = false

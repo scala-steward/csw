@@ -2,9 +2,15 @@ package csw.services.logging.javadsl
 
 import java.util.function.Supplier
 
+import csw.services.logging.internal.LoggingLevels.Level
+import csw.services.logging.models.LogMetadata
 import csw.services.logging.scaladsl.{AnyId, Logger}
 
 trait ILogger {
+
+  def setLogLevel(level: Level): Unit
+
+  def getLogMetadata: LogMetadata
 
   /**
    * Writes a trace level log message.

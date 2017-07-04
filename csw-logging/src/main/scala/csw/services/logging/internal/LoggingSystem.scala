@@ -9,7 +9,6 @@ import csw.services.logging.RichMsg
 import csw.services.logging.appenders.LogAppenderBuilder
 import csw.services.logging.internal.TimeActorMessages.TimeDone
 import csw.services.logging.macros.DefaultSourceLocation
-import csw.services.logging.models.{ComponentDefaults, LogMetadata}
 import csw.services.logging.scaladsl.GenericLogger
 import org.slf4j.LoggerFactory
 
@@ -30,36 +29,25 @@ class LoggingSystem(name: String,
                     version: String,
                     host: String,
                     system: ActorSystem,
-                    appenderBuilders: Seq[LogAppenderBuilder]) extends GenericLogger.Simple {
+                    appenderBuilders: Seq[LogAppenderBuilder])
+    extends GenericLogger.Simple {
 
   import LoggingLevels._
 
   private[this] val loggingConfig = system.settings.config.getConfig("csw-logging")
 
-  private[this] val levels = loggingConfig.getString("logLevel")
-  private[this] val defaultLevel: Level = if (Level.hasLevel(levels)) {
-    Level(levels)
-  } else {
-    throw new Exception("Bad value for csw-logging.logLevel")
-  }
+  private[this] val levels              = loggingConfig.getString("logLevel")
+  private[this] val defaultLevel: Level = Level(levels)
 
-  private[this] val akkaLogLevelS = loggingConfig.getString("akkaLogLevel")
-  private[this] val defaultAkkaLogLevel: Level =
-    if (Level.hasLevel(akkaLogLevelS)) {
-      Level(akkaLogLevelS)
-    } else {
-      throw new Exception("Bad value for csw-logging.akkaLogLevel")
-    }
-  @volatile private[this] var akkaLogLevel = defaultAkkaLogLevel
+  private[this] val akkaLogLevelS                 = loggingConfig.getString("akkaLogLevel")
+  private[this] val defaultAkkaLogLevel: Level    = Level(akkaLogLevelS)
+  @volatile private[this] var akkaLogLevel: Level = defaultAkkaLogLevel
+  LoggingState.akkaLogLevel = Some(akkaLogLevel)
 
-  private[this] val slf4jLogLevelS = loggingConfig.getString("slf4jLogLevel")
-  private[this] val defaultSlf4jLogLevel: Level =
-    if (Level.hasLevel(slf4jLogLevelS)) {
-      Level(slf4jLogLevelS)
-    } else {
-      throw new Exception("Bad value for csw-logging.slf4jLogLevel")
-    }
-  @volatile private[this] var slf4jLogLevel = defaultSlf4jLogLevel
+  private[this] val slf4jLogLevelS                 = loggingConfig.getString("slf4jLogLevel")
+  private[this] val defaultSlf4jLogLevel: Level    = Level(slf4jLogLevelS)
+  @volatile private[this] var slf4jLogLevel: Level = defaultSlf4jLogLevel
+  LoggingState.slf4jLogLevel = Some(slf4jLogLevel)
 
   private[this] val gc   = loggingConfig.getBoolean("gc")
   private[this] val time = loggingConfig.getBoolean("time")
@@ -67,8 +55,6 @@ class LoggingSystem(name: String,
   private[this] implicit val ec: ExecutionContext = system.dispatcher
   private[this] val done                          = Promise[Unit]
   private[this] val timeActorDonePromise          = Promise[Unit]
-
-  private[this] var defaultLoggingLevelsSet = ComponentDefaults.from(loggingConfig)
 
   /**
    * Standard headers.
@@ -106,17 +92,11 @@ class LoggingSystem(name: String,
 
   // Deal with messages send before logger was ready
 
-  val msgsSize:Int = MessageHandler.checkMsgSize
+  val msgsSize: Int = MessageHandler.checkMsgSize
   if (msgsSize > 0) {
-    log.info (s"Saw ${msgsSize} messages before logger start") (() => DefaultSourceLocation)
+    log.info(s"Saw $msgsSize messages before logger start")(() => DefaultSourceLocation)
     MessageHandler.sendStoredMsgs()
   }
-
-  /**
-   * Get default logging level for a component.
-   * @return the current and default logging levels.
-   */
-  def getLevel(componentName: String): Level = defaultLoggingLevelsSet.defaults.getOrElse(componentName, LoggingLevels.ERROR)
 
   /**
    * Get Akka logging levels
@@ -130,6 +110,7 @@ class LoggingSystem(name: String,
    */
   def setAkkaLevel(level: Level): Unit = {
     akkaLogLevel = level
+    LoggingState.akkaLogLevel = Some(level)
     logActor ! SetAkkaLevel(level)
   }
 
@@ -145,14 +126,9 @@ class LoggingSystem(name: String,
    */
   def setSlf4jLevel(level: Level): Unit = {
     slf4jLogLevel = level
+    LoggingState.slf4jLogLevel = Some(level)
     logActor ! SetSlf4jLevel(level)
   }
-
-  /**
-   * Get the basic logging configuration values
-   * @return LogMetadata which comprises of current root log level, akka log level, sl4j log level and current set of filters
-   */
-  def getLogMetadata: LogMetadata = LogMetadata(getAkkaLevel.current, getSlf4jLevel.current, defaultLoggingLevelsSet)
 
   /**
    * Shut down the logging system.

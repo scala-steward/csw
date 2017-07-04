@@ -1,5 +1,7 @@
 package csw.services.logging.internal
 
+import csw.services.logging.exceptions.InvalidLogLevelException
+
 object LoggingLevels {
 
   private[this] val levels         = Seq(TRACE, DEBUG, INFO, WARN, ERROR, FATAL)
@@ -13,9 +15,11 @@ object LoggingLevels {
     /**
      *  Level constructor.
      * @param name a level name. Case is ignored.
-     * @return the corresponding Level if there is one for that name. Otherwise WARN.
+     * @return the corresponding Level if there is one for that name
+     * @throws InvalidLogLevelException
      */
-    def apply(name: String): Level = nameToLevelMap.getOrElse(name.toUpperCase(), WARN)
+    def apply(name: String): Level =
+      nameToLevelMap.getOrElse(name.toUpperCase(), throw InvalidLogLevelException(name, levels))
 
     /**
      * Checks if a level name exists.

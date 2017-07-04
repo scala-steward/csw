@@ -4,9 +4,13 @@ import csw.services.logging.RichMsg
 import csw.services.logging.internal.LoggingLevels._
 import csw.services.logging.internal._
 import csw.services.logging.macros.{SourceFactory, SourceLocation}
+import csw.services.logging.models.LogMetadata
 import org.jboss.netty.logging.{InternalLoggerFactory, Slf4JLoggerFactory}
 
-class LoggerImpl private[logging](componentName: Option[String], actorName: Option[String]) extends Logger with ComponentLoggingState {
+class LoggerImpl private[logging] (componentName: Option[String],
+                                   actorName: Option[String],
+                                   componentState: ComponentLoggingState)
+    extends Logger {
 
   // Fix to avoid 'java.util.concurrent.RejectedExecutionException: Worker has already been shutdown'
   InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory)
@@ -26,22 +30,24 @@ class LoggerImpl private[logging](componentName: Option[String], actorName: Opti
       case noId => false
     }
 
-  def setLogLevel(level: Level):Unit = setComponentLevel(level)
+  def setLogLevel(level: Level): Unit = componentState.setComponentLevel(level)
+
+  def getLogMetadata: LogMetadata = componentState.getComponentMetadata
 
   def trace(msg: => RichMsg, ex: Throwable, id: AnyId)(implicit factory: SourceFactory): Unit =
-    if (doTrace || has(id, TRACE)) all(TRACE, id, msg, ex, factory.get())
+    if (componentState.doTrace || has(id, TRACE)) all(TRACE, id, msg, ex, factory.get())
 
   def debug(msg: => RichMsg, ex: Throwable, id: AnyId)(implicit factory: SourceFactory): Unit =
-    if (doDebug || has(id, DEBUG)) all(DEBUG, id, msg, ex, factory.get())
+    if (componentState.doDebug || has(id, DEBUG)) all(DEBUG, id, msg, ex, factory.get())
 
   override def info(msg: => RichMsg, ex: Throwable, id: AnyId)(implicit factory: SourceFactory): Unit =
-    if (doInfo || has(id, INFO)) all(INFO, id, msg, ex, factory.get())
+    if (componentState.doInfo || has(id, INFO)) all(INFO, id, msg, ex, factory.get())
 
   override def warn(msg: => RichMsg, ex: Throwable, id: AnyId)(implicit factory: SourceFactory): Unit =
-    if (doWarn || has(id, WARN)) all(WARN, id, msg, ex, factory.get())
+    if (componentState.doWarn || has(id, WARN)) all(WARN, id, msg, ex, factory.get())
 
   override def error(msg: => RichMsg, ex: Throwable, id: AnyId)(implicit factory: SourceFactory): Unit =
-    if (doError || has(id, ERROR)) all(ERROR, id, msg, ex, factory.get())
+    if (componentState.doError || has(id, ERROR)) all(ERROR, id, msg, ex, factory.get())
 
   override def fatal(msg: => RichMsg, ex: Throwable, id: AnyId)(implicit factory: SourceFactory): Unit =
     all(FATAL, id, msg, ex, factory.get())

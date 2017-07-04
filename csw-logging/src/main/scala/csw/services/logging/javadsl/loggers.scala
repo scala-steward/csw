@@ -3,7 +3,7 @@ import java.util.Optional
 
 import akka.actor.{AbstractActor, ActorPath}
 import akka.serialization.Serialization
-import csw.services.logging.internal.JLogger
+import csw.services.logging.internal.{ComponentLoggingState, JLogger}
 import csw.services.logging.scaladsl.LoggerImpl
 
 import scala.compat.java8.OptionConverters.RichOptionalGeneric
@@ -41,10 +41,9 @@ abstract class JComponentLoggerActor extends JBasicLoggerActor {
 /**
  * Implement this trait to obtain a reference to a logger initialized with name of the component
  */
-trait JBasicLogger {
-  protected def maybeComponentName: Optional[String]
-  protected def getLogger: ILogger = {
-    val log = new LoggerImpl(maybeComponentName.asScala, None)
+trait JBasicLogger extends JBasic {
+  override protected def getLogger: ILogger = {
+    val log = new LoggerImpl(maybeComponentName.asScala, None, componentLoggingState)
     new JLogger(log, getClass)
   }
 }
@@ -52,11 +51,17 @@ trait JBasicLogger {
 /**
  * Extend this class to create an Actor and obtain a reference to a logger initialized with name of the component and it's ActorPath
  */
-abstract class JBasicLoggerActor extends AbstractActor {
-  protected def maybeComponentName: Optional[String]
-  protected def getLogger: ILogger = {
+abstract class JBasicLoggerActor extends AbstractActor with JBasic {
+  override protected def getLogger: ILogger = {
     val actorName = ActorPath.fromString(Serialization.serializedActorPath(getSelf)).toString
-    val log       = new LoggerImpl(maybeComponentName.asScala, Some(actorName))
+    val log       = new LoggerImpl(maybeComponentName.asScala, Some(actorName), componentLoggingState)
     new JLogger(log, getClass)
   }
+}
+
+trait JBasic {
+  protected def maybeComponentName: Optional[String]
+  protected def componentLoggingState =
+    new ComponentLoggingState(maybeComponentName.asScala.getOrElse("logLevel"))
+  protected def getLogger: ILogger = ???
 }

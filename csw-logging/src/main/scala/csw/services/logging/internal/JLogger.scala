@@ -5,6 +5,7 @@ import java.util.function.Supplier
 import csw.services.logging._
 import csw.services.logging.javadsl.ILogger
 import csw.services.logging.macros.SourceFactory
+import csw.services.logging.models.LogMetadata
 import csw.services.logging.scaladsl.{noId, AnyId, Logger}
 
 class JLogger private[logging] (log: Logger, cls: Class[_]) extends ILogger {
@@ -46,4 +47,8 @@ class JLogger private[logging] (log: Logger, cls: Class[_]) extends ILogger {
   override def fatal(msg: Supplier[Object]): Unit                = fatal(msg, noException, noId)
 
   override def asScala: Logger = log
+
+  override def setLogLevel(level: LoggingLevels.Level): Unit = log.setLogLevel(level)
+
+  override def getLogMetadata: LogMetadata = log.getLogMetadata
 }

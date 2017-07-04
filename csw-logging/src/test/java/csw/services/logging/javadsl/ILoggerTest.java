@@ -6,6 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import csw.services.logging.appenders.LogAppenderBuilder;
 import csw.services.logging.components.JTromboneHCD;
+import csw.services.logging.components.JTromboneHCD1;
 import csw.services.logging.internal.LoggingLevels;
 import csw.services.logging.internal.LoggingSystem;
 import csw.services.logging.utils.LogUtil;
@@ -56,11 +57,24 @@ public class ILoggerTest {
     @Test
     public void testDefaultLogConfigurationAndFilter() throws InterruptedException {
         JTromboneHCD jTromboneHCD = new JTromboneHCD();
+        JTromboneHCD1 jTromboneHCD1 = new JTromboneHCD1();
         String tromboneHcdClassName = jTromboneHCD.getClass().getName();
 
         jTromboneHCD.startLogging();
+        jTromboneHCD1.startLogging();
+
+        System.out.println("-------------------------------");
+        jTromboneHCD1.setLevel();
+        System.out.println("---------------HCD Start----------------");
+        jTromboneHCD.startLogging();
+        System.out.println("---------------HCD END----------------");
+        System.out.println("---------------HCD1 Start----------------");
+        jTromboneHCD1.startLogging();
+        System.out.println("---------------HCD1 END----------------");
+
         Thread.sleep(300);
 
+        logBuffer.forEach(log -> System.out.println(log));
         logBuffer.forEach(log -> {
             Assert.assertEquals("tromboneHcd", log.get("@componentName").getAsString());
 

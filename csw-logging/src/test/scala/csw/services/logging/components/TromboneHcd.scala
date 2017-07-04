@@ -1,6 +1,5 @@
 package csw.services.logging.components
 
-import csw.services.logging.internal.LoggingLevels.Level
 import csw.services.logging.scaladsl.{ComponentLogger, RichException}
 
 object TromboneHcdLogger extends ComponentLogger("tromboneHcd")
@@ -35,8 +34,6 @@ class TromboneHcd() extends TromboneHcdLogger.Simple {
 
   def logRichException(message: String) =
     log.error(message, RichException("Rich Exception", new RuntimeException))
-
-  def setLevel(level: Level): Unit = log.setLogLevel(level)
 
 }
 
