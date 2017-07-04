@@ -144,6 +144,7 @@ object SingleAxisSimulator {
           .copy(limitCount = state.newLimitCount)
           .copy(successCount = state.successCount + 1)
         newState.replyTo.foreach(_ ! state.getState)
+        newState.replyTo.foreach(_ ! ctx.self)
         loop(newState)
       case InitialStatistics => Actor.same
     }
@@ -159,11 +160,11 @@ object SingleAxisSimulator {
           .copy(moveCount = state.moveCount + 1)
         println(s"AxisHome: ${newState.axisState}")
         newState.replyTo.foreach(_ ! AxisStarted)
-        val homeRef = ctx.spawnAnonymous(homeReceive(newState))
         val workerState = MotionWorker.State
-          .from(state.current, state.axisConfig.home, delayInMS = 100, replyTo = homeRef, diagFlag = false)
-        val ref = ctx.spawnAnonymous(MotionWorker.run(workerState))
-        ref ! MotionWorker.Start
+          .from(state.current, state.axisConfig.home, delayInMS = 100, replyTo = None, diagFlag = false)
+        val worker  = ctx.spawnAnonymous(MotionWorker.run(workerState))
+        val homeRef = ctx.spawnAnonymous(homeReceive(newState))
+        worker ! MotionWorker.Start(homeRef)
         Actor.stopped
       case Datum =>
         val newState = state
@@ -187,11 +188,11 @@ object SingleAxisSimulator {
           .from(state.current,
                 clampedTargetPosition,
                 delayInMS = state.axisConfig.stepDelayMS,
-                replyTo = ???,
+                replyTo = None,
                 diagFlag = diagFlag)
-        //TODO: become magic
-        val ref = ctx.spawnAnonymous(MotionWorker.run(workerState))
-        ref ! MotionWorker.Start
+        val worker  = ctx.spawnAnonymous(MotionWorker.run(workerState))
+        val moveRef = ctx.spawnAnonymous(moveReceive(newState, worker))
+        worker ! MotionWorker.Start(moveRef)
         loop(newState)
       case CancelMove =>
         println("Received Cancel Move while idle :-(")
@@ -205,7 +206,7 @@ object SingleAxisSimulator {
   def homeReceive(state: State): Behavior[MotionWorkerMsgs] =
     Actor.immutable[MotionWorkerMsgs] { (ctx, msg) ⇒
       msg match {
-        case Start =>
+        case Start(_) =>
           println("Home Start")
           Actor.same
         case End(finalpos) =>
@@ -223,4 +224,36 @@ object SingleAxisSimulator {
       }
 
     }
+
+  def moveReceive(state: State, worker: ActorRef[MotionWorkerMsgs]): Behavior[MotionWorkerMsgs] =
+    Actor.immutable[MotionWorkerMsgs] { (ctx, msg) ⇒
+      msg match {
+        case Start(_) =>
+          println("Move Start")
+          Actor.same
+        case Cancel =>
+          println("Cancel MOVE")
+          worker ! Cancel
+          // Stats
+          val newState = state.copy(cancelCount = state.cancelCount + 1)
+          moveReceive(newState, worker)
+        case MoveUpdate(targetPosition) =>
+          // When this is received, we update the final position while a motion is happening
+          worker ! MoveUpdate(targetPosition)
+          Actor.same
+        case Tick(currentIn) =>
+          // Set limits - this was a bug - need to do this after every step
+          val newState = state.copy(current = currentIn).checkLimits()
+          println("Move Update")
+          // Send Update to caller
+          state.replyTo.foreach(_ ! state.getState)
+          moveReceive(newState, worker)
+        case End(finalpos) =>
+          println("Move End")
+          val ref = ctx.spawnAnonymous(loop(state))
+          ref ! IdleInternalMessage(MoveComplete(finalpos))
+          Actor.stopped
+      }
+    }
+
 }

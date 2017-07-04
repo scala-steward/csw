@@ -8,23 +8,24 @@ import scala.concurrent.duration.DurationLong
 object MotionWorker {
 
   sealed trait MotionWorkerMsgs
-  case object Start                       extends MotionWorkerMsgs
-  case class End(finalpos: Int)           extends MotionWorkerMsgs
-  case class Tick(current: Int)           extends MotionWorkerMsgs
-  case class MoveUpdate(destination: Int) extends MotionWorkerMsgs
-  case object Cancel                      extends MotionWorkerMsgs
+  case class Start(replyTo: ActorRef[MotionWorkerMsgs]) extends MotionWorkerMsgs
+  case class End(finalpos: Int)                         extends MotionWorkerMsgs
+  case class Tick(current: Int)                         extends MotionWorkerMsgs
+  case class MoveUpdate(destination: Int)               extends MotionWorkerMsgs
+  case object Cancel                                    extends MotionWorkerMsgs
 
   def run(state: State): Behavior[MotionWorkerMsgs] =
     Actor.immutable[MotionWorkerMsgs] { (ctx, msg) ⇒
       msg match {
-        case Start =>
-          if (state.diagFlag)
-            state.diag("Starting", state.start)
-          state.replyTo ! Start
-          ctx.schedule(state.delayInNanoSeconds.nanos, ctx.self, state.tick)
-          Actor.same
+        case Start(replyTo) =>
+          val newState = state.copy(replyTo = Some(replyTo))
+          if (newState.diagFlag)
+            newState.diag("Starting", state.start)
+          newState.replyTo.foreach(_ ! Start(replyTo))
+          ctx.schedule(newState.delayInNanoSeconds.nanos, ctx.self, newState.tick)
+          run(newState)
         case Tick(current) =>
-          state.replyTo ! Tick(current)
+          state.replyTo.foreach(_ ! Tick(current))
           val newState = state
             .copy(current = current)
             .copy(stepCount = state.stepCount + 1)
@@ -43,7 +44,7 @@ object MotionWorker {
           val newState = state.copy(cancelFlag = true)
           run(newState)
         case End(finalpos) =>
-          state.replyTo ! msg
+          state.replyTo.foreach(_ ! msg)
           if (state.diagFlag) state.diag("End", finalpos)
           // When the actor has nothing else to do, it should stop
           Actor.stopped
@@ -59,7 +60,7 @@ object MotionWorker {
       current: Int,
       start: Int,
       delayInMS: Int,
-      replyTo: ActorRef[MotionWorkerMsgs],
+      replyTo: Option[ActorRef[MotionWorkerMsgs]],
       diagFlag: Boolean
   ) {
 
@@ -95,7 +96,11 @@ object MotionWorker {
   }
 
   object State {
-    def from(start: Int, destinationIn: Int, delayInMS: Int, replyTo: ActorRef[MotionWorkerMsgs], diagFlag: Boolean) = {
+    def from(start: Int,
+             destinationIn: Int,
+             delayInMS: Int,
+             replyTo: Option[ActorRef[MotionWorkerMsgs]],
+             diagFlag: Boolean) = {
       val state = State(
         destinationIn,
         0,
