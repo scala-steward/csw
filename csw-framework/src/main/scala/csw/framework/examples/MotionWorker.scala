@@ -20,7 +20,7 @@ object MotionWorker {
         case Start(replyTo) =>
           val newState = state.copy(replyTo = Some(replyTo))
           if (newState.diagFlag)
-            newState.diag("Starting", state.start)
+            newState.diag("Starting", newState.start)
           newState.replyTo.foreach(_ ! Start(replyTo))
           ctx.schedule(newState.delayInNanoSeconds.nanos, ctx.self, newState.tick)
           run(newState)
@@ -30,14 +30,14 @@ object MotionWorker {
             .copy(current = current)
             .copy(stepCount = state.stepCount + 1)
           newState.log()
-          if (!newState.done && !state.cancelFlag)
-            ctx.schedule(state.delayInNanoSeconds.nanos, ctx.self, Tick(state.nextPos))
+          if (!newState.done && !newState.cancelFlag)
+            ctx.schedule(newState.delayInNanoSeconds.nanos, ctx.self, Tick(newState.nextPos))
           else
             ctx.self ! End(current)
           run(newState)
         case MoveUpdate(destination) =>
           val newState = state.copy(destination = destination)
-          println(s"NEW dest: $destination, numSteps: ${state.numSteps}, stepSize: ${state.stepSize}")
+          println(s"NEW dest: $destination, numSteps: ${newState.numSteps}, stepSize: ${newState.stepSize}")
           run(newState)
         case Cancel =>
           if (state.diagFlag) println("Worker received cancel")

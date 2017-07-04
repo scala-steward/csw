@@ -2,7 +2,10 @@ package csw.framework.examples
 
 import akka.typed.{ActorRef, Behavior}
 import akka.typed.scaladsl.{Actor, ActorContext}
+import csw.framework.examples.HcdRunningBehavior.DomainSpecific
 import csw.framework.examples.MotionWorker._
+import csw.framework.examples.TromboneEngineering.Payload
+import csw.framework.examples.TromboneHcdMessages.W2
 
 import scala.concurrent.duration.DurationInt
 
@@ -13,12 +16,12 @@ object SingleAxisSimulator {
   case object AXIS_ERROR  extends AxisState
 
   sealed trait AxisRequest
-  case object Home                                          extends AxisRequest
-  case object Datum                                         extends AxisRequest
-  case class Move(position: Int, diagFlag: Boolean = false) extends AxisRequest
-  case object CancelMove                                    extends AxisRequest
-  case class GetStatistics(replyTo: ActorRef[Any])          extends AxisRequest
-  case object PublishAxisUpdate                             extends AxisRequest
+  case object Home                                                extends AxisRequest
+  case object Datum                                               extends AxisRequest
+  case class Move(position: Int, diagFlag: Boolean = false)       extends AxisRequest
+  case object CancelMove                                          extends AxisRequest
+  case class GetStatistics(replyTo: ActorRef[DomainSpecific[W2]]) extends AxisRequest
+  case object PublishAxisUpdate                                   extends AxisRequest
 
   sealed trait AxisResponse
   case object AxisStarted  extends AxisResponse
@@ -175,7 +178,7 @@ object SingleAxisSimulator {
         ctx.schedule(1.second, ctx.self, IdleInternalMessage(DatumComplete))
         loop(newState)
       case GetStatistics(replyTo) =>
-        replyTo ! state.axisStatistics
+        replyTo ! DomainSpecific(W2(state.axisStatistics))
         Actor.same
       case Move(position, diagFlag) =>
         val newState = state
