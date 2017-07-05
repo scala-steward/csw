@@ -1,15 +1,15 @@
-package csw.framework.examples
+package csw.framework.common
 
 import akka.typed.scaladsl.Actor
 import akka.typed.{ActorRef, Behavior}
-import csw.framework.examples.HcdRunningBehavior.RunningMessage
+import csw.framework.example.HcdRunningBehavior
 
 object HcdInitialBehavior {
   sealed trait InitialMessage[+T]
   case class Run[T](replyTo: ActorRef[Running[T]]) extends InitialMessage[T]
   case object Shutdown                             extends InitialMessage[Nothing]
 
-  case class Running[T](ref: ActorRef[RunningMessage[T]])
+  case class Running[T](ref: ActorRef[T])
 }
 
 class HcdInitialBehavior[Msg, State](value: HcdRunningBehavior[Msg, State]) {

@@ -1,4 +1,4 @@
-package csw.framework.lifecycle
+package csw.framework.common
 
 import akka.actor.ActorRef
 

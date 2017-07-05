@@ -1,4 +1,4 @@
-package csw.framework.examples
+package csw.framework.example
 
 import akka.typed.ActorSystem
 import akka.typed.scaladsl.Actor

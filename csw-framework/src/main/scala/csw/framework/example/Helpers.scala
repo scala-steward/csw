@@ -1,4 +1,4 @@
-package csw.framework.examples
+package csw.framework.example
 
 import scala.concurrent.Future
 

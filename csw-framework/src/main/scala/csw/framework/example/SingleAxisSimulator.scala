@@ -1,11 +1,9 @@
-package csw.framework.examples
+package csw.framework.example
 
 import akka.typed.{ActorRef, Behavior}
 import akka.typed.scaladsl.{Actor, ActorContext}
-import csw.framework.examples.HcdRunningBehavior.DomainSpecific
-import csw.framework.examples.MotionWorker._
-import csw.framework.examples.TromboneEngineering.Payload
-import csw.framework.examples.TromboneHcdMessages.W2
+import csw.framework.example.MotionWorker._
+import csw.framework.example.TromboneHcdMessage.AxisResponseE
 
 import scala.concurrent.duration.DurationInt
 
@@ -20,12 +18,12 @@ object SingleAxisSimulator {
   case object Datum                                               extends AxisRequest
   case class Move(position: Int, diagFlag: Boolean = false)       extends AxisRequest
   case object CancelMove                                          extends AxisRequest
-  case class GetStatistics(replyTo: ActorRef[DomainSpecific[W2]]) extends AxisRequest
+  case class GetStatistics(replyTo: ActorRef[TromboneHcdMessage]) extends AxisRequest
   case object PublishAxisUpdate                                   extends AxisRequest
 
   sealed trait AxisResponse
-  case object AxisStarted  extends AxisResponse
-  case object AxisFinished extends AxisResponse
+  case object AxisStarted                                extends AxisResponse
+  case class AxisFinished(newRef: ActorRef[AxisRequest]) extends AxisResponse
   case class AxisUpdate(axisName: String,
                         state: AxisState,
                         current: Int,
@@ -49,11 +47,11 @@ object SingleAxisSimulator {
 
   // Internal
   sealed trait InternalMessages
-  case class InitialState(replyTo: ActorRef[Any]) extends InternalMessages
-  case object DatumComplete                       extends InternalMessages
-  case class HomeComplete(position: Int)          extends InternalMessages
-  case class MoveComplete(position: Int)          extends InternalMessages
-  case object InitialStatistics                   extends InternalMessages
+  case class InitialState(replyTo: ActorRef[AxisResponse]) extends InternalMessages
+  case object DatumComplete                                extends InternalMessages
+  case class HomeComplete(position: Int)                   extends InternalMessages
+  case class MoveComplete(position: Int)                   extends InternalMessages
+  case object InitialStatistics                            extends InternalMessages
 
   sealed trait IdleMessage
   case class IdleAxisRequest(axisRequest: AxisRequest)               extends IdleMessage
@@ -61,7 +59,7 @@ object SingleAxisSimulator {
 
   case class State(
       axisConfig: AxisConfig,
-      replyTo: Option[ActorRef[Any]],
+      replyTo: Option[ActorRef[AxisResponse]],
       current: Int,
       inLowLimit: Boolean = false,
       inHighLimit: Boolean = false,
@@ -113,45 +111,6 @@ object SingleAxisSimulator {
       }
     }
 
-  def handleInternalMessage(state: State,
-                            internalMessages: InternalMessages,
-                            ctx: ActorContext[IdleMessage],
-                            loop: State ⇒ Behavior[IdleMessage]): Behavior[IdleMessage] =
-    internalMessages match {
-      case InitialState(replyTo) =>
-        replyTo ! state.getState
-        Actor.same
-      case DatumComplete =>
-        val newState = state
-          .copy(axisState = AXIS_IDLE)
-          .copy(current = state.current + 1)
-          .copy(successCount = state.successCount + 1)
-          .checkLimits()
-        newState.replyTo.foreach(_ ! newState.getState)
-        loop(newState)
-      case HomeComplete(position) =>
-        val newState = state
-          .copy(axisState = AXIS_IDLE)
-          .copy(current = position)
-          .checkLimits()
-          .copy(homeCount = state.newHomeCount)
-          .copy(successCount = state.successCount + 1)
-        newState.replyTo.foreach(_ ! state.getState)
-        newState.replyTo.foreach(_ ! ctx.self)
-        loop(newState)
-      case MoveComplete(position) =>
-        val newState = state
-          .copy(axisState = AXIS_IDLE)
-          .copy(current = position)
-          .checkLimits()
-          .copy(limitCount = state.newLimitCount)
-          .copy(successCount = state.successCount + 1)
-        newState.replyTo.foreach(_ ! state.getState)
-        newState.replyTo.foreach(_ ! ctx.self)
-        loop(newState)
-      case InitialStatistics => Actor.same
-    }
-
   def handleAxisRequest(state: State,
                         axisRequest: AxisRequest,
                         ctx: ActorContext[IdleMessage],
@@ -178,7 +137,7 @@ object SingleAxisSimulator {
         ctx.schedule(1.second, ctx.self, IdleInternalMessage(DatumComplete))
         loop(newState)
       case GetStatistics(replyTo) =>
-        replyTo ! DomainSpecific(W2(state.axisStatistics))
+        replyTo ! AxisResponseE(state.axisStatistics)
         Actor.same
       case Move(position, diagFlag) =>
         val newState = state
@@ -204,6 +163,51 @@ object SingleAxisSimulator {
       case PublishAxisUpdate =>
         state.replyTo.foreach(_ ! state.getState)
         Actor.same
+    }
+
+  def handleInternalMessage(state: State,
+                            internalMessages: InternalMessages,
+                            ctx: ActorContext[IdleMessage],
+                            loop: State ⇒ Behavior[IdleMessage]): Behavior[IdleMessage] =
+    internalMessages match {
+      case InitialState(replyTo) =>
+        replyTo ! state.getState
+        Actor.same
+      case DatumComplete =>
+        val newState = state
+          .copy(axisState = AXIS_IDLE)
+          .copy(current = state.current + 1)
+          .copy(successCount = state.successCount + 1)
+          .checkLimits()
+        newState.replyTo.foreach(_ ! newState.getState)
+        loop(newState)
+      case HomeComplete(position) =>
+        val newState = state
+          .copy(axisState = AXIS_IDLE)
+          .copy(current = position)
+          .checkLimits()
+          .copy(homeCount = state.newHomeCount)
+          .copy(successCount = state.successCount + 1)
+        newState.replyTo.foreach(_ ! state.getState)
+        val wrapper = ctx.spawnAdapter { x: AxisRequest ⇒
+          IdleAxisRequest(x)
+        }
+        newState.replyTo.foreach(_ ! AxisFinished(wrapper))
+        loop(newState)
+      case MoveComplete(position) =>
+        val newState = state
+          .copy(axisState = AXIS_IDLE)
+          .copy(current = position)
+          .checkLimits()
+          .copy(limitCount = state.newLimitCount)
+          .copy(successCount = state.successCount + 1)
+        newState.replyTo.foreach(_ ! state.getState)
+        val wrapper = ctx.spawnAdapter { x: AxisRequest ⇒
+          IdleAxisRequest(x)
+        }
+        newState.replyTo.foreach(_ ! AxisFinished(wrapper))
+        loop(newState)
+      case InitialStatistics => Actor.same
     }
 
   def homeReceive(state: State): Behavior[MotionWorkerMsgs] =
