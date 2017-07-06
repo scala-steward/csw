@@ -24,11 +24,11 @@ object MutableAxisSimulator {
 
   def isHomed(ac: AxisConfig, current: Int): Boolean = current == ac.home
 
-  sealed trait State
-  object State {
-    case object Idle                                    extends State
-    case class Home(worker: ActorRef[MotionWorkerMsgs]) extends State
-    case class Move(worker: ActorRef[MotionWorkerMsgs]) extends State
+  sealed trait Context
+  object Context {
+    case object Idle                                    extends Context
+    case class Home(worker: ActorRef[MotionWorkerMsgs]) extends Context
+    case class Move(worker: ActorRef[MotionWorkerMsgs]) extends Context
   }
 }
 
@@ -38,7 +38,7 @@ class MutableAxisSimulator(ctx: ActorContext[SimulatorCommand])(axisConfig: Axis
 
   import MutableAxisSimulator._
 
-  // Check that the home position is not in a limit area - with this check it is not neceesary to check for limits after homing
+  // Check that the home position is not in a limit area - with  check it is not neceesary to check for limits after homing
   assert(axisConfig.home > axisConfig.lowUser,
          s"home position must be greater than lowUser value: ${axisConfig.lowUser}")
   assert(axisConfig.home < axisConfig.highUser,
@@ -58,24 +58,24 @@ class MutableAxisSimulator(ctx: ActorContext[SimulatorCommand])(axisConfig: Axis
   private val failureCount = 0
   private var cancelCount  = 0
 
-  var state: State = State.Idle
+  var context: Context = Context.Idle
 
   override def onMessage(msg: SimulatorCommand): Behavior[SimulatorCommand] = {
-    (msg, state) match {
-      case (x: AxisRequest, State.Idle)              ⇒ mainReceive(x)
-      case (x: MotionWorkerMsgs, State.Home(worker)) ⇒ homeReceive(x, worker)
-      case (x: MotionWorkerMsgs, State.Move(worker)) ⇒ moveReceive(x, worker)
-      case _                                         ⇒ this
+    (msg, context) match {
+      case (x: AxisRequest, Context.Idle)              ⇒ mainReceive(x)
+      case (x: MotionWorkerMsgs, Context.Home(worker)) ⇒ homeReceive(x, worker)
+      case (x: MotionWorkerMsgs, Context.Move(worker)) ⇒ moveReceive(x, worker)
+      case _                                           ⇒
     }
-
+    this
   }
 
   import MotionWorkerMsgs._
 
-  def mainReceive(msg: AxisRequest): Behavior[SimulatorCommand] = msg match {
+  def mainReceive(msg: AxisRequest): Unit = msg match {
     case InitialState(replyToIn) =>
       replyToIn ! getState
-      this
+
     case Datum =>
       axisState = AXIS_MOVING
       update(replyTo, AxisStarted)
@@ -83,7 +83,7 @@ class MutableAxisSimulator(ctx: ActorContext[SimulatorCommand])(axisConfig: Axis
       // Stats
       initCount += 1
       moveCount += 1
-      this
+
     case GetStatistics(replyToIn) ⇒
       replyToIn ! AxisStatistics(axisConfig.axisName,
                                  initCount,
@@ -93,10 +93,9 @@ class MutableAxisSimulator(ctx: ActorContext[SimulatorCommand])(axisConfig: Axis
                                  successCount,
                                  failureCount,
                                  cancelCount)
-      this
+
     case PublishAxisUpdate =>
       update(replyTo, getState)
-      this
 
     case Home =>
       axisState = AXIS_MOVING
@@ -109,8 +108,8 @@ class MutableAxisSimulator(ctx: ActorContext[SimulatorCommand])(axisConfig: Axis
       val worker = ctx.spawnAnonymous(beh)
 
       worker ! Start(ctx.self)
-      state = State.Home(worker)
-      this
+      context = Context.Home(worker)
+
     case Move(position, diagFlag) =>
       axisState = AXIS_MOVING
       moveCount = moveCount + 1
@@ -125,72 +124,70 @@ class MutableAxisSimulator(ctx: ActorContext[SimulatorCommand])(axisConfig: Axis
       val worker = ctx.spawn(beh, s"moveWorker-${System.currentTimeMillis}")
 
       worker ! Start(ctx.self)
-      state = State.Move(worker)
-      this
+      context = Context.Move(worker)
+
     case CancelMove =>
       println("Received Cancel Move while idle :-(")
       cancelCount = cancelCount + 1
-      this
+
   }
 
-  def homeReceive(message: MotionWorkerMsgs, worker: ActorRef[MotionWorkerMsgs]): Behavior[SimulatorCommand] =
+  def homeReceive(message: MotionWorkerMsgs, worker: ActorRef[MotionWorkerMsgs]): Unit =
     message match {
       case Start(_) =>
         println("Home Start")
-        this
+
       case End(finalpos) =>
         println("Move End")
-        state = State.Idle
-        //TODO complete message
-        this
+        context = Context.Idle
+        ctx.self ! HomeComplete(finalpos)
+
       case Tick(currentIn) =>
         current = currentIn
         checkLimits()
         update(replyTo, getState)
-        this
+
       case MoveUpdate(destination) =>
-        this
-      case Cancel =>
-        this
+      case Cancel                  =>
     }
 
-  def moveReceive(messsage: MotionWorkerMsgs, worker: ActorRef[MotionWorkerMsgs]): Behavior[SimulatorCommand] =
+  def moveReceive(messsage: MotionWorkerMsgs, worker: ActorRef[MotionWorkerMsgs]): Unit =
     messsage match {
       case Start(_) =>
         println("Move Start")
-        Actor.same
+
       case Cancel =>
         println("Cancel MOVE")
         worker ! Cancel
         cancelCount = cancelCount + 1
-        state = State.Idle
-        this
+        context = Context.Idle
+
       case MoveUpdate(targetPosition) =>
-        // When this is received, we update the final position while a motion is happening
+        // When  is received, we update the final position while a motion is happening
         worker ! MoveUpdate(targetPosition)
-        this
+
       case Tick(currentIn) =>
-        // Set limits - this was a bug - need to do this after every step
+        // Set limits -  was a bug - need to do  after every step
         current = currentIn
         checkLimits()
         println("Move Update")
         update(replyTo, getState)
-        this
+
       case End(finalpos) =>
         println("Move End")
-        state = State.Idle
-        //TODO complete message
-        this
+        context = Context.Idle
+        ctx.self ! MoveComplete(finalpos)
+
     }
 
-  def internalReceive(internalMessages: InternalMessages): Behavior[SimulatorCommand] = internalMessages match {
+  def internalReceive(internalMessages: InternalMessages): Unit = internalMessages match {
     case DatumComplete =>
       axisState = AXIS_IDLE
       current += 1
       checkLimits()
       successCount += 1
       update(replyTo, getState)
-      this
+
     case HomeComplete(position) =>
       axisState = AXIS_IDLE
       current = position
@@ -198,7 +195,7 @@ class MutableAxisSimulator(ctx: ActorContext[SimulatorCommand])(axisConfig: Axis
       if (inHome) homeCount += 1
       successCount += 1
       update(replyTo, getState)
-      this
+
     case MoveComplete(position) =>
       println("Move Complete")
       axisState = AXIS_IDLE
@@ -207,8 +204,8 @@ class MutableAxisSimulator(ctx: ActorContext[SimulatorCommand])(axisConfig: Axis
       if (inHighLimit || inLowLimit) limitCount += 1
       successCount += 1
       update(replyTo, getState)
-      this
-    case InitialStatistics => this
+
+    case InitialStatistics =>
   }
 
   private def checkLimits(): Unit = {
