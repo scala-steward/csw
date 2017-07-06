@@ -2,7 +2,6 @@ package csw.framework.immutable
 
 import akka.typed.{ActorRef, Behavior}
 import akka.typed.scaladsl.{Actor, ActorContext}
-import csw.framework.immutable.TromboneHcdMessage.AxisResponseE
 import csw.framework.messages.AxisRequest._
 import csw.framework.messages.AxisResponse.{AxisFinished, AxisStarted, AxisStatistics, AxisUpdate}
 import csw.framework.messages.AxisState.{AXIS_IDLE, AXIS_MOVING}
@@ -97,7 +96,7 @@ object SingleAxisSimulator {
         ctx.schedule(1.second, ctx.self, IdleInternalMessage(DatumComplete))
         loop(newState)
       case GetStatistics(replyTo) =>
-        replyTo ! AxisResponseE(state.axisStatistics)
+        replyTo ! state.axisStatistics
         Actor.same
       case Move(position, diagFlag) =>
         val newState = state

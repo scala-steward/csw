@@ -33,7 +33,11 @@ case class TromboneState(current: AxisUpdate,
 object TromboneRunningHcd extends HcdRunningBehavior[TromboneHcdMessage, TromboneState] {
   override def run(state: TromboneState): Behavior[TromboneHcdMessage] = Actor.immutable { (ctx, msg) ⇒
     def dd(message: TromboneEngineering): Behavior[TromboneHcdMessage] = message match {
-      case GetAxisStats              => state.tromboneAxis ! GetStatistics(ctx.self); Actor.same
+      case GetAxisStats =>
+        val wrapper = ctx.spawnAdapter { x: AxisResponse ⇒
+          AxisResponseE(x)
+        }
+        state.tromboneAxis ! GetStatistics(wrapper); Actor.same
       case GetAxisUpdate             => state.tromboneAxis ! PublishAxisUpdate; Actor.same
       case GetAxisUpdateNow(replyTo) => replyTo ! state.current; Actor.same
       case GetAxisConfig =>

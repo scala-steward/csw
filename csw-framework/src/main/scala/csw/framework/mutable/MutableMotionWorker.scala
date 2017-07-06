@@ -8,8 +8,12 @@ import csw.framework.messages.MotionWorkerMsgs._
 import scala.concurrent.duration.DurationLong
 
 object MutableMotionWorker {
-  def behaviour(start: Int, destinationIn: Int, delayInMS: Int, diagFlag: Boolean): Behavior[MotionWorkerMsgs] =
-    Actor.mutable(ctx ⇒ new MutableMotionWorker(start, destinationIn, delayInMS, diagFlag)(ctx))
+  def behaviour(start: Int,
+                destinationIn: Int,
+                delayInMS: Int,
+                replyTo: ActorRef[MotionWorkerMsgs],
+                diagFlag: Boolean): Behavior[MotionWorkerMsgs] =
+    Actor.mutable(ctx ⇒ new MutableMotionWorker(start, destinationIn, delayInMS, replyTo, diagFlag)(ctx))
 
   def calcNumSteps(start: Int, end: Int): Int = {
     val diff = Math.abs(start - end)
@@ -28,13 +32,15 @@ object MutableMotionWorker {
     calcDistance(current, destination) <= Math.abs(stepSize)
 }
 
-class MutableMotionWorker(start: Int, destinationIn: Int, delayInMS: Int, diagFlag: Boolean)(
+class MutableMotionWorker(start: Int,
+                          destinationIn: Int,
+                          delayInMS: Int,
+                          replyTo: ActorRef[MotionWorkerMsgs],
+                          diagFlag: Boolean)(
     ctx: ActorContext[MotionWorkerMsgs]
 ) extends Actor.MutableBehavior[MotionWorkerMsgs] {
 
   import MutableMotionWorker._
-
-  var replyTo: ActorRef[MotionWorkerMsgs] = _
 
   private var destination = destinationIn
 
@@ -49,7 +55,6 @@ class MutableMotionWorker(start: Int, destinationIn: Int, delayInMS: Int, diagFl
   override def onMessage(msg: MotionWorkerMsgs): Behavior[MotionWorkerMsgs] =
     msg match {
       case Start(replyToIn) =>
-        replyTo = replyToIn
         replyTo ! Start(replyTo)
         if (diagFlag) diag("Starting", current, numSteps)
         ctx.schedule(delayInNanoSeconds.nanos, ctx.self, Tick(start + stepSize))

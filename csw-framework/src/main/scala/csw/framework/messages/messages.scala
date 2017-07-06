@@ -1,17 +1,6 @@
 package csw.framework.messages
 
 import akka.typed.ActorRef
-import csw.framework.immutable.TromboneHcdMessage
-
-sealed trait MotionWorkerMsgs
-
-object MotionWorkerMsgs {
-  case class Start(replyTo: ActorRef[MotionWorkerMsgs]) extends MotionWorkerMsgs
-  case class End(finalpos: Int)                         extends MotionWorkerMsgs
-  case class Tick(current: Int)                         extends MotionWorkerMsgs
-  case class MoveUpdate(destination: Int)               extends MotionWorkerMsgs
-  case object Cancel                                    extends MotionWorkerMsgs
-}
 
 sealed trait AxisState
 
@@ -21,15 +10,36 @@ object AxisState {
   case object AXIS_ERROR  extends AxisState
 }
 
-sealed trait AxisRequest
+sealed trait SimulatorCommand
+
+sealed trait AxisRequest extends SimulatorCommand
 object AxisRequest {
-  case object Home                                                extends AxisRequest
-  case object Datum                                               extends AxisRequest
-  case class Move(position: Int, diagFlag: Boolean = false)       extends AxisRequest
-  case object CancelMove                                          extends AxisRequest
-  case class GetStatistics(replyTo: ActorRef[TromboneHcdMessage]) extends AxisRequest
-  case object PublishAxisUpdate                                   extends AxisRequest
-  case class InitialState(replyTo: ActorRef[AxisResponse])        extends AxisRequest
+  case object Home                                          extends AxisRequest
+  case object Datum                                         extends AxisRequest
+  case class Move(position: Int, diagFlag: Boolean = false) extends AxisRequest
+  case object CancelMove                                    extends AxisRequest
+  case class GetStatistics(replyTo: ActorRef[AxisResponse]) extends AxisRequest
+  case object PublishAxisUpdate                             extends AxisRequest
+  case class InitialState(replyTo: ActorRef[AxisResponse])  extends AxisRequest
+}
+
+// Internal
+sealed trait InternalMessages extends SimulatorCommand
+object InternalMessages {
+  case object DatumComplete              extends InternalMessages
+  case class HomeComplete(position: Int) extends InternalMessages
+  case class MoveComplete(position: Int) extends InternalMessages
+  case object InitialStatistics          extends InternalMessages
+}
+
+sealed trait MotionWorkerMsgs extends SimulatorCommand
+
+object MotionWorkerMsgs {
+  case class Start(replyTo: ActorRef[MotionWorkerMsgs]) extends MotionWorkerMsgs
+  case class End(finalpos: Int)                         extends MotionWorkerMsgs
+  case class Tick(current: Int)                         extends MotionWorkerMsgs
+  case class MoveUpdate(destination: Int)               extends MotionWorkerMsgs
+  case object Cancel                                    extends MotionWorkerMsgs
 }
 
 sealed trait AxisResponse
@@ -56,15 +66,6 @@ object AxisResponse {
     override def toString =
       s"name: $axisName, inits: $initCount, moves: $moveCount, homes: $homeCount, limits: $limitCount, success: $successCount, fails: $failureCount, cancels: $cancelCount"
   }
-}
-
-// Internal
-sealed trait InternalMessages
-object InternalMessages {
-  case object DatumComplete              extends InternalMessages
-  case class HomeComplete(position: Int) extends InternalMessages
-  case class MoveComplete(position: Int) extends InternalMessages
-  case object InitialStatistics          extends InternalMessages
 }
 
 sealed trait IdleMessage
