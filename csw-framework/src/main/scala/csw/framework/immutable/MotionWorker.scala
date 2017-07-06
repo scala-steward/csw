@@ -1,18 +1,14 @@
-package csw.framework.example
+package csw.framework.immutable
 
 import akka.typed.{ActorRef, Behavior}
 import akka.typed.scaladsl.Actor
+import csw.framework.messages.MotionWorkerMsgs
 
 import scala.concurrent.duration.DurationLong
 
 object MotionWorker {
 
-  sealed trait MotionWorkerMsgs
-  case class Start(replyTo: ActorRef[MotionWorkerMsgs]) extends MotionWorkerMsgs
-  case class End(finalpos: Int)                         extends MotionWorkerMsgs
-  case class Tick(current: Int)                         extends MotionWorkerMsgs
-  case class MoveUpdate(destination: Int)               extends MotionWorkerMsgs
-  case object Cancel                                    extends MotionWorkerMsgs
+  import csw.framework.messages.MotionWorkerMsgs._
 
   def run(state: State): Behavior[MotionWorkerMsgs] =
     Actor.immutable[MotionWorkerMsgs] { (ctx, msg) ⇒

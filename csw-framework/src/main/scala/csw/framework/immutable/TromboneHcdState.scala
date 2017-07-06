@@ -1,7 +1,8 @@
-package csw.framework.example
+package csw.framework.immutable
 
 import java.io.File
 
+import csw.framework.messages.AxisState
 import csw.param.Parameters.{CommandInfo, Prefix, Setup}
 import csw.param.StateVariable.CurrentState
 import csw.param.UnitsOfMeasure.encoder
@@ -22,9 +23,9 @@ object TromboneHcdState {
   val axisStatePrefix             = s"$trombonePrefix.axis1State"
   val axisStateCK: Prefix         = axisStatePrefix
   val axisNameKey                 = StringKey("axisName")
-  val AXIS_IDLE                   = Choice(SingleAxisSimulator.AXIS_IDLE.toString)
-  val AXIS_MOVING                 = Choice(SingleAxisSimulator.AXIS_MOVING.toString)
-  val AXIS_ERROR                  = Choice(SingleAxisSimulator.AXIS_ERROR.toString)
+  val AXIS_IDLE                   = Choice(AxisState.AXIS_IDLE.toString)
+  val AXIS_MOVING                 = Choice(AxisState.AXIS_MOVING.toString)
+  val AXIS_ERROR                  = Choice(AxisState.AXIS_ERROR.toString)
   val stateKey                    = ChoiceKey("axisState", AXIS_IDLE, AXIS_MOVING, AXIS_ERROR)
   val positionKey                 = IntKey("position")
   val positionUnits: encoder.type = encoder

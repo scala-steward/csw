@@ -1,61 +1,18 @@
-package csw.framework.example
+package csw.framework.immutable
 
 import akka.typed.{ActorRef, Behavior}
 import akka.typed.scaladsl.{Actor, ActorContext}
-import csw.framework.example.MotionWorker._
-import csw.framework.example.TromboneHcdMessage.AxisResponseE
+import csw.framework.immutable.TromboneHcdMessage.AxisResponseE
+import csw.framework.messages.AxisRequest._
+import csw.framework.messages.AxisResponse.{AxisFinished, AxisStarted, AxisStatistics, AxisUpdate}
+import csw.framework.messages.AxisState.{AXIS_IDLE, AXIS_MOVING}
+import csw.framework.messages.IdleMessage.{IdleAxisRequest, IdleInternalMessage}
+import csw.framework.messages.InternalMessages._
+import csw.framework.messages._
 
 import scala.concurrent.duration.DurationInt
 
 object SingleAxisSimulator {
-  sealed trait AxisState
-  case object AXIS_IDLE   extends AxisState
-  case object AXIS_MOVING extends AxisState
-  case object AXIS_ERROR  extends AxisState
-
-  sealed trait AxisRequest
-  case object Home                                                extends AxisRequest
-  case object Datum                                               extends AxisRequest
-  case class Move(position: Int, diagFlag: Boolean = false)       extends AxisRequest
-  case object CancelMove                                          extends AxisRequest
-  case class GetStatistics(replyTo: ActorRef[TromboneHcdMessage]) extends AxisRequest
-  case object PublishAxisUpdate                                   extends AxisRequest
-
-  sealed trait AxisResponse
-  case object AxisStarted                                extends AxisResponse
-  case class AxisFinished(newRef: ActorRef[AxisRequest]) extends AxisResponse
-  case class AxisUpdate(axisName: String,
-                        state: AxisState,
-                        current: Int,
-                        inLowLimit: Boolean,
-                        inHighLimit: Boolean,
-                        inHomed: Boolean)
-      extends AxisResponse
-  case class AxisFailure(reason: String) extends AxisResponse
-  case class AxisStatistics(axisName: String,
-                            initCount: Int,
-                            moveCount: Int,
-                            homeCount: Int,
-                            limitCount: Int,
-                            successCount: Int,
-                            failureCount: Int,
-                            cancelCount: Int)
-      extends AxisResponse {
-    override def toString =
-      s"name: $axisName, inits: $initCount, moves: $moveCount, homes: $homeCount, limits: $limitCount, success: $successCount, fails: $failureCount, cancels: $cancelCount"
-  }
-
-  // Internal
-  sealed trait InternalMessages
-  case class InitialState(replyTo: ActorRef[AxisResponse]) extends InternalMessages
-  case object DatumComplete                                extends InternalMessages
-  case class HomeComplete(position: Int)                   extends InternalMessages
-  case class MoveComplete(position: Int)                   extends InternalMessages
-  case object InitialStatistics                            extends InternalMessages
-
-  sealed trait IdleMessage
-  case class IdleAxisRequest(axisRequest: AxisRequest)               extends IdleMessage
-  case class IdleInternalMessage(internalMessages: InternalMessages) extends IdleMessage
 
   case class State(
       axisConfig: AxisConfig,
@@ -116,6 +73,9 @@ object SingleAxisSimulator {
                         ctx: ActorContext[IdleMessage],
                         loop: State ⇒ Behavior[IdleMessage]): Behavior[IdleMessage] =
     axisRequest match {
+      case InitialState(replyTo) =>
+        replyTo ! state.getState
+        Actor.same
       case Home =>
         val newState = state
           .copy(axisState = AXIS_MOVING)
@@ -126,7 +86,7 @@ object SingleAxisSimulator {
           .from(state.current, state.axisConfig.home, delayInMS = 100, replyTo = None, diagFlag = false)
         val worker  = ctx.spawnAnonymous(MotionWorker.run(workerState))
         val homeRef = ctx.spawnAnonymous(homeReceive(newState))
-        worker ! MotionWorker.Start(homeRef)
+        worker ! MotionWorkerMsgs.Start(homeRef)
         Actor.stopped
       case Datum =>
         val newState = state
@@ -154,7 +114,7 @@ object SingleAxisSimulator {
                 diagFlag = diagFlag)
         val worker  = ctx.spawnAnonymous(MotionWorker.run(workerState))
         val moveRef = ctx.spawnAnonymous(moveReceive(newState, worker))
-        worker ! MotionWorker.Start(moveRef)
+        worker ! MotionWorkerMsgs.Start(moveRef)
         loop(newState)
       case CancelMove =>
         println("Received Cancel Move while idle :-(")
@@ -170,9 +130,6 @@ object SingleAxisSimulator {
                             ctx: ActorContext[IdleMessage],
                             loop: State ⇒ Behavior[IdleMessage]): Behavior[IdleMessage] =
     internalMessages match {
-      case InitialState(replyTo) =>
-        replyTo ! state.getState
-        Actor.same
       case DatumComplete =>
         val newState = state
           .copy(axisState = AXIS_IDLE)
@@ -212,6 +169,7 @@ object SingleAxisSimulator {
 
   def homeReceive(state: State): Behavior[MotionWorkerMsgs] =
     Actor.immutable[MotionWorkerMsgs] { (ctx, msg) ⇒
+      import MotionWorkerMsgs._
       msg match {
         case Start(_) =>
           println("Home Start")
@@ -234,6 +192,7 @@ object SingleAxisSimulator {
 
   def moveReceive(state: State, worker: ActorRef[MotionWorkerMsgs]): Behavior[MotionWorkerMsgs] =
     Actor.immutable[MotionWorkerMsgs] { (ctx, msg) ⇒
+      import MotionWorkerMsgs._
       msg match {
         case Start(_) =>
           println("Move Start")

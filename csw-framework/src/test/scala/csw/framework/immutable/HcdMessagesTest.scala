@@ -1,4 +1,4 @@
-package csw.framework.example
+package csw.framework.immutable
 
 import akka.typed.ActorSystem
 import akka.typed.scaladsl.Actor

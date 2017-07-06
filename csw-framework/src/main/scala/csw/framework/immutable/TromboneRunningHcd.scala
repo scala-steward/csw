@@ -1,12 +1,14 @@
-package csw.framework.example
+package csw.framework.immutable
 
 import akka.typed.scaladsl.Actor
 import akka.typed.{ActorRef, Behavior}
 import csw.framework.common.FromComponentLifecycleMessage.ShutdownComplete
 import csw.framework.common.ToComponentLifecycleMessage
-import csw.framework.example.SingleAxisSimulator._
 import csw.framework.common.ToComponentLifecycleMessage._
-import csw.framework.example.TromboneHcdMessage._
+import csw.framework.immutable.TromboneHcdMessage._
+import csw.framework.messages.AxisRequest.{GetStatistics, PublishAxisUpdate}
+import csw.framework.messages.{AxisRequest, AxisResponse}
+import csw.framework.messages.AxisResponse._
 import csw.param.UnitsOfMeasure.encoder
 
 sealed trait TromboneHcdMessage
