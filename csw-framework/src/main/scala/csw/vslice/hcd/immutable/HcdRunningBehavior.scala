@@ -1,4 +1,4 @@
-package csw.framework.immutable
+package csw.vslice.hcd.immutable
 
 import akka.typed.Behavior
 

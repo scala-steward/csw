@@ -1,9 +1,9 @@
-package csw.framework.mutable
+package csw.vslice.hcd.mutable
 
 import akka.typed.{ActorRef, Behavior}
 import akka.typed.scaladsl.{Actor, ActorContext}
-import csw.framework.messages.MotionWorkerMsgs
-import csw.framework.messages.MotionWorkerMsgs._
+import csw.vslice.hcd.messages.MotionWorkerMsgs
+import csw.vslice.hcd.messages.MotionWorkerMsgs._
 
 import scala.concurrent.duration.DurationLong
 

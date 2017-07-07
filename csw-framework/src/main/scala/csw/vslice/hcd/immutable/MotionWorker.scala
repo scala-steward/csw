@@ -1,14 +1,14 @@
-package csw.framework.immutable
+package csw.vslice.hcd.immutable
 
 import akka.typed.{ActorRef, Behavior}
 import akka.typed.scaladsl.Actor
-import csw.framework.messages.MotionWorkerMsgs
+import csw.vslice.hcd.messages.MotionWorkerMsgs
 
 import scala.concurrent.duration.DurationLong
 
 object MotionWorker {
 
-  import csw.framework.messages.MotionWorkerMsgs._
+  import csw.vslice.hcd.messages.MotionWorkerMsgs._
 
   def run(state: State): Behavior[MotionWorkerMsgs] =
     Actor.immutable[MotionWorkerMsgs] { (ctx, msg) ⇒

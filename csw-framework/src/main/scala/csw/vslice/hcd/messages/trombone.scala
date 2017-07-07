@@ -1,7 +1,7 @@
-package csw.framework.messages
+package csw.vslice.hcd.messages
 
 import akka.typed.ActorRef
-import csw.framework.models.AxisState
+import csw.vslice.hcd.models.AxisState
 import csw.param.Parameters.Setup
 import csw.param.StateVariable.CurrentState
 

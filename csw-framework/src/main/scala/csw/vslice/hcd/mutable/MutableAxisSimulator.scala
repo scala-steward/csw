@@ -1,13 +1,13 @@
-package csw.framework.mutable
+package csw.vslice.hcd.mutable
 
 import akka.typed.scaladsl.{Actor, ActorContext}
 import akka.typed.{ActorRef, Behavior}
-import csw.framework.messages.AxisRequest._
-import csw.framework.messages.AxisResponse.{AxisStarted, AxisStatistics, AxisUpdate}
-import csw.framework.messages.InternalMessages.{DatumComplete, HomeComplete, InitialStatistics, MoveComplete}
-import csw.framework.messages._
-import csw.framework.models.AxisState.{AXIS_IDLE, AXIS_MOVING}
-import csw.framework.models.{AxisConfig, AxisState}
+import csw.vslice.hcd.messages.AxisRequest._
+import csw.vslice.hcd.messages.AxisResponse.{AxisStarted, AxisStatistics, AxisUpdate}
+import csw.vslice.hcd.messages.InternalMessages.{DatumComplete, HomeComplete, InitialStatistics, MoveComplete}
+import csw.vslice.hcd.messages._
+import csw.vslice.hcd.models.AxisState.{AXIS_IDLE, AXIS_MOVING}
+import csw.vslice.hcd.models.{AxisConfig, AxisState}
 
 import scala.concurrent.duration.DurationInt
 

@@ -1,14 +1,14 @@
-package csw.framework.immutable
+package csw.vslice.hcd.immutable
 
 import akka.typed.scaladsl.Actor
 import akka.typed.{ActorRef, Behavior}
-import csw.framework.immutable.TromboneHcdMessage._
-import csw.framework.messages.AxisRequest.{GetStatistics, PublishAxisUpdate}
-import csw.framework.messages.AxisResponse._
-import csw.framework.messages.{AxisRequest, AxisResponse, ToComponentLifecycleMessage}
-import csw.framework.messages.FromComponentLifecycleMessage.ShutdownComplete
-import csw.framework.messages.ToComponentLifecycleMessage._
-import csw.framework.models.AxisConfig
+import csw.vslice.hcd.immutable.TromboneHcdMessage._
+import csw.vslice.hcd.messages.AxisRequest.{GetStatistics, PublishAxisUpdate}
+import csw.vslice.hcd.messages.AxisResponse._
+import csw.vslice.hcd.messages.{AxisRequest, AxisResponse, ToComponentLifecycleMessage}
+import csw.vslice.hcd.messages.FromComponentLifecycleMessage.ShutdownComplete
+import csw.vslice.hcd.messages.ToComponentLifecycleMessage._
+import csw.vslice.hcd.models.AxisConfig
 import csw.param.UnitsOfMeasure.encoder
 
 sealed trait TromboneHcdMessage
@@ -41,7 +41,7 @@ object TromboneRunningHcd extends HcdRunningBehavior[TromboneHcdMessage, Trombon
       case GetAxisUpdate             => state.tromboneAxis ! PublishAxisUpdate; Actor.same
       case GetAxisUpdateNow(replyTo) => replyTo ! state.current; Actor.same
       case GetAxisConfig =>
-        import csw.framework.models.TromboneHcdState._
+        import csw.vslice.hcd.models.TromboneHcdState._
         val axisConfigState = defaultConfigState.madd(
           lowLimitKey    -> state.axisConfig.lowLimit,
           lowUserKey     -> state.axisConfig.lowUser,
@@ -74,7 +74,7 @@ object TromboneRunningHcd extends HcdRunningBehavior[TromboneHcdMessage, Trombon
         val newState = state.copy(tromboneAxis = newRef)
         run(newState)
       case au @ AxisUpdate(axisName, axisState, current, inLowLimit, inHighLimit, inHomed) =>
-        import csw.framework.models.TromboneHcdState._
+        import csw.vslice.hcd.models.TromboneHcdState._
         val tromboneAxisState = defaultAxisState.madd(
           positionKey    -> current withUnits encoder,
           stateKey       -> axisState.toString,
@@ -86,7 +86,7 @@ object TromboneRunningHcd extends HcdRunningBehavior[TromboneHcdMessage, Trombon
         run(state.copy(current = au))
       case AxisFailure(reason) => Actor.same
       case as: AxisStatistics =>
-        import csw.framework.models.TromboneHcdState._
+        import csw.vslice.hcd.models.TromboneHcdState._
         val tromboneStats = defaultStatsState.madd(
           datumCountKey   -> as.initCount,
           moveCountKey    -> as.moveCount,

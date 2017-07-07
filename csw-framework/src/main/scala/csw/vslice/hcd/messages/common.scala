@@ -1,4 +1,4 @@
-package csw.framework.messages
+package csw.vslice.hcd.messages
 
 sealed trait LifecycleState
 

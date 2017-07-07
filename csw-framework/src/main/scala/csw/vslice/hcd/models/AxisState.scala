@@ -1,4 +1,4 @@
-package csw.framework.models
+package csw.vslice.hcd.models
 
 sealed trait AxisState
 

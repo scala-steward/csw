@@ -1,4 +1,4 @@
-package csw.framework.immutable
+package csw.vslice.hcd.immutable
 
 import akka.typed.scaladsl.Actor
 import akka.typed.{ActorRef, Behavior}

@@ -1,16 +1,21 @@
-package csw.framework.mutable
+package csw.vslice.hcd.mutable
 
 import akka.typed.{ActorRef, Behavior}
 import akka.typed.scaladsl.{Actor, ActorContext}
-import csw.framework.messages.AxisRequest._
-import csw.framework.messages.AxisResponse._
-import csw.framework.messages.Initial.{Run, ShutdownComplete}
-import csw.framework.messages.Running.{Lifecycle, Publish, Submit}
-import csw.framework.messages.ToComponentLifecycleMessage.{DoRestart, DoShutdown, LifecycleFailureInfo, RunningOffline}
-import csw.framework.messages.TromboneEngineering.{GetAxisConfig, GetAxisStats, GetAxisUpdate, GetAxisUpdateNow}
-import csw.framework.messages.{FromComponentLifecycleMessage, ToComponentLifecycleMessage, _}
-import csw.framework.models.AxisConfig
-import csw.framework.mutable.MutableTromboneHcd.Context
+import csw.vslice.hcd.messages.AxisRequest._
+import csw.vslice.hcd.messages.AxisResponse._
+import csw.vslice.hcd.messages.Initial.{Run, ShutdownComplete}
+import csw.vslice.hcd.messages.Running.{Lifecycle, Publish, Submit}
+import csw.vslice.hcd.messages.ToComponentLifecycleMessage.{
+  DoRestart,
+  DoShutdown,
+  LifecycleFailureInfo,
+  RunningOffline
+}
+import csw.vslice.hcd.messages.TromboneEngineering.{GetAxisConfig, GetAxisStats, GetAxisUpdate, GetAxisUpdateNow}
+import csw.vslice.hcd.messages.{FromComponentLifecycleMessage, ToComponentLifecycleMessage, _}
+import csw.vslice.hcd.models.AxisConfig
+import csw.vslice.hcd.mutable.MutableTromboneHcd.Context
 import csw.param.Parameters.Setup
 import csw.param.UnitsOfMeasure.encoder
 
@@ -72,7 +77,7 @@ class MutableTromboneHcd(ctx: ActorContext[TromboneMsg])(supervisor: ActorRef[An
   }
 
   def handleSetup(sc: Setup): Unit = {
-    import csw.framework.models.TromboneHcdState._
+    import csw.vslice.hcd.models.TromboneHcdState._
     println(s"Trombone process received sc: $sc")
 
     sc.prefix match {
@@ -94,7 +99,7 @@ class MutableTromboneHcd(ctx: ActorContext[TromboneMsg])(supervisor: ActorRef[An
     case GetAxisUpdate             => tromboneAxis ! PublishAxisUpdate
     case GetAxisUpdateNow(replyTo) => replyTo ! current
     case GetAxisConfig =>
-      import csw.framework.models.TromboneHcdState._
+      import csw.vslice.hcd.models.TromboneHcdState._
       val axisConfigState = defaultConfigState.madd(
         lowLimitKey    -> axisConfig.lowLimit,
         lowUserKey     -> axisConfig.lowUser,
@@ -111,7 +116,7 @@ class MutableTromboneHcd(ctx: ActorContext[TromboneMsg])(supervisor: ActorRef[An
     case AxisStarted          =>
     case AxisFinished(newRef) =>
     case au @ AxisUpdate(axisName, axisState, current1, inLowLimit, inHighLimit, inHomed) =>
-      import csw.framework.models.TromboneHcdState._
+      import csw.vslice.hcd.models.TromboneHcdState._
       val tromboneAxisState = defaultAxisState.madd(
         positionKey    -> current1 withUnits encoder,
         stateKey       -> axisState.toString,
@@ -123,7 +128,7 @@ class MutableTromboneHcd(ctx: ActorContext[TromboneMsg])(supervisor: ActorRef[An
       current = au
     case AxisFailure(reason) =>
     case as: AxisStatistics =>
-      import csw.framework.models.TromboneHcdState._
+      import csw.vslice.hcd.models.TromboneHcdState._
       val tromboneStats = defaultStatsState.madd(
         datumCountKey   -> as.initCount,
         moveCountKey    -> as.moveCount,
