@@ -4,8 +4,8 @@ import akka.typed.scaladsl.Actor
 import akka.typed.{ActorRef, Behavior}
 import csw.framework.immutable.TromboneHcdMessage._
 import csw.framework.messages.AxisRequest.{GetStatistics, PublishAxisUpdate}
-import csw.framework.messages.{AxisRequest, AxisResponse, ToComponentLifecycleMessage}
 import csw.framework.messages.AxisResponse._
+import csw.framework.messages.{AxisRequest, AxisResponse, ToComponentLifecycleMessage}
 import csw.framework.messages.FromComponentLifecycleMessage.ShutdownComplete
 import csw.framework.messages.ToComponentLifecycleMessage._
 import csw.framework.models.AxisConfig

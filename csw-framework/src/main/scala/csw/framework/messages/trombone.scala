@@ -2,6 +2,8 @@ package csw.framework.messages
 
 import akka.typed.ActorRef
 import csw.framework.models.AxisState
+import csw.param.Parameters.Setup
+import csw.param.StateVariable.CurrentState
 
 sealed trait SimulatorCommand
 
@@ -35,7 +37,32 @@ object MotionWorkerMsgs {
   case object Cancel                                    extends MotionWorkerMsgs
 }
 
-sealed trait AxisResponse
+/////////////////////////
+
+sealed trait TromboneMsg
+
+sealed trait Initial extends TromboneMsg
+object Initial {
+  case object Run              extends Initial
+  case object ShutdownComplete extends Initial with Running
+}
+
+sealed trait Running extends TromboneMsg
+object Running {
+  case class Lifecycle(message: ToComponentLifecycleMessage) extends Running
+  case class Submit(command: Setup)                          extends Running
+  case class Publish(currentState: CurrentState)             extends Running
+}
+
+sealed trait TromboneEngineering extends Running
+object TromboneEngineering {
+  case object GetAxisStats                                     extends TromboneEngineering
+  case object GetAxisUpdate                                    extends TromboneEngineering
+  case class GetAxisUpdateNow(replyTo: ActorRef[AxisResponse]) extends TromboneEngineering
+  case object GetAxisConfig                                    extends TromboneEngineering
+}
+
+sealed trait AxisResponse extends Running
 object AxisResponse {
   case object AxisStarted                                extends AxisResponse
   case class AxisFinished(newRef: ActorRef[AxisRequest]) extends AxisResponse
