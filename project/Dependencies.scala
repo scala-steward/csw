@@ -97,6 +97,7 @@ object Dependencies {
   )
 
   val Framework = Seq(
+    Libs.`scala-async`,
     Akka.`akka-typed`,
     Akka.`akka-typed-testkit` % Test,
     Libs.`scalatest`          % Test

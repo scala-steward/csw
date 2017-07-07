@@ -12,8 +12,8 @@ import csw.vslice.hcd.models.{AxisConfig, AxisState}
 import scala.concurrent.duration.DurationInt
 
 object MutableAxisSimulator {
-  def behaviour(axisConfig: AxisConfig, replyTo: Option[ActorRef[AxisResponse]]): Behavior[SimulatorCommand] =
-    Actor.mutable(ctx ⇒ new MutableAxisSimulator(ctx)(axisConfig: AxisConfig, replyTo))
+  def behaviour(axisConfig: AxisConfig, replyTo: Option[ActorRef[AxisResponse]]): Behavior[AxisRequest] =
+    Actor.mutable[SimulatorCommand](ctx ⇒ new MutableAxisSimulator(ctx)(axisConfig: AxisConfig, replyTo)).narrow
 
   def limitMove(ac: AxisConfig, request: Int): Int = Math.max(Math.min(request, ac.highLimit), ac.lowLimit)
 

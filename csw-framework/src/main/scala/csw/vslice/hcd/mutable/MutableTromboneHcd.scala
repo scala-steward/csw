@@ -1,10 +1,13 @@
 package csw.vslice.hcd.mutable
 
+import akka.actor.Scheduler
+import akka.typed.scaladsl.AskPattern.Askable
 import akka.typed.{ActorRef, Behavior}
 import akka.typed.scaladsl.{Actor, ActorContext}
+import akka.util.Timeout
 import csw.vslice.hcd.messages.AxisRequest._
 import csw.vslice.hcd.messages.AxisResponse._
-import csw.vslice.hcd.messages.Initial.{Run, ShutdownComplete}
+import csw.vslice.hcd.messages.Initial.{HcdResponse, Run, ShutdownComplete}
 import csw.vslice.hcd.messages.Running.{Lifecycle, Publish, Submit}
 import csw.vslice.hcd.messages.ToComponentLifecycleMessage.{
   DoRestart,
@@ -18,10 +21,15 @@ import csw.vslice.hcd.models.AxisConfig
 import csw.vslice.hcd.mutable.MutableTromboneHcd.Context
 import csw.param.Parameters.Setup
 import csw.param.UnitsOfMeasure.encoder
+import csw.vslice.hcd.messages.FromComponentLifecycleMessage.Initialized
+
+import async.Async._
+import scala.concurrent.Future
+import scala.concurrent.duration.DurationLong
 
 object MutableTromboneHcd {
-  def behavior(supervisor: ActorRef[Any]): Behavior[TromboneMsg] =
-    Actor.mutable(ctx ⇒ new MutableTromboneHcd(ctx)(supervisor))
+  def behavior(supervisor: ActorRef[Any]): Behavior[Nothing] =
+    Actor.mutable[TromboneMsg](ctx ⇒ new MutableTromboneHcd(ctx)(supervisor)).narrow
 
   sealed trait Context
   object Context {
@@ -33,11 +41,23 @@ object MutableTromboneHcd {
 class MutableTromboneHcd(ctx: ActorContext[TromboneMsg])(supervisor: ActorRef[Any])
     extends Actor.MutableBehavior[TromboneMsg] {
 
+  implicit val timeout              = Timeout(2.seconds)
+  implicit val scheduler: Scheduler = ctx.system.scheduler
+  import ctx.executionContext
+
   var current: AxisUpdate                 = _
   var stats: AxisStatistics               = _
   var tromboneAxis: ActorRef[AxisRequest] = _
   var axisConfig: AxisConfig              = _
   var context: Context                    = Context.Initial
+
+  async {
+    axisConfig = await(getAxisConfig)
+    tromboneAxis = setupAxis(axisConfig)
+    current = await(tromboneAxis ? InitialState)
+    stats = await(tromboneAxis ? GetStatistics)
+    supervisor ! Initialized(ctx.self)
+  }
 
   override def onMessage(msg: TromboneMsg): Behavior[TromboneMsg] = {
     (msg, context) match {
@@ -49,9 +69,10 @@ class MutableTromboneHcd(ctx: ActorContext[TromboneMsg])(supervisor: ActorRef[An
   }
 
   def handleInitial(x: Initial): Unit = x match {
-    case Run =>
+    case Run(replyTo) =>
       println("received Running")
       context = Context.Running
+      replyTo ! HcdResponse(ctx.self)
     case ShutdownComplete =>
       println("received Shutdown complete during Initial context")
   }
@@ -140,5 +161,11 @@ class MutableTromboneHcd(ctx: ActorContext[TromboneMsg])(supervisor: ActorRef[An
       )
       //TODO: PubSub
       stats = as
+  }
+
+  private def getAxisConfig: Future[AxisConfig] = ???
+
+  private def setupAxis(ac: AxisConfig): ActorRef[AxisRequest] = {
+    ctx.spawnAnonymous(MutableAxisSimulator.behaviour(ac, Some(ctx.self)))
   }
 }

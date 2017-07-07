@@ -4,18 +4,19 @@ import akka.typed.ActorRef
 import csw.vslice.hcd.models.AxisState
 import csw.param.Parameters.Setup
 import csw.param.StateVariable.CurrentState
+import csw.vslice.hcd.messages.AxisResponse.{AxisStatistics, AxisUpdate}
 
 sealed trait SimulatorCommand
 
 sealed trait AxisRequest extends SimulatorCommand
 object AxisRequest {
-  case object Home                                          extends AxisRequest
-  case object Datum                                         extends AxisRequest
-  case class Move(position: Int, diagFlag: Boolean = false) extends AxisRequest
-  case object CancelMove                                    extends AxisRequest
-  case class GetStatistics(replyTo: ActorRef[AxisResponse]) extends AxisRequest
-  case object PublishAxisUpdate                             extends AxisRequest
-  case class InitialState(replyTo: ActorRef[AxisResponse])  extends AxisRequest
+  case object Home                                            extends AxisRequest
+  case object Datum                                           extends AxisRequest
+  case class Move(position: Int, diagFlag: Boolean = false)   extends AxisRequest
+  case object CancelMove                                      extends AxisRequest
+  case class GetStatistics(replyTo: ActorRef[AxisStatistics]) extends AxisRequest
+  case object PublishAxisUpdate                               extends AxisRequest
+  case class InitialState(replyTo: ActorRef[AxisUpdate])      extends AxisRequest
 }
 
 // Internal
@@ -43,8 +44,10 @@ sealed trait TromboneMsg
 
 sealed trait Initial extends TromboneMsg
 object Initial {
-  case object Run              extends Initial
-  case object ShutdownComplete extends Initial with Running
+  case class Run(replyTo: ActorRef[HcdResponse]) extends Initial
+  case object ShutdownComplete                   extends Initial with Running
+
+  case class HcdResponse(runningHcd: ActorRef[Running])
 }
 
 sealed trait Running extends TromboneMsg

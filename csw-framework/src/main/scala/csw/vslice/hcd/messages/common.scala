@@ -1,5 +1,7 @@
 package csw.vslice.hcd.messages
 
+import akka.typed.ActorRef
+
 sealed trait LifecycleState
 
 object LifecycleState {
@@ -12,18 +14,16 @@ object LifecycleState {
   case object LifecycleShutdownFailure       extends LifecycleState
 }
 
-import akka.actor.ActorRef
-
 sealed trait SupervisorExternalMessage
 
 object SupervisorExternalMessage {
-  case class SubscribeLifecycleCallback(actorRef: ActorRef)   extends SupervisorExternalMessage
-  case class UnsubscribeLifecycleCallback(actorRef: ActorRef) extends SupervisorExternalMessage
-  case class LifecycleStateChanged(state: LifecycleState)     extends SupervisorExternalMessage
-  case object ExComponentRestart                              extends SupervisorExternalMessage
-  case object ExComponentShutdown                             extends SupervisorExternalMessage
-  case object ExComponentOnline                               extends SupervisorExternalMessage
-  case object ExComponentOffline                              extends SupervisorExternalMessage
+  case class SubscribeLifecycleCallback(actorRef: ActorRef[Any])   extends SupervisorExternalMessage
+  case class UnsubscribeLifecycleCallback(actorRef: ActorRef[Any]) extends SupervisorExternalMessage
+  case class LifecycleStateChanged(state: LifecycleState)          extends SupervisorExternalMessage
+  case object ExComponentRestart                                   extends SupervisorExternalMessage
+  case object ExComponentShutdown                                  extends SupervisorExternalMessage
+  case object ExComponentOnline                                    extends SupervisorExternalMessage
+  case object ExComponentOffline                                   extends SupervisorExternalMessage
 }
 
 sealed trait ToComponentLifecycleMessage
@@ -39,9 +39,9 @@ object ToComponentLifecycleMessage {
 sealed trait FromComponentLifecycleMessage
 
 object FromComponentLifecycleMessage {
-  case object Initialized                      extends FromComponentLifecycleMessage
-  case class InitializeFailure(reason: String) extends FromComponentLifecycleMessage
-  case object ShutdownComplete                 extends FromComponentLifecycleMessage with ToComponentLifecycleMessage
-  case class ShutdownFailure(reason: String)   extends FromComponentLifecycleMessage
-  case object HaltComponent                    extends FromComponentLifecycleMessage
+  case class Initialized(address: ActorRef[Initial]) extends FromComponentLifecycleMessage
+  case class InitializeFailure(reason: String)       extends FromComponentLifecycleMessage
+  case object ShutdownComplete                       extends FromComponentLifecycleMessage with ToComponentLifecycleMessage
+  case class ShutdownFailure(reason: String)         extends FromComponentLifecycleMessage
+  case object HaltComponent                          extends FromComponentLifecycleMessage
 }
