@@ -1,4 +1,4 @@
-package csw.framework.immutable
+package csw.framework.models
 
 import com.typesafe.config.Config
 

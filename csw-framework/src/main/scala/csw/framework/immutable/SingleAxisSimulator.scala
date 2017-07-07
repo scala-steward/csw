@@ -2,12 +2,13 @@ package csw.framework.immutable
 
 import akka.typed.{ActorRef, Behavior}
 import akka.typed.scaladsl.{Actor, ActorContext}
+import csw.framework.immutable.IdleMessage.{IdleAxisRequest, IdleInternalMessage}
 import csw.framework.messages.AxisRequest._
 import csw.framework.messages.AxisResponse.{AxisFinished, AxisStarted, AxisStatistics, AxisUpdate}
-import csw.framework.messages.AxisState.{AXIS_IDLE, AXIS_MOVING}
-import csw.framework.messages.IdleMessage.{IdleAxisRequest, IdleInternalMessage}
 import csw.framework.messages.InternalMessages._
 import csw.framework.messages._
+import csw.framework.models.AxisState.{AXIS_IDLE, AXIS_MOVING}
+import csw.framework.models.{AxisConfig, AxisState}
 
 import scala.concurrent.duration.DurationInt
 

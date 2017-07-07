@@ -1,8 +1,7 @@
-package csw.framework.common
+package csw.framework.immutable
 
 import akka.typed.scaladsl.Actor
 import akka.typed.{ActorRef, Behavior}
-import csw.framework.immutable.HcdRunningBehavior
 
 object HcdInitialBehavior {
   sealed trait InitialMessage[+T]

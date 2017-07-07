@@ -2,12 +2,12 @@ package csw.framework.mutable
 
 import akka.typed.scaladsl.{Actor, ActorContext}
 import akka.typed.{ActorRef, Behavior}
-import csw.framework.immutable.AxisConfig
 import csw.framework.messages.AxisRequest._
 import csw.framework.messages.AxisResponse.{AxisStarted, AxisStatistics, AxisUpdate}
-import csw.framework.messages.AxisState.{AXIS_IDLE, AXIS_MOVING}
 import csw.framework.messages.InternalMessages.{DatumComplete, HomeComplete, InitialStatistics, MoveComplete}
 import csw.framework.messages._
+import csw.framework.models.AxisState.{AXIS_IDLE, AXIS_MOVING}
+import csw.framework.models.{AxisConfig, AxisState}
 
 import scala.concurrent.duration.DurationInt
 
@@ -65,7 +65,7 @@ class MutableAxisSimulator(ctx: ActorContext[SimulatorCommand])(axisConfig: Axis
       case (x: AxisRequest, Context.Idle)              ⇒ mainReceive(x)
       case (x: MotionWorkerMsgs, Context.Home(worker)) ⇒ homeReceive(x, worker)
       case (x: MotionWorkerMsgs, Context.Move(worker)) ⇒ moveReceive(x, worker)
-      case _                                           ⇒
+      case _                                           ⇒ println(s"current context=$context does not handle message=$msg")
     }
     this
   }

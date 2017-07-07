@@ -1,8 +1,7 @@
-package csw.framework.immutable
+package csw.framework.models
 
 import java.io.File
 
-import csw.framework.messages.AxisState
 import csw.param.Parameters.{CommandInfo, Prefix, Setup}
 import csw.param.StateVariable.CurrentState
 import csw.param.UnitsOfMeasure.encoder

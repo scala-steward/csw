@@ -1,14 +1,7 @@
 package csw.framework.messages
 
 import akka.typed.ActorRef
-
-sealed trait AxisState
-
-object AxisState {
-  case object AXIS_IDLE   extends AxisState
-  case object AXIS_MOVING extends AxisState
-  case object AXIS_ERROR  extends AxisState
-}
+import csw.framework.models.AxisState
 
 sealed trait SimulatorCommand
 
@@ -66,10 +59,4 @@ object AxisResponse {
     override def toString =
       s"name: $axisName, inits: $initCount, moves: $moveCount, homes: $homeCount, limits: $limitCount, success: $successCount, fails: $failureCount, cancels: $cancelCount"
   }
-}
-
-sealed trait IdleMessage
-object IdleMessage {
-  case class IdleAxisRequest(axisRequest: AxisRequest)               extends IdleMessage
-  case class IdleInternalMessage(internalMessages: InternalMessages) extends IdleMessage
 }
