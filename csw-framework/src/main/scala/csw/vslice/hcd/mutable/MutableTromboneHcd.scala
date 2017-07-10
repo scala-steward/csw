@@ -28,11 +28,10 @@ import scala.async.Async._
 import scala.concurrent.Future
 import scala.concurrent.duration.DurationLong
 
-object MutableTromboneHcd {
-  val Key: MsgKey[CurrentState] = new MsgKey
+object MutableTromboneHcd extends PubsSubMsgFactory[CurrentState] with DomainMsgFactory[TromboneMsg] {
 
   def behavior(supervisor: ActorRef[FromComponentLifecycleMessage]): Behavior[Nothing] = {
-    val pubSubB: Behavior[PubSub[CurrentState]] = Actor.mutable(ctx ⇒ new PubSubActor[CurrentState](Key)(ctx))
+    val pubSubB: Behavior[PubSub[CurrentState]] = Actor.mutable(ctx ⇒ new PubSubActor[CurrentState](this)(ctx))
     Actor.mutable[HcdMsg](ctx => new MutableTromboneHcd(ctx)(supervisor, ctx.spawnAnonymous(pubSubB))).narrow
   }
 
@@ -47,9 +46,7 @@ class MutableTromboneHcd(ctx: ActorContext[HcdMsg])(supervisor: ActorRef[FromCom
                                                     pubSubRef: ActorRef[PubSub[CurrentState]])
     extends Actor.MutableBehavior[HcdMsg] {
 
-  val wrapper: ActorRef[TromboneMsg] = ctx.spawnAdapter { x: TromboneMsg ⇒
-    DomainHcdMsg(x)
-  }
+  val wrapper: ActorRef[DomainMsg] = ctx.spawnAdapter(DomainHcdMsg.apply)
 
   implicit val timeout              = Timeout(2.seconds)
   implicit val scheduler: Scheduler = ctx.system.scheduler

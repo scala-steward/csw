@@ -5,6 +5,7 @@ import csw.vslice.hcd.models.AxisState
 import csw.param.Parameters.Setup
 import csw.param.StateVariable.CurrentState
 import csw.vslice.hcd.messages.AxisResponse.{AxisStatistics, AxisUpdate}
+import csw.vslice.hcd.messages.RunningHcdMsg.DomainHcdMsg
 
 sealed trait SimulatorCommand
 
@@ -52,15 +53,20 @@ object InitialHcdMsg {
 
 sealed trait RunningHcdMsg extends HcdMsg
 object RunningHcdMsg {
-  case class Lifecycle(message: ToComponentLifecycleMessage) extends RunningHcdMsg
-  case class Submit(command: Setup)                          extends RunningHcdMsg
-  case object GetPubSubActorRef                              extends RunningHcdMsg
-  case class DomainHcdMsg[T <: DomainMsg](msg: T)            extends RunningHcdMsg
+  case class Lifecycle(message: ToComponentLifecycleMessage)   extends RunningHcdMsg
+  case class Submit(command: Setup)                            extends RunningHcdMsg
+  case object GetPubSubActorRef                                extends RunningHcdMsg
+  private[hcd] case class DomainHcdMsg[T <: DomainMsg](msg: T) extends RunningHcdMsg
 
   case class PubSubRef(ref: ActorRef[PubSub[CurrentState]])
 }
 
 trait DomainMsg
+
+trait DomainMsgFactory[T <: DomainMsg] {
+  def envelope(x: T): DomainHcdMsg[T] = DomainHcdMsg(x)
+}
+/////////////
 
 sealed trait TromboneMsg extends DomainMsg
 
