@@ -40,26 +40,28 @@ object MotionWorkerMsgs {
 
 /////////////////////////
 
-sealed trait TromboneMsg
+sealed trait HcdMsg
 
-sealed trait Initial extends TromboneMsg
-object Initial {
-  case class Run(replyTo: ActorRef[HcdResponse]) extends Initial
-  case object ShutdownComplete                   extends Initial with Running
+sealed trait InitialHcdMsg extends HcdMsg
+object InitialHcdMsg {
+  case class Run(replyTo: ActorRef[HcdResponse]) extends InitialHcdMsg
+  case object ShutdownComplete                   extends InitialHcdMsg with RunningHcdMsg
 
-  case class HcdResponse(runningHcd: ActorRef[Running])
+  case class HcdResponse(runningHcd: ActorRef[RunningHcdMsg])
 }
 
-sealed trait Running extends TromboneMsg
-object Running {
-  case class Lifecycle(message: ToComponentLifecycleMessage) extends Running
-  case class Submit(command: Setup)                          extends Running
-  case object GetPubSubActorRef                              extends Running
+sealed trait RunningHcdMsg extends HcdMsg
+object RunningHcdMsg {
+  case class Lifecycle(message: ToComponentLifecycleMessage) extends RunningHcdMsg
+  case class Submit(command: Setup)                          extends RunningHcdMsg
+  case object GetPubSubActorRef                              extends RunningHcdMsg
 
   case class PubSubRef(ref: ActorRef[PubSub[CurrentState]])
 }
 
-sealed trait TromboneEngineering extends Running
+sealed trait TromboneMsg extends RunningHcdMsg
+
+sealed trait TromboneEngineering extends TromboneMsg
 object TromboneEngineering {
   case object GetAxisStats                                     extends TromboneEngineering
   case object GetAxisUpdate                                    extends TromboneEngineering
@@ -67,7 +69,7 @@ object TromboneEngineering {
   case object GetAxisConfig                                    extends TromboneEngineering
 }
 
-sealed trait AxisResponse extends Running
+sealed trait AxisResponse extends TromboneMsg
 object AxisResponse {
   case object AxisStarted                                extends AxisResponse
   case class AxisFinished(newRef: ActorRef[AxisRequest]) extends AxisResponse

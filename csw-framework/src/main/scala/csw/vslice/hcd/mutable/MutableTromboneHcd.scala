@@ -11,8 +11,8 @@ import csw.param.UnitsOfMeasure.encoder
 import csw.vslice.hcd.messages.AxisRequest._
 import csw.vslice.hcd.messages.AxisResponse._
 import csw.vslice.hcd.messages.FromComponentLifecycleMessage.Initialized
-import csw.vslice.hcd.messages.Initial.{HcdResponse, Run, ShutdownComplete}
-import csw.vslice.hcd.messages.Running._
+import csw.vslice.hcd.messages.InitialHcdMsg.{HcdResponse, Run, ShutdownComplete}
+import csw.vslice.hcd.messages.RunningHcdMsg._
 import csw.vslice.hcd.messages.ToComponentLifecycleMessage.{
   DoRestart,
   DoShutdown,
@@ -33,7 +33,7 @@ object MutableTromboneHcd {
 
   def behavior(supervisor: ActorRef[FromComponentLifecycleMessage]): Behavior[Nothing] = {
     val pubSubB: Behavior[PubSub[CurrentState]] = Actor.mutable(ctx ⇒ new PubSubActor[CurrentState](Key)(ctx))
-    Actor.mutable[TromboneMsg](ctx => new MutableTromboneHcd(ctx)(supervisor, ctx.spawnAnonymous(pubSubB))).narrow
+    Actor.mutable[HcdMsg](ctx => new MutableTromboneHcd(ctx)(supervisor, ctx.spawnAnonymous(pubSubB))).narrow
   }
 
   sealed trait Context
@@ -43,9 +43,9 @@ object MutableTromboneHcd {
   }
 }
 
-class MutableTromboneHcd(ctx: ActorContext[TromboneMsg])(supervisor: ActorRef[FromComponentLifecycleMessage],
-                                                         pubSubRef: ActorRef[PubSub[CurrentState]])
-    extends Actor.MutableBehavior[TromboneMsg] {
+class MutableTromboneHcd(ctx: ActorContext[HcdMsg])(supervisor: ActorRef[FromComponentLifecycleMessage],
+                                                    pubSubRef: ActorRef[PubSub[CurrentState]])
+    extends Actor.MutableBehavior[HcdMsg] {
 
   implicit val timeout              = Timeout(2.seconds)
   implicit val scheduler: Scheduler = ctx.system.scheduler
@@ -66,16 +66,16 @@ class MutableTromboneHcd(ctx: ActorContext[TromboneMsg])(supervisor: ActorRef[Fr
     context = Context.Initial
   }
 
-  override def onMessage(msg: TromboneMsg): Behavior[TromboneMsg] = {
+  override def onMessage(msg: HcdMsg): Behavior[HcdMsg] = {
     (context, msg) match {
-      case (Context.Initial, x: Initial) ⇒ handleInitial(x)
-      case (Context.Running, x: Running) ⇒ handleRuning(x)
-      case _                             ⇒ println(s"current context=$context does not handle message=$msg")
+      case (Context.Initial, x: InitialHcdMsg) ⇒ handleInitial(x)
+      case (Context.Running, x: RunningHcdMsg) ⇒ handleRuning(x)
+      case _                                   ⇒ println(s"current context=$context does not handle message=$msg")
     }
     this
   }
 
-  def handleInitial(x: Initial): Unit = x match {
+  def handleInitial(x: InitialHcdMsg): Unit = x match {
     case Run(replyTo) =>
       println("received Running")
       context = Context.Running
@@ -84,13 +84,12 @@ class MutableTromboneHcd(ctx: ActorContext[TromboneMsg])(supervisor: ActorRef[Fr
       println("received Shutdown complete during Initial context")
   }
 
-  def handleRuning(x: Running): Unit = x match {
-    case ShutdownComplete       => println("received Shutdown complete during Initial state")
-    case Lifecycle(message)     => handleLifecycle(message)
-    case Submit(command)        => handleSetup(command)
-    case GetPubSubActorRef      => PubSubRef(pubSubRef)
-    case y: TromboneEngineering => handleEng(y)
-    case y: AxisResponse        => handleAxisResponse(y)
+  def handleRuning(x: RunningHcdMsg): Unit = x match {
+    case ShutdownComplete   => println("received Shutdown complete during Initial state")
+    case Lifecycle(message) => handleLifecycle(message)
+    case Submit(command)    => handleSetup(command)
+    case GetPubSubActorRef  => PubSubRef(pubSubRef)
+    case y: TromboneMsg     => handleTrombone(y)
   }
 
   def handleLifecycle(x: ToComponentLifecycleMessage): Unit = x match {
@@ -120,6 +119,11 @@ class MutableTromboneHcd(ctx: ActorContext[TromboneMsg])(supervisor: ActorRef[Fr
         tromboneAxis ! CancelMove
       case x => println(s"Unknown config key $x")
     }
+  }
+
+  def handleTrombone(tromboneMsg: TromboneMsg) = tromboneMsg match {
+    case x: TromboneEngineering => handleEng(x)
+    case x: AxisResponse        => handleAxisResponse(x)
   }
 
   def handleEng(tromboneEngineering: TromboneEngineering): Unit = tromboneEngineering match {

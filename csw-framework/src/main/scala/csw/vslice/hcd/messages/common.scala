@@ -39,11 +39,11 @@ object ToComponentLifecycleMessage {
 sealed trait FromComponentLifecycleMessage
 
 object FromComponentLifecycleMessage {
-  case class Initialized(address: ActorRef[Initial]) extends FromComponentLifecycleMessage
-  case class InitializeFailure(reason: String)       extends FromComponentLifecycleMessage
-  case object ShutdownComplete                       extends FromComponentLifecycleMessage with ToComponentLifecycleMessage
-  case class ShutdownFailure(reason: String)         extends FromComponentLifecycleMessage
-  case object HaltComponent                          extends FromComponentLifecycleMessage
+  case class Initialized(address: ActorRef[InitialHcdMsg]) extends FromComponentLifecycleMessage
+  case class InitializeFailure(reason: String)             extends FromComponentLifecycleMessage
+  case object ShutdownComplete                             extends FromComponentLifecycleMessage with ToComponentLifecycleMessage
+  case class ShutdownFailure(reason: String)               extends FromComponentLifecycleMessage
+  case object HaltComponent                                extends FromComponentLifecycleMessage
 }
 
 sealed trait PubSub[T]
