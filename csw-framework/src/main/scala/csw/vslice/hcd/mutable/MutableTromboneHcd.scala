@@ -29,7 +29,7 @@ import scala.concurrent.Future
 import scala.concurrent.duration.DurationLong
 
 object MutableTromboneHcd {
-  val Key: PubSubKey[CurrentState] = new PubSubKey
+  val Key: MsgKey[CurrentState] = new MsgKey
 
   def behavior(supervisor: ActorRef[FromComponentLifecycleMessage]): Behavior[Nothing] = {
     val pubSubB: Behavior[PubSub[CurrentState]] = Actor.mutable(ctx ⇒ new PubSubActor[CurrentState](Key)(ctx))
@@ -47,6 +47,10 @@ class MutableTromboneHcd(ctx: ActorContext[HcdMsg])(supervisor: ActorRef[FromCom
                                                     pubSubRef: ActorRef[PubSub[CurrentState]])
     extends Actor.MutableBehavior[HcdMsg] {
 
+  val wrapper: ActorRef[TromboneMsg] = ctx.spawnAdapter { x: TromboneMsg ⇒
+    DomainHcdMsg(x)
+  }
+
   implicit val timeout              = Timeout(2.seconds)
   implicit val scheduler: Scheduler = ctx.system.scheduler
   import ctx.executionContext
@@ -59,7 +63,7 @@ class MutableTromboneHcd(ctx: ActorContext[HcdMsg])(supervisor: ActorRef[FromCom
 
   async {
     axisConfig = await(getAxisConfig)
-    tromboneAxis = ctx.spawnAnonymous(MutableAxisSimulator.behaviour(axisConfig, Some(ctx.self)))
+    tromboneAxis = ctx.spawnAnonymous(MutableAxisSimulator.behaviour(axisConfig, Some(wrapper)))
     current = await(tromboneAxis ? InitialState)
     stats = await(tromboneAxis ? GetStatistics)
     supervisor ! Initialized(ctx.self)
@@ -85,11 +89,12 @@ class MutableTromboneHcd(ctx: ActorContext[HcdMsg])(supervisor: ActorRef[FromCom
   }
 
   def handleRuning(x: RunningHcdMsg): Unit = x match {
-    case ShutdownComplete   => println("received Shutdown complete during Initial state")
-    case Lifecycle(message) => handleLifecycle(message)
-    case Submit(command)    => handleSetup(command)
-    case GetPubSubActorRef  => PubSubRef(pubSubRef)
-    case y: TromboneMsg     => handleTrombone(y)
+    case ShutdownComplete             => println("received Shutdown complete during Initial state")
+    case Lifecycle(message)           => handleLifecycle(message)
+    case Submit(command)              => handleSetup(command)
+    case GetPubSubActorRef            => PubSubRef(pubSubRef)
+    case DomainHcdMsg(y: TromboneMsg) ⇒ handleTrombone(y)
+    case DomainHcdMsg(y)              ⇒ println(s"unhandled domain msg: $y")
   }
 
   def handleLifecycle(x: ToComponentLifecycleMessage): Unit = x match {
@@ -127,7 +132,7 @@ class MutableTromboneHcd(ctx: ActorContext[HcdMsg])(supervisor: ActorRef[FromCom
   }
 
   def handleEng(tromboneEngineering: TromboneEngineering): Unit = tromboneEngineering match {
-    case GetAxisStats              => tromboneAxis ! GetStatistics(ctx.self)
+    case GetAxisStats              => tromboneAxis ! GetStatistics(wrapper)
     case GetAxisUpdate             => tromboneAxis ! PublishAxisUpdate
     case GetAxisUpdateNow(replyTo) => replyTo ! current
     case GetAxisConfig =>

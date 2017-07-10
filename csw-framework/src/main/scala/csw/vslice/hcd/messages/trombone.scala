@@ -55,11 +55,14 @@ object RunningHcdMsg {
   case class Lifecycle(message: ToComponentLifecycleMessage) extends RunningHcdMsg
   case class Submit(command: Setup)                          extends RunningHcdMsg
   case object GetPubSubActorRef                              extends RunningHcdMsg
+  case class DomainHcdMsg[T <: DomainMsg](msg: T)            extends RunningHcdMsg
 
   case class PubSubRef(ref: ActorRef[PubSub[CurrentState]])
 }
 
-sealed trait TromboneMsg extends RunningHcdMsg
+trait DomainMsg
+
+sealed trait TromboneMsg extends DomainMsg
 
 sealed trait TromboneEngineering extends TromboneMsg
 object TromboneEngineering {
