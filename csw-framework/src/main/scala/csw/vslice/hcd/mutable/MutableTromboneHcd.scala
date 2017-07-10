@@ -29,9 +29,11 @@ import scala.concurrent.Future
 import scala.concurrent.duration.DurationLong
 
 object MutableTromboneHcd {
+  val Key: PubSubKey[CurrentState] = new PubSubKey
+
   def behavior(supervisor: ActorRef[FromComponentLifecycleMessage]): Behavior[Nothing] = {
-    val beh: Behavior[PubSub[CurrentState]] = Actor.mutable(ctx ⇒ new PubSubActor[CurrentState](new PubSubKey)(ctx))
-    Actor.mutable[TromboneMsg](ctx => new MutableTromboneHcd(ctx)(supervisor, ctx.spawnAnonymous(beh))).narrow
+    val pubSubB: Behavior[PubSub[CurrentState]] = Actor.mutable(ctx ⇒ new PubSubActor[CurrentState](Key)(ctx))
+    Actor.mutable[TromboneMsg](ctx => new MutableTromboneHcd(ctx)(supervisor, ctx.spawnAnonymous(pubSubB))).narrow
   }
 
   sealed trait Context
@@ -53,20 +55,21 @@ class MutableTromboneHcd(ctx: ActorContext[TromboneMsg])(supervisor: ActorRef[Fr
   var stats: AxisStatistics               = _
   var tromboneAxis: ActorRef[AxisRequest] = _
   var axisConfig: AxisConfig              = _
-  var context: Context                    = Context.Initial
+  var context: Context                    = _
 
   async {
     axisConfig = await(getAxisConfig)
-    tromboneAxis = setupAxis(axisConfig)
+    tromboneAxis = ctx.spawnAnonymous(MutableAxisSimulator.behaviour(axisConfig, Some(ctx.self)))
     current = await(tromboneAxis ? InitialState)
     stats = await(tromboneAxis ? GetStatistics)
     supervisor ! Initialized(ctx.self)
+    context = Context.Initial
   }
 
   override def onMessage(msg: TromboneMsg): Behavior[TromboneMsg] = {
-    (msg, context) match {
-      case (x: Initial, Context.Initial) ⇒ handleInitial(x)
-      case (x: Running, Context.Running) ⇒ handleRuning(x)
+    (context, msg) match {
+      case (Context.Initial, x: Initial) ⇒ handleInitial(x)
+      case (Context.Running, x: Running) ⇒ handleRuning(x)
       case _                             ⇒ println(s"current context=$context does not handle message=$msg")
     }
     this
@@ -168,8 +171,4 @@ class MutableTromboneHcd(ctx: ActorContext[TromboneMsg])(supervisor: ActorRef[Fr
   }
 
   private def getAxisConfig: Future[AxisConfig] = ???
-
-  private def setupAxis(ac: AxisConfig): ActorRef[AxisRequest] = {
-    ctx.spawnAnonymous(MutableAxisSimulator.behaviour(ac, Some(ctx.self)))
-  }
 }

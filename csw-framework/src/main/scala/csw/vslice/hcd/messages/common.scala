@@ -1,7 +1,6 @@
 package csw.vslice.hcd.messages
 
 import akka.typed.ActorRef
-import csw.param.StateVariable.CurrentState
 
 sealed trait LifecycleState
 
@@ -53,7 +52,6 @@ object PubSub {
   case class Subscribe[T](key: PubSubKey[T], ref: ActorRef[T])   extends PubSub[T]
   case class Unsubscribe[T](key: PubSubKey[T], ref: ActorRef[T]) extends PubSub[T]
   case class Publish[T](data: T)                                 extends PubSub[T]
-
 }
 
 class PubSubKey[T] {
