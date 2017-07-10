@@ -54,7 +54,9 @@ sealed trait Running extends TromboneMsg
 object Running {
   case class Lifecycle(message: ToComponentLifecycleMessage) extends Running
   case class Submit(command: Setup)                          extends Running
-  case class Publish(currentState: CurrentState)             extends Running
+  case object GetPubSubActorRef                              extends Running
+
+  case class PubSubRef(ref: ActorRef[PubSub[CurrentState]])
 }
 
 sealed trait TromboneEngineering extends Running

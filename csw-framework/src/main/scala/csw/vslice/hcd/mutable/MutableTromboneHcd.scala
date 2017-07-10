@@ -2,13 +2,17 @@ package csw.vslice.hcd.mutable
 
 import akka.actor.Scheduler
 import akka.typed.scaladsl.AskPattern.Askable
-import akka.typed.{ActorRef, Behavior}
 import akka.typed.scaladsl.{Actor, ActorContext}
+import akka.typed.{ActorRef, Behavior}
 import akka.util.Timeout
+import csw.param.Parameters.Setup
+import csw.param.StateVariable.CurrentState
+import csw.param.UnitsOfMeasure.encoder
 import csw.vslice.hcd.messages.AxisRequest._
 import csw.vslice.hcd.messages.AxisResponse._
+import csw.vslice.hcd.messages.FromComponentLifecycleMessage.Initialized
 import csw.vslice.hcd.messages.Initial.{HcdResponse, Run, ShutdownComplete}
-import csw.vslice.hcd.messages.Running.{Lifecycle, Publish, Submit}
+import csw.vslice.hcd.messages.Running._
 import csw.vslice.hcd.messages.ToComponentLifecycleMessage.{
   DoRestart,
   DoShutdown,
@@ -19,17 +23,16 @@ import csw.vslice.hcd.messages.TromboneEngineering.{GetAxisConfig, GetAxisStats,
 import csw.vslice.hcd.messages.{FromComponentLifecycleMessage, ToComponentLifecycleMessage, _}
 import csw.vslice.hcd.models.AxisConfig
 import csw.vslice.hcd.mutable.MutableTromboneHcd.Context
-import csw.param.Parameters.Setup
-import csw.param.UnitsOfMeasure.encoder
-import csw.vslice.hcd.messages.FromComponentLifecycleMessage.Initialized
 
-import async.Async._
+import scala.async.Async._
 import scala.concurrent.Future
 import scala.concurrent.duration.DurationLong
 
 object MutableTromboneHcd {
-  def behavior(supervisor: ActorRef[Any]): Behavior[Nothing] =
-    Actor.mutable[TromboneMsg](ctx ⇒ new MutableTromboneHcd(ctx)(supervisor)).narrow
+  def behavior(supervisor: ActorRef[FromComponentLifecycleMessage]): Behavior[Nothing] = {
+    val beh: Behavior[PubSub[CurrentState]] = Actor.mutable(ctx ⇒ new PubSubActor[CurrentState](new PubSubKey)(ctx))
+    Actor.mutable[TromboneMsg](ctx => new MutableTromboneHcd(ctx)(supervisor, ctx.spawnAnonymous(beh))).narrow
+  }
 
   sealed trait Context
   object Context {
@@ -38,7 +41,8 @@ object MutableTromboneHcd {
   }
 }
 
-class MutableTromboneHcd(ctx: ActorContext[TromboneMsg])(supervisor: ActorRef[Any])
+class MutableTromboneHcd(ctx: ActorContext[TromboneMsg])(supervisor: ActorRef[FromComponentLifecycleMessage],
+                                                         pubSubRef: ActorRef[PubSub[CurrentState]])
     extends Actor.MutableBehavior[TromboneMsg] {
 
   implicit val timeout              = Timeout(2.seconds)
@@ -81,7 +85,7 @@ class MutableTromboneHcd(ctx: ActorContext[TromboneMsg])(supervisor: ActorRef[An
     case ShutdownComplete       => println("received Shutdown complete during Initial state")
     case Lifecycle(message)     => handleLifecycle(message)
     case Submit(command)        => handleSetup(command)
-    case Publish(currentState)  =>
+    case GetPubSubActorRef      => PubSubRef(pubSubRef)
     case y: TromboneEngineering => handleEng(y)
     case y: AxisResponse        => handleAxisResponse(y)
   }
@@ -130,7 +134,7 @@ class MutableTromboneHcd(ctx: ActorContext[TromboneMsg])(supervisor: ActorRef[An
         startValueKey  -> axisConfig.startPosition,
         stepDelayMSKey -> axisConfig.stepDelayMS
       )
-    //TODO: PubSub
+      pubSubRef ! PubSub.Publish(axisConfigState)
   }
 
   def handleAxisResponse(axisResponse: AxisResponse): Unit = axisResponse match {
@@ -145,7 +149,7 @@ class MutableTromboneHcd(ctx: ActorContext[TromboneMsg])(supervisor: ActorRef[An
         inHighLimitKey -> inHighLimit,
         inHomeKey      -> inHomed
       )
-      //TODO: PubSub
+      pubSubRef ! PubSub.Publish(tromboneAxisState)
       current = au
     case AxisFailure(reason) =>
     case as: AxisStatistics =>
@@ -159,7 +163,7 @@ class MutableTromboneHcd(ctx: ActorContext[TromboneMsg])(supervisor: ActorRef[An
         failureCountKey -> as.failureCount,
         cancelCountKey  -> as.cancelCount
       )
-      //TODO: PubSub
+      pubSubRef ! PubSub.Publish(tromboneStats)
       stats = as
   }
 
