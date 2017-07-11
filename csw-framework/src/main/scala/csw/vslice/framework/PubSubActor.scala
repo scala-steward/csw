@@ -5,21 +5,18 @@ import akka.typed.{ActorRef, Behavior, Signal, Terminated}
 import csw.vslice.framework.PubSub.{Publish, Subscribe, Unsubscribe}
 
 object PubSubActor {
-  def behaviour[T](pubsSubMsgFactory: PubsSubMsgFactory[T]): Behavior[PubSub[T]] =
-    Actor.mutable(ctx ⇒ new PubSubActor[T](pubsSubMsgFactory)(ctx))
+  def behaviour[T]: Behavior[PubSub[T]] = Actor.mutable(ctx ⇒ new PubSubActor[T](ctx))
 }
 
-class PubSubActor[T](key: PubsSubMsgFactory[T])(ctx: ActorContext[PubSub[T]])
-    extends Actor.MutableBehavior[PubSub[T]] {
+class PubSubActor[T](ctx: ActorContext[PubSub[T]]) extends Actor.MutableBehavior[PubSub[T]] {
 
   private var subscribers: Set[ActorRef[T]] = Set.empty
 
   override def onMessage(msg: PubSub[T]): Behavior[PubSub[T]] = {
     msg match {
-      case Subscribe(`key`, ref)   => subscribe(ref)
-      case Unsubscribe(`key`, ref) => unsubscribe(ref)
-      case Publish(data)           => notifySubscribers(data)
-      case _                       ⇒
+      case Subscribe(ref)   => subscribe(ref)
+      case Unsubscribe(ref) => unsubscribe(ref)
+      case Publish(data)    => notifySubscribers(data)
     }
     this
   }

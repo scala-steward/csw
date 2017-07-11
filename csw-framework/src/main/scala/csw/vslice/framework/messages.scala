@@ -52,14 +52,9 @@ object FromComponentLifecycleMessage {
 sealed trait PubSub[T]
 
 object PubSub {
-  private[framework] case class Subscribe[T](key: PubsSubMsgFactory[T], ref: ActorRef[T])   extends PubSub[T]
-  private[framework] case class Unsubscribe[T](key: PubsSubMsgFactory[T], ref: ActorRef[T]) extends PubSub[T]
-  case class Publish[T](data: T)                                                            extends PubSub[T]
-}
-
-trait PubsSubMsgFactory[T] {
-  def subscribe(ref: ActorRef[T]): PubSub.Subscribe[T]     = PubSub.Subscribe(this, ref)
-  def unsubscribe(ref: ActorRef[T]): PubSub.Unsubscribe[T] = PubSub.Unsubscribe(this, ref)
+  case class Subscribe[T](ref: ActorRef[T])   extends PubSub[T]
+  case class Unsubscribe[T](ref: ActorRef[T]) extends PubSub[T]
+  case class Publish[T](data: T)              extends PubSub[T]
 }
 
 sealed trait HcdMsg
