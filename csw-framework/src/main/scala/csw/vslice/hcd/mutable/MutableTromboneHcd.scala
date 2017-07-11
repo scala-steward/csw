@@ -40,7 +40,7 @@ class MutableTromboneHcd(ctx: ActorContext[HcdMsg])(supervisor: ActorRef[FromCom
   var tromboneAxis: ActorRef[AxisRequest] = _
   var axisConfig: AxisConfig              = _
 
-  override def preStart(): Future[Unit] = async {
+  override def initialize(): Future[Unit] = async {
     axisConfig = await(getAxisConfig)
     tromboneAxis = ctx.spawnAnonymous(MutableAxisSimulator.behaviour(axisConfig, Some(domainRef)))
     current = await(tromboneAxis ? InitialState)
@@ -53,7 +53,7 @@ class MutableTromboneHcd(ctx: ActorContext[HcdMsg])(supervisor: ActorRef[FromCom
 
   override def onShutdownComplete(): Unit = println("received Shutdown complete during Initial state")
 
-  def handleLifecycle(x: ToComponentLifecycleMessage): Unit = x match {
+  def onLifecycle(x: ToComponentLifecycleMessage): Unit = x match {
     case DoShutdown =>
       println("Received doshutdown")
       supervisor ! FromComponentLifecycleMessage.ShutdownComplete
@@ -64,7 +64,7 @@ class MutableTromboneHcd(ctx: ActorContext[HcdMsg])(supervisor: ActorRef[FromCom
     case FromComponentLifecycleMessage.ShutdownComplete => println("shutdown complete during Running context")
   }
 
-  def handleSetup(sc: Setup): Unit = {
+  def onSetup(sc: Setup): Unit = {
     import csw.vslice.hcd.models.TromboneHcdState._
     println(s"Trombone process received sc: $sc")
 
@@ -82,12 +82,12 @@ class MutableTromboneHcd(ctx: ActorContext[HcdMsg])(supervisor: ActorRef[FromCom
     }
   }
 
-  def handleDomainMsg(tromboneMsg: TromboneMsg): Unit = tromboneMsg match {
-    case x: TromboneEngineering => handleEng(x)
-    case x: AxisResponse        => handleAxisResponse(x)
+  def onDomainMsg(tromboneMsg: TromboneMsg): Unit = tromboneMsg match {
+    case x: TromboneEngineering => onEngMsg(x)
+    case x: AxisResponse        => onAxisResponse(x)
   }
 
-  private def handleEng(tromboneEngineering: TromboneEngineering): Unit = tromboneEngineering match {
+  private def onEngMsg(tromboneEngineering: TromboneEngineering): Unit = tromboneEngineering match {
     case GetAxisStats              => tromboneAxis ! GetStatistics(domainRef)
     case GetAxisUpdate             => tromboneAxis ! PublishAxisUpdate
     case GetAxisUpdateNow(replyTo) => replyTo ! current
@@ -105,7 +105,7 @@ class MutableTromboneHcd(ctx: ActorContext[HcdMsg])(supervisor: ActorRef[FromCom
       pubSubRef ! PubSub.Publish(axisConfigState)
   }
 
-  private def handleAxisResponse(axisResponse: AxisResponse): Unit = axisResponse match {
+  private def onAxisResponse(axisResponse: AxisResponse): Unit = axisResponse match {
     case AxisStarted          =>
     case AxisFinished(newRef) =>
     case au @ AxisUpdate(axisName, axisState, current1, inLowLimit, inHighLimit, inHomed) =>

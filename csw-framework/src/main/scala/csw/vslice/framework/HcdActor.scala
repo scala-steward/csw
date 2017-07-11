@@ -34,10 +34,10 @@ abstract class HcdActor[Msg <: DomainMsg: ClassTag](ctx: ActorContext[HcdMsg])(
 
   var context: Context = _
 
-  def preStart(): Future[Unit]
+  def initialize(): Future[Unit]
 
   async {
-    await(preStart())
+    await(initialize())
     supervisor ! Initialized(ctx.self, pubSubRef)
     context = Context.Initial
   }
@@ -62,16 +62,16 @@ abstract class HcdActor[Msg <: DomainMsg: ClassTag](ctx: ActorContext[HcdMsg])(
 
   private def handleRunning(x: RunningHcdMsg): Unit = x match {
     case ShutdownComplete     => onShutdownComplete()
-    case Lifecycle(message)   => handleLifecycle(message)
-    case Submit(command)      => handleSetup(command)
-    case DomainHcdMsg(y: Msg) ⇒ handleDomainMsg(y)
+    case Lifecycle(message)   => onLifecycle(message)
+    case Submit(command)      => onSetup(command)
+    case DomainHcdMsg(y: Msg) ⇒ onDomainMsg(y)
     case DomainHcdMsg(y)      ⇒ println(s"unhandled domain msg: $y")
   }
 
   def onRun(): Unit
   def onShutdown(): Unit
   def onShutdownComplete(): Unit
-  def handleLifecycle(x: ToComponentLifecycleMessage): Unit
-  def handleSetup(sc: Setup): Unit
-  def handleDomainMsg(msg: Msg): Unit
+  def onLifecycle(x: ToComponentLifecycleMessage): Unit
+  def onSetup(sc: Setup): Unit
+  def onDomainMsg(msg: Msg): Unit
 }
