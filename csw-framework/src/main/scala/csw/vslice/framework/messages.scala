@@ -3,6 +3,7 @@ package csw.vslice.framework
 import akka.typed.ActorRef
 import csw.param.Parameters.Setup
 import csw.param.StateVariable.CurrentState
+import csw.vslice.framework.FromComponentLifecycleMessage.Running
 
 sealed trait LifecycleState
 
@@ -41,11 +42,13 @@ object ToComponentLifecycleMessage {
 sealed trait FromComponentLifecycleMessage
 
 object FromComponentLifecycleMessage {
-  case class Initialized(address: ActorRef[InitialHcdMsg]) extends FromComponentLifecycleMessage
-  case class InitializeFailure(reason: String)             extends FromComponentLifecycleMessage
-  case object ShutdownComplete                             extends FromComponentLifecycleMessage with ToComponentLifecycleMessage
-  case class ShutdownFailure(reason: String)               extends FromComponentLifecycleMessage
-  case object HaltComponent                                extends FromComponentLifecycleMessage
+  case class Initialized(hcdRef: ActorRef[InitialHcdMsg], pubSubRef: ActorRef[PubSub[CurrentState]])
+      extends FromComponentLifecycleMessage
+  case class Running(hcdRef: ActorRef[RunningHcdMsg], pubSubRef: ActorRef[PubSub[CurrentState]])
+  case class InitializeFailure(reason: String) extends FromComponentLifecycleMessage
+  case object ShutdownComplete                 extends FromComponentLifecycleMessage with ToComponentLifecycleMessage
+  case class ShutdownFailure(reason: String)   extends FromComponentLifecycleMessage
+  case object HaltComponent                    extends FromComponentLifecycleMessage
 }
 
 sealed trait PubSub[T]
@@ -63,7 +66,6 @@ object InitialHcdMsg {
   case class Run(replyTo: ActorRef[Running]) extends InitialHcdMsg
   case object ShutdownComplete               extends InitialHcdMsg with RunningHcdMsg
 
-  case class Running(runningHcd: ActorRef[RunningHcdMsg], pubSubRef: ActorRef[PubSub[CurrentState]])
 }
 
 sealed trait RunningHcdMsg extends HcdMsg

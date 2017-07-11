@@ -5,9 +5,9 @@ import akka.typed.scaladsl.{Actor, ActorContext}
 import akka.typed.{ActorRef, Behavior}
 import csw.param.Parameters.Setup
 import csw.param.StateVariable.CurrentState
-import csw.vslice.framework.FromComponentLifecycleMessage.Initialized
+import csw.vslice.framework.FromComponentLifecycleMessage.{Initialized, Running}
 import csw.vslice.framework.HcdActor.Context
-import csw.vslice.framework.InitialHcdMsg.{Run, Running, ShutdownComplete}
+import csw.vslice.framework.InitialHcdMsg.{Run, ShutdownComplete}
 import csw.vslice.framework.RunningHcdMsg._
 
 import scala.async.Async.{async, await}
@@ -39,7 +39,7 @@ abstract class HcdActor[Msg <: DomainMsg: ClassTag](ctx: ActorContext[HcdMsg])(
 
   async {
     await(preStart())
-    supervisor ! Initialized(ctx.self)
+    supervisor ! Initialized(ctx.self, pubSubRef)
     context = Context.Initial
   }
 
