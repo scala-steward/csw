@@ -41,7 +41,7 @@ class TromboneHcd(ctx: ActorContext[HcdMsg])(supervisor: ActorRef[FromComponentL
 
   override def initialize(): Future[Unit] = async {
     axisConfig = await(getAxisConfig)
-    tromboneAxis = ctx.spawnAnonymous(AxisSimulator.behaviour(axisConfig, Some(domainRef)))
+    tromboneAxis = ctx.spawnAnonymous(AxisSimulator.behaviour(axisConfig, Some(domainAdapter)))
     current = await(tromboneAxis ? InitialState)
     stats = await(tromboneAxis ? GetStatistics)
   }
@@ -87,7 +87,7 @@ class TromboneHcd(ctx: ActorContext[HcdMsg])(supervisor: ActorRef[FromComponentL
   }
 
   private def onEngMsg(tromboneEngineering: TromboneEngineering): Unit = tromboneEngineering match {
-    case GetAxisStats              => tromboneAxis ! GetStatistics(domainRef)
+    case GetAxisStats              => tromboneAxis ! GetStatistics(domainAdapter)
     case GetAxisUpdate             => tromboneAxis ! PublishAxisUpdate
     case GetAxisUpdateNow(replyTo) => replyTo ! current
     case GetAxisConfig =>

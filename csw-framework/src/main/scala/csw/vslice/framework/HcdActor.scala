@@ -26,7 +26,7 @@ abstract class HcdActor[Msg <: DomainMsg: ClassTag](ctx: ActorContext[HcdMsg])(
     pubSubRef: ActorRef[PubSub[CurrentState]]
 ) extends Actor.MutableBehavior[HcdMsg] {
 
-  val domainRef: ActorRef[Msg] = ctx.spawnAdapter { x: Msg ⇒
+  val domainAdapter: ActorRef[Msg] = ctx.spawnAdapter { x: Msg ⇒
     DomainHcdMsg(x)
   }
 

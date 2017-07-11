@@ -25,9 +25,9 @@ object AxisSimulator {
 
   sealed trait Context
   object Context {
-    case object Idle                                    extends Context
-    case class Home(worker: ActorRef[MotionWorkerMsgs]) extends Context
-    case class Move(worker: ActorRef[MotionWorkerMsgs]) extends Context
+    case object Idle                                      extends Context
+    case class Homing(worker: ActorRef[MotionWorkerMsgs]) extends Context
+    case class Moving(worker: ActorRef[MotionWorkerMsgs]) extends Context
   }
 }
 
@@ -60,11 +60,11 @@ class AxisSimulator(ctx: ActorContext[SimulatorCommand])(axisConfig: AxisConfig,
 
   override def onMessage(msg: SimulatorCommand): Behavior[SimulatorCommand] = {
     (context, msg) match {
-      case (Context.Idle, x: AxisRequest)              ⇒ mainReceive(x)
-      case (Context.Idle, x: InternalMessages)         ⇒ internalReceive(x)
-      case (Context.Home(worker), x: MotionWorkerMsgs) ⇒ homeReceive(x, worker)
-      case (Context.Move(worker), x: MotionWorkerMsgs) ⇒ moveReceive(x, worker)
-      case _                                           ⇒ println(s"current context=$context does not handle message=$msg")
+      case (Context.Idle, x: AxisRequest)                ⇒ mainReceive(x)
+      case (Context.Idle, x: InternalMessages)           ⇒ internalReceive(x)
+      case (Context.Homing(worker), x: MotionWorkerMsgs) ⇒ homeReceive(x, worker)
+      case (Context.Moving(worker), x: MotionWorkerMsgs) ⇒ moveReceive(x, worker)
+      case _                                             ⇒ println(s"current context=$context does not handle message=$msg")
     }
     this
   }
@@ -107,7 +107,7 @@ class AxisSimulator(ctx: ActorContext[SimulatorCommand])(axisConfig: AxisConfig,
       val worker = ctx.spawnAnonymous(workerB)
 
       worker ! Start(ctx.self)
-      context = Context.Home(worker)
+      context = Context.Homing(worker)
 
     case Move(position, diagFlag) =>
       axisState = AXIS_MOVING
@@ -123,7 +123,7 @@ class AxisSimulator(ctx: ActorContext[SimulatorCommand])(axisConfig: AxisConfig,
       val worker = ctx.spawn(workerB, s"moveWorker-${System.currentTimeMillis}")
 
       worker ! Start(ctx.self)
-      context = Context.Move(worker)
+      context = Context.Moving(worker)
 
     case CancelMove =>
       println("Received Cancel Move while idle :-(")
