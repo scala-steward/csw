@@ -1,6 +1,5 @@
 package csw.vslice.framework
 
-import akka.NotUsed
 import akka.typed.scaladsl.{Actor, ActorContext}
 import akka.typed.{ActorRef, Behavior}
 import csw.param.Parameters.Setup
@@ -35,7 +34,7 @@ abstract class HcdActor[Msg <: DomainMsg: ClassTag](ctx: ActorContext[HcdMsg])(
 
   var context: Context = _
 
-  def preStart(): Future[NotUsed]
+  def preStart(): Future[Unit]
 
   async {
     await(preStart())

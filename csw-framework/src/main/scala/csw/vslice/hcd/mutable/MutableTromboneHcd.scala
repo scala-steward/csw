@@ -1,6 +1,5 @@
 package csw.vslice.hcd.mutable
 
-import akka.NotUsed
 import akka.actor.Scheduler
 import akka.typed.ActorRef
 import akka.typed.scaladsl.ActorContext
@@ -41,12 +40,11 @@ class MutableTromboneHcd(ctx: ActorContext[HcdMsg])(supervisor: ActorRef[FromCom
   var tromboneAxis: ActorRef[AxisRequest] = _
   var axisConfig: AxisConfig              = _
 
-  override def preStart(): Future[NotUsed] = async {
+  override def preStart(): Future[Unit] = async {
     axisConfig = await(getAxisConfig)
     tromboneAxis = ctx.spawnAnonymous(MutableAxisSimulator.behaviour(axisConfig, Some(domainRef)))
     current = await(tromboneAxis ? InitialState)
     stats = await(tromboneAxis ? GetStatistics)
-    NotUsed
   }
 
   override def onRun(): Unit = println("received Running")
