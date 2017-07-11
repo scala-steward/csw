@@ -7,11 +7,9 @@ import csw.param.StateVariable.CurrentState
 import scala.reflect.ClassTag
 
 abstract class HcdActorFactory[Msg <: DomainMsg: ClassTag] extends PubsSubMsgFactory[CurrentState] {
+
   def behavior(supervisor: ActorRef[FromComponentLifecycleMessage]): Behavior[Nothing] = {
-    val pubSubB: Behavior[PubSub[CurrentState]] = Actor.mutable(
-      ctx ⇒ new PubSubActor[CurrentState](this)(ctx)
-    )
-    Actor.mutable[HcdMsg](ctx ⇒ make(supervisor, ctx.spawnAnonymous(pubSubB))(ctx)).narrow
+    Actor.mutable[HcdMsg](ctx ⇒ make(supervisor, ctx.spawnAnonymous(PubSubActor.behaviour(this)))(ctx)).narrow
   }
 
   protected def make(supervisor: ActorRef[FromComponentLifecycleMessage], pubSubRef: ActorRef[PubSub[CurrentState]])(

@@ -4,6 +4,11 @@ import akka.typed.scaladsl.{Actor, ActorContext}
 import akka.typed.{ActorRef, Behavior, Signal, Terminated}
 import csw.vslice.framework.PubSub.{Publish, Subscribe, Unsubscribe}
 
+object PubSubActor {
+  def behaviour[T](pubsSubMsgFactory: PubsSubMsgFactory[T]): Behavior[PubSub[T]] =
+    Actor.mutable(ctx ⇒ new PubSubActor[T](pubsSubMsgFactory)(ctx))
+}
+
 class PubSubActor[T](key: PubsSubMsgFactory[T])(ctx: ActorContext[PubSub[T]])
     extends Actor.MutableBehavior[PubSub[T]] {
 

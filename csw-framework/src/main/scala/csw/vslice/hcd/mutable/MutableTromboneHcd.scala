@@ -84,12 +84,12 @@ class MutableTromboneHcd(ctx: ActorContext[HcdMsg])(supervisor: ActorRef[FromCom
     }
   }
 
-  def handleTrombone(tromboneMsg: TromboneMsg): Unit = tromboneMsg match {
+  def handleDomainMsg(tromboneMsg: TromboneMsg): Unit = tromboneMsg match {
     case x: TromboneEngineering => handleEng(x)
     case x: AxisResponse        => handleAxisResponse(x)
   }
 
-  def handleEng(tromboneEngineering: TromboneEngineering): Unit = tromboneEngineering match {
+  private def handleEng(tromboneEngineering: TromboneEngineering): Unit = tromboneEngineering match {
     case GetAxisStats              => tromboneAxis ! GetStatistics(wrapper)
     case GetAxisUpdate             => tromboneAxis ! PublishAxisUpdate
     case GetAxisUpdateNow(replyTo) => replyTo ! current
@@ -107,7 +107,7 @@ class MutableTromboneHcd(ctx: ActorContext[HcdMsg])(supervisor: ActorRef[FromCom
       pubSubRef ! PubSub.Publish(axisConfigState)
   }
 
-  def handleAxisResponse(axisResponse: AxisResponse): Unit = axisResponse match {
+  private def handleAxisResponse(axisResponse: AxisResponse): Unit = axisResponse match {
     case AxisStarted          =>
     case AxisFinished(newRef) =>
     case au @ AxisUpdate(axisName, axisState, current1, inLowLimit, inHighLimit, inHomed) =>

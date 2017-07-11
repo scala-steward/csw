@@ -66,10 +66,10 @@ sealed trait HcdMsg
 
 sealed trait InitialHcdMsg extends HcdMsg
 object InitialHcdMsg {
-  case class Run(replyTo: ActorRef[HcdResponse]) extends InitialHcdMsg
-  case object ShutdownComplete                   extends InitialHcdMsg with RunningHcdMsg
+  case class Run(replyTo: ActorRef[Running]) extends InitialHcdMsg
+  case object ShutdownComplete               extends InitialHcdMsg with RunningHcdMsg
 
-  case class HcdResponse(runningHcd: ActorRef[RunningHcdMsg])
+  case class Running(runningHcd: ActorRef[RunningHcdMsg])
 }
 
 sealed trait RunningHcdMsg extends HcdMsg

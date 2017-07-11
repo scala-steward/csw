@@ -37,6 +37,8 @@ object MotionWorkerMsgs {
   case object Cancel                                    extends MotionWorkerMsgs
 }
 
+////////////////
+
 sealed trait TromboneMsg extends DomainMsg
 
 sealed trait TromboneEngineering extends TromboneMsg
