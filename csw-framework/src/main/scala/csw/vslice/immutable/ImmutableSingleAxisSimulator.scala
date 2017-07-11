@@ -1,18 +1,17 @@
-package csw.vslice.hcd.immutable
+package csw.vslice.immutable
 
 import akka.typed.{ActorRef, Behavior}
 import akka.typed.scaladsl.{Actor, ActorContext}
-import csw.vslice.hcd.immutable.IdleMessage.{IdleAxisRequest, IdleInternalMessage}
-import csw.vslice.hcd.messages.AxisRequest._
-import csw.vslice.hcd.messages.AxisResponse.{AxisFinished, AxisStarted, AxisStatistics, AxisUpdate}
-import csw.vslice.hcd.messages.InternalMessages._
-import csw.vslice.hcd.messages._
+import csw.vslice.hcd.models.AxisRequest._
+import csw.vslice.hcd.models.AxisResponse.{AxisFinished, AxisStarted, AxisStatistics, AxisUpdate}
+import csw.vslice.hcd.models.InternalMessages._
 import csw.vslice.hcd.models.AxisState.{AXIS_IDLE, AXIS_MOVING}
-import csw.vslice.hcd.models.{AxisConfig, AxisState}
+import csw.vslice.hcd.models._
+import csw.vslice.immutable.IdleMessage.{IdleAxisRequest, IdleInternalMessage}
 
 import scala.concurrent.duration.DurationInt
 
-object SingleAxisSimulator {
+object ImmutableSingleAxisSimulator {
 
   case class State(
       axisConfig: AxisConfig,
@@ -82,9 +81,9 @@ object SingleAxisSimulator {
           .copy(moveCount = state.moveCount + 1)
         println(s"AxisHome: ${newState.axisState}")
         newState.replyTo.foreach(_ ! AxisStarted)
-        val workerState = MotionWorker.State
+        val workerState = ImmutableMotionWorker.State
           .from(state.current, state.axisConfig.home, delayInMS = 100, replyTo = None, diagFlag = false)
-        val worker  = ctx.spawnAnonymous(MotionWorker.run(workerState))
+        val worker  = ctx.spawnAnonymous(ImmutableMotionWorker.run(workerState))
         val homeRef = ctx.spawnAnonymous(homeReceive(newState))
         worker ! MotionWorkerMsgs.Start(homeRef)
         Actor.stopped
@@ -106,13 +105,13 @@ object SingleAxisSimulator {
         println(s"Move: $position")
         val clampedTargetPosition = newState.limitMove(position)
         newState.replyTo.foreach(_ ! AxisStarted)
-        val workerState = MotionWorker.State
+        val workerState = ImmutableMotionWorker.State
           .from(state.current,
                 clampedTargetPosition,
                 delayInMS = state.axisConfig.stepDelayMS,
                 replyTo = None,
                 diagFlag = diagFlag)
-        val worker  = ctx.spawnAnonymous(MotionWorker.run(workerState))
+        val worker  = ctx.spawnAnonymous(ImmutableMotionWorker.run(workerState))
         val moveRef = ctx.spawnAnonymous(moveReceive(newState, worker))
         worker ! MotionWorkerMsgs.Start(moveRef)
         loop(newState)

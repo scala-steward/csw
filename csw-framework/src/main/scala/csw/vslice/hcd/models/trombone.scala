@@ -1,9 +1,8 @@
-package csw.vslice.hcd.messages
+package csw.vslice.hcd.models
 
 import akka.typed.ActorRef
 import csw.vslice.framework.DomainMsg
-import csw.vslice.hcd.messages.AxisResponse.{AxisStatistics, AxisUpdate}
-import csw.vslice.hcd.models.AxisState
+import csw.vslice.hcd.models.AxisResponse.{AxisStatistics, AxisUpdate}
 
 sealed trait SimulatorCommand
 

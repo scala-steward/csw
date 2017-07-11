@@ -1,4 +1,4 @@
-package csw.vslice.hcd.mutable
+package csw.vslice.hcd.actors
 
 import akka.actor.Scheduler
 import akka.typed.ActorRef
@@ -9,26 +9,25 @@ import csw.param.Parameters.Setup
 import csw.param.StateVariable.CurrentState
 import csw.param.UnitsOfMeasure.encoder
 import csw.vslice.framework._
-import csw.vslice.hcd.messages.AxisRequest._
-import csw.vslice.hcd.messages.AxisResponse._
+import csw.vslice.hcd.models.AxisRequest._
+import csw.vslice.hcd.models.AxisResponse._
 import csw.vslice.framework.ToComponentLifecycleMessage._
-import csw.vslice.hcd.messages.TromboneEngineering.{GetAxisConfig, GetAxisStats, GetAxisUpdate, GetAxisUpdateNow}
-import csw.vslice.hcd.messages.{AxisRequest, AxisResponse, TromboneEngineering, TromboneMsg}
-import csw.vslice.hcd.models.AxisConfig
+import csw.vslice.hcd.models.TromboneEngineering.{GetAxisConfig, GetAxisStats, GetAxisUpdate, GetAxisUpdateNow}
+import csw.vslice.hcd.models._
 
 import scala.async.Async._
 import scala.concurrent.Future
 import scala.concurrent.duration.DurationLong
 
-object MutableTromboneHcd extends HcdActorFactory[TromboneMsg] {
+object TromboneHcd extends HcdActorFactory[TromboneMsg] {
   override protected def make(
       supervisor: ActorRef[FromComponentLifecycleMessage],
       pubSubRef: ActorRef[PubSub[CurrentState]]
-  )(ctx: ActorContext[HcdMsg]): HcdActor[TromboneMsg] = new MutableTromboneHcd(ctx)(supervisor, pubSubRef)
+  )(ctx: ActorContext[HcdMsg]): HcdActor[TromboneMsg] = new TromboneHcd(ctx)(supervisor, pubSubRef)
 }
 
-class MutableTromboneHcd(ctx: ActorContext[HcdMsg])(supervisor: ActorRef[FromComponentLifecycleMessage],
-                                                    pubSubRef: ActorRef[PubSub[CurrentState]])
+class TromboneHcd(ctx: ActorContext[HcdMsg])(supervisor: ActorRef[FromComponentLifecycleMessage],
+                                             pubSubRef: ActorRef[PubSub[CurrentState]])
     extends HcdActor[TromboneMsg](ctx)(supervisor, pubSubRef) {
 
   implicit val timeout              = Timeout(2.seconds)
@@ -42,7 +41,7 @@ class MutableTromboneHcd(ctx: ActorContext[HcdMsg])(supervisor: ActorRef[FromCom
 
   override def initialize(): Future[Unit] = async {
     axisConfig = await(getAxisConfig)
-    tromboneAxis = ctx.spawnAnonymous(MutableAxisSimulator.behaviour(axisConfig, Some(domainRef)))
+    tromboneAxis = ctx.spawnAnonymous(AxisSimulator.behaviour(axisConfig, Some(domainRef)))
     current = await(tromboneAxis ? InitialState)
     stats = await(tromboneAxis ? GetStatistics)
   }

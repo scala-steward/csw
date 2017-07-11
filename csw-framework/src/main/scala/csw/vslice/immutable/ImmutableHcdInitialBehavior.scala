@@ -1,9 +1,9 @@
-package csw.vslice.hcd.immutable
+package csw.vslice.immutable
 
 import akka.typed.scaladsl.Actor
 import akka.typed.{ActorRef, Behavior}
 
-object HcdInitialBehavior {
+object ImmutableHcdInitialBehavior {
   sealed trait InitialMessage[+T]
   case class Run[T](replyTo: ActorRef[Running[T]]) extends InitialMessage[T]
   case object Shutdown                             extends InitialMessage[Nothing]
@@ -11,8 +11,8 @@ object HcdInitialBehavior {
   case class Running[T](ref: ActorRef[T])
 }
 
-class HcdInitialBehavior[Msg, State](value: HcdRunningBehavior[Msg, State]) {
-  import HcdInitialBehavior._
+class ImmutableHcdInitialBehavior[Msg, State](value: HcdRunningBehavior[Msg, State]) {
+  import ImmutableHcdInitialBehavior._
   def run(state: State): Behavior[InitialMessage[Msg]] = Actor.immutable[InitialMessage[Msg]] { (ctx, msg) ⇒
     msg match {
       case Shutdown =>

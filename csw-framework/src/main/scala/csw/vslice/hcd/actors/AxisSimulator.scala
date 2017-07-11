@@ -1,20 +1,19 @@
-package csw.vslice.hcd.mutable
+package csw.vslice.hcd.actors
 
 import akka.typed.scaladsl.{Actor, ActorContext}
 import akka.typed.{ActorRef, Behavior}
-import csw.vslice.hcd.messages.AxisRequest._
-import csw.vslice.hcd.messages.AxisResponse.{AxisStarted, AxisStatistics, AxisUpdate}
-import csw.vslice.hcd.messages.InternalMessages.{DatumComplete, HomeComplete, InitialStatistics, MoveComplete}
-import csw.vslice.hcd.messages._
+import csw.vslice.hcd.models.AxisRequest._
+import csw.vslice.hcd.models.AxisResponse.{AxisStarted, AxisStatistics, AxisUpdate}
+import csw.vslice.hcd.models.InternalMessages.{DatumComplete, HomeComplete, InitialStatistics, MoveComplete}
 import csw.vslice.hcd.models.AxisState.{AXIS_IDLE, AXIS_MOVING}
-import csw.vslice.hcd.models.{AxisConfig, AxisState}
+import csw.vslice.hcd.models._
 
 import scala.concurrent.duration.DurationInt
 
-object MutableAxisSimulator {
+object AxisSimulator {
 
   def behaviour(axisConfig: AxisConfig, replyTo: Option[ActorRef[AxisResponse]]): Behavior[AxisRequest] =
-    Actor.mutable[SimulatorCommand](ctx ⇒ new MutableAxisSimulator(ctx)(axisConfig: AxisConfig, replyTo)).narrow
+    Actor.mutable[SimulatorCommand](ctx ⇒ new AxisSimulator(ctx)(axisConfig: AxisConfig, replyTo)).narrow
 
   def limitMove(ac: AxisConfig, request: Int): Int = Math.max(Math.min(request, ac.highLimit), ac.lowLimit)
 
@@ -33,11 +32,11 @@ object MutableAxisSimulator {
   }
 }
 
-class MutableAxisSimulator(ctx: ActorContext[SimulatorCommand])(axisConfig: AxisConfig,
-                                                                replyTo: Option[ActorRef[AxisResponse]])
+class AxisSimulator(ctx: ActorContext[SimulatorCommand])(axisConfig: AxisConfig,
+                                                         replyTo: Option[ActorRef[AxisResponse]])
     extends Actor.MutableBehavior[SimulatorCommand] {
 
-  import MutableAxisSimulator._
+  import AxisSimulator._
 
   // Check that the home position is not in a limit area - with  check it is not neceesary to check for limits after homing
   assert(axisConfig.home > axisConfig.lowUser,
@@ -106,7 +105,7 @@ class MutableAxisSimulator(ctx: ActorContext[SimulatorCommand])(axisConfig: Axis
       println(s"AxisHome: $axisState")
 
       val workerB =
-        MutableMotionWorker.behaviour(current, axisConfig.home, delayInMS = 100, ctx.self, diagFlag = false)
+        MotionWorker.behaviour(current, axisConfig.home, delayInMS = 100, ctx.self, diagFlag = false)
       val worker = ctx.spawnAnonymous(workerB)
 
       worker ! Start(ctx.self)
@@ -118,11 +117,11 @@ class MutableAxisSimulator(ctx: ActorContext[SimulatorCommand])(axisConfig: Axis
       update(replyTo, AxisStarted)
       println(s"Move: $position")
 
-      val workerB = MutableMotionWorker.behaviour(current,
-                                                  limitMove(axisConfig, position),
-                                                  delayInMS = axisConfig.stepDelayMS,
-                                                  ctx.self,
-                                                  diagFlag)
+      val workerB = MotionWorker.behaviour(current,
+                                           limitMove(axisConfig, position),
+                                           delayInMS = axisConfig.stepDelayMS,
+                                           ctx.self,
+                                           diagFlag)
       val worker = ctx.spawn(workerB, s"moveWorker-${System.currentTimeMillis}")
 
       worker ! Start(ctx.self)

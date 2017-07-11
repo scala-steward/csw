@@ -1,6 +1,6 @@
-package csw.vslice.hcd.immutable
+package csw.vslice.immutable
 
-import csw.vslice.hcd.messages.{AxisRequest, InternalMessages}
+import csw.vslice.hcd.models.{AxisRequest, InternalMessages}
 
 sealed trait IdleMessage
 

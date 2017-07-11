@@ -1,16 +1,15 @@
-package csw.vslice.hcd.immutable
+package csw.vslice.immutable
 
 import akka.typed.scaladsl.Actor
 import akka.typed.{ActorRef, Behavior}
-import csw.vslice.hcd.immutable.TromboneHcdMessage._
-import csw.vslice.hcd.messages.AxisRequest.{GetStatistics, PublishAxisUpdate}
-import csw.vslice.hcd.messages.AxisResponse._
-import csw.vslice.hcd.messages.{AxisRequest, AxisResponse}
+import csw.vslice.hcd.models.AxisRequest.{GetStatistics, PublishAxisUpdate}
+import csw.vslice.hcd.models.AxisResponse._
 import csw.vslice.framework.FromComponentLifecycleMessage.ShutdownComplete
 import csw.vslice.framework.ToComponentLifecycleMessage._
-import csw.vslice.hcd.models.AxisConfig
+import csw.vslice.hcd.models.{AxisConfig, AxisRequest, AxisResponse}
 import csw.param.UnitsOfMeasure.encoder
 import csw.vslice.framework.ToComponentLifecycleMessage
+import csw.vslice.immutable.TromboneHcdMessage._
 
 sealed trait TromboneHcdMessage
 

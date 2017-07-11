@@ -1,19 +1,19 @@
-package csw.vslice.hcd.mutable
+package csw.vslice.hcd.actors
 
 import akka.typed.{ActorRef, Behavior}
 import akka.typed.scaladsl.{Actor, ActorContext}
-import csw.vslice.hcd.messages.MotionWorkerMsgs
-import csw.vslice.hcd.messages.MotionWorkerMsgs._
+import csw.vslice.hcd.models.MotionWorkerMsgs
+import csw.vslice.hcd.models.MotionWorkerMsgs._
 
 import scala.concurrent.duration.DurationLong
 
-object MutableMotionWorker {
+object MotionWorker {
   def behaviour(start: Int,
                 destinationIn: Int,
                 delayInMS: Int,
                 replyTo: ActorRef[MotionWorkerMsgs],
                 diagFlag: Boolean): Behavior[MotionWorkerMsgs] =
-    Actor.mutable(ctx ⇒ new MutableMotionWorker(start, destinationIn, delayInMS, replyTo, diagFlag)(ctx))
+    Actor.mutable(ctx ⇒ new MotionWorker(start, destinationIn, delayInMS, replyTo, diagFlag)(ctx))
 
   def calcNumSteps(start: Int, end: Int): Int = {
     val diff = Math.abs(start - end)
@@ -32,15 +32,15 @@ object MutableMotionWorker {
     calcDistance(current, destination) <= Math.abs(stepSize)
 }
 
-class MutableMotionWorker(start: Int,
-                          destinationIn: Int,
-                          delayInMS: Int,
-                          replyTo: ActorRef[MotionWorkerMsgs],
-                          diagFlag: Boolean)(
+class MotionWorker(start: Int,
+                   destinationIn: Int,
+                   delayInMS: Int,
+                   replyTo: ActorRef[MotionWorkerMsgs],
+                   diagFlag: Boolean)(
     ctx: ActorContext[MotionWorkerMsgs]
 ) extends Actor.MutableBehavior[MotionWorkerMsgs] {
 
-  import MutableMotionWorker._
+  import MotionWorker._
 
   private var destination = destinationIn
 
