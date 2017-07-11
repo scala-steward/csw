@@ -1,6 +1,9 @@
-package csw.vslice.hcd.messages
+package csw.vslice.framework
 
 import akka.typed.ActorRef
+import csw.param.Parameters.Setup
+import csw.param.StateVariable.CurrentState
+import csw.vslice.framework.RunningHcdMsg.DomainHcdMsg
 
 sealed trait LifecycleState
 
@@ -48,13 +51,39 @@ object FromComponentLifecycleMessage {
 
 sealed trait PubSub[T]
 
-private[hcd] object PubSub {
-  case class Subscribe[T](key: PubsSubMsgFactory[T], ref: ActorRef[T])   extends PubSub[T]
-  case class Unsubscribe[T](key: PubsSubMsgFactory[T], ref: ActorRef[T]) extends PubSub[T]
-  case class Publish[T](data: T)                                         extends PubSub[T]
+object PubSub {
+  private[framework] case class Subscribe[T](key: PubsSubMsgFactory[T], ref: ActorRef[T])   extends PubSub[T]
+  private[framework] case class Unsubscribe[T](key: PubsSubMsgFactory[T], ref: ActorRef[T]) extends PubSub[T]
+  case class Publish[T](data: T)                                                            extends PubSub[T]
 }
 
 trait PubsSubMsgFactory[T] {
   def subscribe(ref: ActorRef[T]): PubSub.Subscribe[T]     = PubSub.Subscribe(this, ref)
   def unsubscribe(ref: ActorRef[T]): PubSub.Unsubscribe[T] = PubSub.Unsubscribe(this, ref)
+}
+
+sealed trait HcdMsg
+
+sealed trait InitialHcdMsg extends HcdMsg
+object InitialHcdMsg {
+  case class Run(replyTo: ActorRef[HcdResponse]) extends InitialHcdMsg
+  case object ShutdownComplete                   extends InitialHcdMsg with RunningHcdMsg
+
+  case class HcdResponse(runningHcd: ActorRef[RunningHcdMsg])
+}
+
+sealed trait RunningHcdMsg extends HcdMsg
+object RunningHcdMsg {
+  case class Lifecycle(message: ToComponentLifecycleMessage)         extends RunningHcdMsg
+  case class Submit(command: Setup)                                  extends RunningHcdMsg
+  case object GetPubSubActorRef                                      extends RunningHcdMsg
+  private[framework] case class DomainHcdMsg[T <: DomainMsg](msg: T) extends RunningHcdMsg
+
+  case class PubSubRef(ref: ActorRef[PubSub[CurrentState]])
+}
+
+trait DomainMsg
+
+trait DomainMsgFactory[T <: DomainMsg] {
+  def envelope(x: T): DomainHcdMsg[T] = DomainHcdMsg(x)
 }

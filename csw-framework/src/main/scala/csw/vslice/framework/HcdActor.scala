@@ -1,15 +1,14 @@
-package csw.vslice.hcd.mutable
+package csw.vslice.framework
 
 import akka.NotUsed
 import akka.typed.scaladsl.{Actor, ActorContext}
 import akka.typed.{ActorRef, Behavior}
 import csw.param.Parameters.Setup
 import csw.param.StateVariable.CurrentState
-import csw.vslice.hcd.messages.FromComponentLifecycleMessage.Initialized
-import csw.vslice.hcd.messages.InitialHcdMsg.{HcdResponse, Run, ShutdownComplete}
-import csw.vslice.hcd.messages.RunningHcdMsg._
-import csw.vslice.hcd.messages._
-import csw.vslice.hcd.mutable.HcdActor.Context
+import csw.vslice.framework.FromComponentLifecycleMessage.Initialized
+import csw.vslice.framework.HcdActor.Context
+import csw.vslice.framework.InitialHcdMsg.{HcdResponse, Run, ShutdownComplete}
+import csw.vslice.framework.RunningHcdMsg._
 
 import scala.async.Async.{async, await}
 import scala.concurrent.Future

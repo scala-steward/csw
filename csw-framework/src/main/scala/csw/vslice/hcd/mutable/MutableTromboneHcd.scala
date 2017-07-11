@@ -9,11 +9,12 @@ import akka.util.Timeout
 import csw.param.Parameters.Setup
 import csw.param.StateVariable.CurrentState
 import csw.param.UnitsOfMeasure.encoder
+import csw.vslice.framework._
 import csw.vslice.hcd.messages.AxisRequest._
 import csw.vslice.hcd.messages.AxisResponse._
-import csw.vslice.hcd.messages.ToComponentLifecycleMessage._
+import csw.vslice.framework.ToComponentLifecycleMessage._
 import csw.vslice.hcd.messages.TromboneEngineering.{GetAxisConfig, GetAxisStats, GetAxisUpdate, GetAxisUpdateNow}
-import csw.vslice.hcd.messages.{FromComponentLifecycleMessage, ToComponentLifecycleMessage, _}
+import csw.vslice.hcd.messages.{AxisRequest, AxisResponse, TromboneEngineering, TromboneMsg}
 import csw.vslice.hcd.models.AxisConfig
 
 import scala.async.Async._

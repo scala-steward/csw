@@ -1,11 +1,9 @@
 package csw.vslice.hcd.messages
 
 import akka.typed.ActorRef
-import csw.vslice.hcd.models.AxisState
-import csw.param.Parameters.Setup
-import csw.param.StateVariable.CurrentState
+import csw.vslice.framework.DomainMsg
 import csw.vslice.hcd.messages.AxisResponse.{AxisStatistics, AxisUpdate}
-import csw.vslice.hcd.messages.RunningHcdMsg.DomainHcdMsg
+import csw.vslice.hcd.models.AxisState
 
 sealed trait SimulatorCommand
 
@@ -38,35 +36,6 @@ object MotionWorkerMsgs {
   case class MoveUpdate(destination: Int)               extends MotionWorkerMsgs
   case object Cancel                                    extends MotionWorkerMsgs
 }
-
-/////////////////////////
-
-sealed trait HcdMsg
-
-sealed trait InitialHcdMsg extends HcdMsg
-object InitialHcdMsg {
-  case class Run(replyTo: ActorRef[HcdResponse]) extends InitialHcdMsg
-  case object ShutdownComplete                   extends InitialHcdMsg with RunningHcdMsg
-
-  case class HcdResponse(runningHcd: ActorRef[RunningHcdMsg])
-}
-
-sealed trait RunningHcdMsg extends HcdMsg
-object RunningHcdMsg {
-  case class Lifecycle(message: ToComponentLifecycleMessage)   extends RunningHcdMsg
-  case class Submit(command: Setup)                            extends RunningHcdMsg
-  case object GetPubSubActorRef                                extends RunningHcdMsg
-  private[hcd] case class DomainHcdMsg[T <: DomainMsg](msg: T) extends RunningHcdMsg
-
-  case class PubSubRef(ref: ActorRef[PubSub[CurrentState]])
-}
-
-trait DomainMsg
-
-trait DomainMsgFactory[T <: DomainMsg] {
-  def envelope(x: T): DomainHcdMsg[T] = DomainHcdMsg(x)
-}
-/////////////
 
 sealed trait TromboneMsg extends DomainMsg
 

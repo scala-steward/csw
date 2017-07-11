@@ -1,9 +1,8 @@
-package csw.vslice.hcd.mutable
+package csw.vslice.framework
 
-import akka.typed.{ActorRef, Behavior, Signal, Terminated}
 import akka.typed.scaladsl.{Actor, ActorContext}
-import csw.vslice.hcd.messages.PubSub.{Publish, Subscribe, Unsubscribe}
-import csw.vslice.hcd.messages.{PubSub, PubsSubMsgFactory}
+import akka.typed.{ActorRef, Behavior, Signal, Terminated}
+import csw.vslice.framework.PubSub.{Publish, Subscribe, Unsubscribe}
 
 class PubSubActor[T](key: PubsSubMsgFactory[T])(ctx: ActorContext[PubSub[T]])
     extends Actor.MutableBehavior[PubSub[T]] {

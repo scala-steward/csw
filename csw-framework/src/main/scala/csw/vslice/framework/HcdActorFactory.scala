@@ -1,9 +1,8 @@
-package csw.vslice.hcd.mutable
+package csw.vslice.framework
 
 import akka.typed.scaladsl.{Actor, ActorContext}
 import akka.typed.{ActorRef, Behavior}
 import csw.param.StateVariable.CurrentState
-import csw.vslice.hcd.messages._
 
 import scala.reflect.ClassTag
 

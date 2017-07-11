@@ -5,11 +5,12 @@ import akka.typed.{ActorRef, Behavior}
 import csw.vslice.hcd.immutable.TromboneHcdMessage._
 import csw.vslice.hcd.messages.AxisRequest.{GetStatistics, PublishAxisUpdate}
 import csw.vslice.hcd.messages.AxisResponse._
-import csw.vslice.hcd.messages.{AxisRequest, AxisResponse, ToComponentLifecycleMessage}
-import csw.vslice.hcd.messages.FromComponentLifecycleMessage.ShutdownComplete
-import csw.vslice.hcd.messages.ToComponentLifecycleMessage._
+import csw.vslice.hcd.messages.{AxisRequest, AxisResponse}
+import csw.vslice.framework.FromComponentLifecycleMessage.ShutdownComplete
+import csw.vslice.framework.ToComponentLifecycleMessage._
 import csw.vslice.hcd.models.AxisConfig
 import csw.param.UnitsOfMeasure.encoder
+import csw.vslice.framework.ToComponentLifecycleMessage
 
 sealed trait TromboneHcdMessage
 
