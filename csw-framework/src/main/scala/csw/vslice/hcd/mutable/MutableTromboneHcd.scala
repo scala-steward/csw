@@ -21,7 +21,7 @@ import scala.async.Async._
 import scala.concurrent.Future
 import scala.concurrent.duration.DurationLong
 
-object MutableTromboneHcd extends HcdActorFactory[TromboneMsg] with DomainMsgFactory[TromboneMsg] {
+object MutableTromboneHcd extends HcdActorFactory[TromboneMsg] {
   override protected def make(
       supervisor: ActorRef[FromComponentLifecycleMessage],
       pubSubRef: ActorRef[PubSub[CurrentState]]
@@ -43,7 +43,7 @@ class MutableTromboneHcd(ctx: ActorContext[HcdMsg])(supervisor: ActorRef[FromCom
 
   override def preStart(): Future[NotUsed] = async {
     axisConfig = await(getAxisConfig)
-    tromboneAxis = ctx.spawnAnonymous(MutableAxisSimulator.behaviour(axisConfig, Some(wrapper)))
+    tromboneAxis = ctx.spawnAnonymous(MutableAxisSimulator.behaviour(axisConfig, Some(domainRef)))
     current = await(tromboneAxis ? InitialState)
     stats = await(tromboneAxis ? GetStatistics)
     NotUsed
@@ -90,7 +90,7 @@ class MutableTromboneHcd(ctx: ActorContext[HcdMsg])(supervisor: ActorRef[FromCom
   }
 
   private def handleEng(tromboneEngineering: TromboneEngineering): Unit = tromboneEngineering match {
-    case GetAxisStats              => tromboneAxis ! GetStatistics(wrapper)
+    case GetAxisStats              => tromboneAxis ! GetStatistics(domainRef)
     case GetAxisUpdate             => tromboneAxis ! PublishAxisUpdate
     case GetAxisUpdateNow(replyTo) => replyTo ! current
     case GetAxisConfig =>

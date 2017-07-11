@@ -3,7 +3,6 @@ package csw.vslice.framework
 import akka.typed.ActorRef
 import csw.param.Parameters.Setup
 import csw.param.StateVariable.CurrentState
-import csw.vslice.framework.RunningHcdMsg.DomainHcdMsg
 
 sealed trait LifecycleState
 
@@ -64,21 +63,14 @@ object InitialHcdMsg {
   case class Run(replyTo: ActorRef[Running]) extends InitialHcdMsg
   case object ShutdownComplete               extends InitialHcdMsg with RunningHcdMsg
 
-  case class Running(runningHcd: ActorRef[RunningHcdMsg])
+  case class Running(runningHcd: ActorRef[RunningHcdMsg], pubSubRef: ActorRef[PubSub[CurrentState]])
 }
 
 sealed trait RunningHcdMsg extends HcdMsg
 object RunningHcdMsg {
   case class Lifecycle(message: ToComponentLifecycleMessage)         extends RunningHcdMsg
   case class Submit(command: Setup)                                  extends RunningHcdMsg
-  case object GetPubSubActorRef                                      extends RunningHcdMsg
   private[framework] case class DomainHcdMsg[T <: DomainMsg](msg: T) extends RunningHcdMsg
-
-  case class PubSubRef(ref: ActorRef[PubSub[CurrentState]])
 }
 
 trait DomainMsg
-
-trait DomainMsgFactory[T <: DomainMsg] {
-  def envelope(x: T): DomainHcdMsg[T] = DomainHcdMsg(x)
-}

@@ -27,7 +27,7 @@ abstract class HcdActor[Msg <: DomainMsg: ClassTag](ctx: ActorContext[HcdMsg])(
     pubSubRef: ActorRef[PubSub[CurrentState]]
 ) extends Actor.MutableBehavior[HcdMsg] {
 
-  val wrapper: ActorRef[Msg] = ctx.spawnAdapter { x: Msg ⇒
+  val domainRef: ActorRef[Msg] = ctx.spawnAdapter { x: Msg ⇒
     DomainHcdMsg(x)
   }
 
@@ -56,7 +56,7 @@ abstract class HcdActor[Msg <: DomainMsg: ClassTag](ctx: ActorContext[HcdMsg])(
     case Run(replyTo) =>
       onRun()
       context = Context.Running
-      replyTo ! Running(ctx.self)
+      replyTo ! Running(ctx.self, pubSubRef)
     case ShutdownComplete =>
       onShutdown()
   }
@@ -65,7 +65,6 @@ abstract class HcdActor[Msg <: DomainMsg: ClassTag](ctx: ActorContext[HcdMsg])(
     case ShutdownComplete     => onShutdownComplete()
     case Lifecycle(message)   => handleLifecycle(message)
     case Submit(command)      => handleSetup(command)
-    case GetPubSubActorRef    => PubSubRef(pubSubRef)
     case DomainHcdMsg(y: Msg) ⇒ handleDomainMsg(y)
     case DomainHcdMsg(y)      ⇒ println(s"unhandled domain msg: $y")
   }
