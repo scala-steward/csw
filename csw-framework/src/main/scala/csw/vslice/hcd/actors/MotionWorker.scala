@@ -25,8 +25,6 @@ object MotionWorker {
 
   def calcStepSize(current: Int, destination: Int, steps: Int): Int = (destination - current) / steps
 
-  //def stepNumber(stepCount: Int, numSteps: Int) = numSteps - stepCount
-
   def calcDistance(current: Int, destination: Int): Int = Math.abs(current - destination)
   def lastStep(current: Int, destination: Int, stepSize: Int): Boolean =
     calcDistance(current, destination) <= Math.abs(stepSize)
@@ -44,10 +42,9 @@ class MotionWorker(start: Int,
 
   private var destination = destinationIn
 
-  private var numSteps  = calcNumSteps(start, destination)
-  private var stepSize  = calcStepSize(start, destination, numSteps)
-  private var stepCount = 0
-  // Can be + or -
+  private var numSteps                 = calcNumSteps(start, destination)
+  private var stepSize                 = calcStepSize(start, destination, numSteps)
+  private var stepCount                = 0
   private var cancelFlag               = false
   private val delayInNanoSeconds: Long = delayInMS * 1000000
   private var current                  = start
@@ -61,17 +58,12 @@ class MotionWorker(start: Int,
         this
       case Tick(currentIn) =>
         replyTo ! Tick(currentIn)
-
         current = currentIn
-        // Keep a count of steps in this MotionWorker instance
         stepCount += 1
-
-        // If we are on the last step of a move, then distance equals 0
         val distance = calcDistance(current, destination)
         val done     = distance == 0
-        // To fix rounding errors, if last step set current to destination
-        val last    = lastStep(current, destination, stepSize)
-        val nextPos = if (last) destination else currentIn + stepSize
+        val last     = lastStep(current, destination, stepSize)
+        val nextPos  = if (last) destination else currentIn + stepSize
         if (diagFlag)
           println(s"currentIn: $currentIn, distance: $distance, stepSize: $stepSize, done: $done, nextPos: $nextPos")
 
