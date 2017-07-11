@@ -17,6 +17,8 @@ object LifecycleState {
   case object LifecycleShutdownFailure       extends LifecycleState
 }
 
+///////////////
+
 sealed trait SupervisorExternalMessage
 
 object SupervisorExternalMessage {
@@ -29,6 +31,8 @@ object SupervisorExternalMessage {
   case object ExComponentOffline                                   extends SupervisorExternalMessage
 }
 
+///////////////
+
 sealed trait ToComponentLifecycleMessage
 
 object ToComponentLifecycleMessage {
@@ -38,6 +42,8 @@ object ToComponentLifecycleMessage {
   case object RunningOffline                                             extends ToComponentLifecycleMessage
   case class LifecycleFailureInfo(state: LifecycleState, reason: String) extends ToComponentLifecycleMessage
 }
+
+///////////////
 
 sealed trait FromComponentLifecycleMessage
 
@@ -51,6 +57,8 @@ object FromComponentLifecycleMessage {
   case object HaltComponent                    extends FromComponentLifecycleMessage
 }
 
+///////////////
+
 sealed trait PubSub[T]
 
 object PubSub {
@@ -58,6 +66,8 @@ object PubSub {
   case class Unsubscribe[T](ref: ActorRef[T]) extends PubSub[T]
   case class Publish[T](data: T)              extends PubSub[T]
 }
+
+///////////////
 
 sealed trait HcdMsg
 
@@ -74,5 +84,7 @@ object RunningHcdMsg {
   case class Submit(command: Setup)                                  extends RunningHcdMsg
   private[framework] case class DomainHcdMsg[T <: DomainMsg](msg: T) extends RunningHcdMsg
 }
+
+///////////////
 
 trait DomainMsg

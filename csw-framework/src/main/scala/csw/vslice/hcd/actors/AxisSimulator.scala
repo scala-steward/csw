@@ -37,7 +37,6 @@ class AxisSimulator(ctx: ActorContext[SimulatorCommand])(axisConfig: AxisConfig,
 
   import AxisSimulator._
 
-  // Check that the home position is not in a limit area - with  check it is not neceesary to check for limits after homing
   assert(axisConfig.home > axisConfig.lowUser,
          s"home position must be greater than lowUser value: ${axisConfig.lowUser}")
   assert(axisConfig.home < axisConfig.highUser,
@@ -161,11 +160,9 @@ class AxisSimulator(ctx: ActorContext[SimulatorCommand])(axisConfig: AxisConfig,
       context = Context.Idle
 
     case MoveUpdate(targetPosition) =>
-      // When  is received, we update the final position while a motion is happening
       worker ! MoveUpdate(targetPosition)
 
     case Tick(currentIn) =>
-      // Set limits -  was a bug - need to do  after every step
       current = currentIn
       checkLimits()
       println("Move Update")
