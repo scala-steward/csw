@@ -119,7 +119,7 @@ lazy val `csw-config-client-cli` = project
   )
 
 lazy val `csw-framework` = project
-  .dependsOn(`csw-params`)
+  .dependsOn(`csw-params`, `csw-location`)
   .settings(
     libraryDependencies ++= Dependencies.Framework
   )
