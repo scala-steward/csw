@@ -21,14 +21,14 @@ object HcdActor {
   }
 }
 
-abstract class HcdActor[Msg <: DomainMsg: ClassTag](ctx: ActorContext[HcdMsg])(
-    supervisor: ActorRef[FromComponentLifecycleMessage],
-    pubSubRef: ActorRef[PubSub[CurrentState]]
-) extends Actor.MutableBehavior[HcdMsg] {
+abstract class HcdActor[Msg <: DomainMsg: ClassTag](
+    supervisor: ActorRef[FromComponentLifecycleMessage]
+)(ctx: ActorContext[HcdMsg])
+    extends Actor.MutableBehavior[HcdMsg] {
 
-  val domainAdapter: ActorRef[Msg] = ctx.spawnAdapter { x: Msg ⇒
-    DomainHcdMsg(x)
-  }
+  val domainAdapter: ActorRef[Msg] = ctx.spawnAdapter(DomainHcdMsg.apply)
+
+  val pubSubRef: ActorRef[PubSub[CurrentState]] = ctx.spawnAnonymous(PubSubActor.behaviour[CurrentState])
 
   import ctx.executionContext
 
