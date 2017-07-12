@@ -13,7 +13,7 @@ import scala.concurrent.duration.DurationInt
 object AxisSimulator {
 
   def behaviour(axisConfig: AxisConfig, replyTo: Option[ActorRef[AxisResponse]]): Behavior[AxisRequest] =
-    Actor.mutable[SimulatorCommand](ctx ⇒ new AxisSimulator(axisConfig: AxisConfig, replyTo)(ctx)).narrow
+    Actor.mutable[SimulatorCommand](ctx ⇒ new AxisSimulator(ctx, axisConfig: AxisConfig, replyTo)).narrow
 
   def limitMove(ac: AxisConfig, request: Int): Int = Math.max(Math.min(request, ac.highLimit), ac.lowLimit)
 
@@ -31,8 +31,9 @@ object AxisSimulator {
   }
 }
 
-class AxisSimulator(axisConfig: AxisConfig,
-                    replyTo: Option[ActorRef[AxisResponse]])(ctx: ActorContext[SimulatorCommand])
+class AxisSimulator(ctx: ActorContext[SimulatorCommand],
+                    axisConfig: AxisConfig,
+                    replyTo: Option[ActorRef[AxisResponse]])
     extends Actor.MutableBehavior[SimulatorCommand] {
 
   import AxisSimulator._

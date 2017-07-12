@@ -19,14 +19,13 @@ import scala.concurrent.Future
 import scala.concurrent.duration.DurationLong
 
 object TromboneHcd extends HcdActorFactory[TromboneMsg] {
-  override protected def make(
-      supervisor: ActorRef[FromComponentLifecycleMessage]
-  )(ctx: ActorContext[HcdMsg]): HcdActor[TromboneMsg] =
-    new TromboneHcd(supervisor)(ctx)
+  override protected def make(ctx: ActorContext[HcdMsg],
+                              supervisor: ActorRef[FromComponentLifecycleMessage]): HcdActor[TromboneMsg] =
+    new TromboneHcd(ctx, supervisor)
 }
 
-class TromboneHcd(supervisor: ActorRef[FromComponentLifecycleMessage])(ctx: ActorContext[HcdMsg])
-    extends HcdActor[TromboneMsg](supervisor)(ctx) {
+class TromboneHcd(ctx: ActorContext[HcdMsg], supervisor: ActorRef[FromComponentLifecycleMessage])
+    extends HcdActor[TromboneMsg](ctx, supervisor) {
 
   implicit val timeout              = Timeout(2.seconds)
   implicit val scheduler: Scheduler = ctx.system.scheduler

@@ -21,9 +21,8 @@ object HcdActor {
   }
 }
 
-abstract class HcdActor[Msg <: DomainMsg: ClassTag](
-    supervisor: ActorRef[FromComponentLifecycleMessage]
-)(ctx: ActorContext[HcdMsg])
+abstract class HcdActor[Msg <: DomainMsg: ClassTag](ctx: ActorContext[HcdMsg],
+                                                    supervisor: ActorRef[FromComponentLifecycleMessage])
     extends Actor.MutableBehavior[HcdMsg] {
 
   val domainAdapter: ActorRef[Msg] = ctx.spawnAdapter(DomainHcdMsg.apply)

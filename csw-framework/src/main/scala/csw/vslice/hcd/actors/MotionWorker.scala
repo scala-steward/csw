@@ -13,7 +13,7 @@ object MotionWorker {
                 delayInMS: Int,
                 replyTo: ActorRef[MotionWorkerMsgs],
                 diagFlag: Boolean): Behavior[MotionWorkerMsgs] =
-    Actor.mutable(ctx ⇒ new MotionWorker(start, destinationIn, delayInMS, replyTo, diagFlag)(ctx))
+    Actor.mutable(ctx ⇒ new MotionWorker(ctx, start, destinationIn, delayInMS, replyTo, diagFlag))
 
   def calcNumSteps(start: Int, end: Int): Int = {
     val diff = Math.abs(start - end)
@@ -30,13 +30,13 @@ object MotionWorker {
     calcDistance(current, destination) <= Math.abs(stepSize)
 }
 
-class MotionWorker(start: Int,
+class MotionWorker(ctx: ActorContext[MotionWorkerMsgs],
+                   start: Int,
                    destinationIn: Int,
                    delayInMS: Int,
                    replyTo: ActorRef[MotionWorkerMsgs],
-                   diagFlag: Boolean)(
-    ctx: ActorContext[MotionWorkerMsgs]
-) extends Actor.MutableBehavior[MotionWorkerMsgs] {
+                   diagFlag: Boolean)
+    extends Actor.MutableBehavior[MotionWorkerMsgs] {
 
   import MotionWorker._
 
