@@ -6,7 +6,7 @@ import csw.vslice.framework.RunningHcdMsg.Submit
 import csw.vslice.hcd.models.TromboneHcdState
 
 object TromboneControl {
-  def behaviour(ac: AssemblyContext, tromboneHCD: Option[ActorRef[Submit]] = None): Behavior[TromboneControlMsg] =
+  def behaviour(ac: AssemblyContext, tromboneHCD: Option[ActorRef[Submit]]): Behavior[TromboneControlMsg] =
     Actor.immutable { (_, msg) ⇒
       msg match {
         case GoToStagePosition(stagePosition) =>

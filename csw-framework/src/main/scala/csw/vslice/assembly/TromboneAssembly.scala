@@ -2,8 +2,6 @@ package csw.vslice.assembly
 
 import java.io.File
 
-import akka.typed.ActorRef
-
 /**
  * All assembly messages are indicated here
  */
@@ -15,9 +13,10 @@ object TromboneAssembly {
 
 //  def props(assemblyInfo: AssemblyInfo, supervisor: ActorRef) = Props(new TromboneAssembly(assemblyInfo, supervisor))
 
+  sealed trait TromboneAssemblyMsg
   // Used internally to start/stop  commands
-  private[assembly] case object CommandStart
-  private[assembly] case object StopCurrentCommand
+  private[assembly] case object CommandStart       extends TromboneAssemblyMsg
+  private[assembly] case object StopCurrentCommand extends TromboneAssemblyMsg
 
   private val badHCDReference = None
 }

@@ -1,6 +1,58 @@
 package csw.vslice.assembly
 
+import akka.typed.{ActorRef, Behavior}
+import akka.typed.scaladsl.Actor.MutableBehavior
+import akka.typed.scaladsl.ActorContext
 import csw.param._
+import csw.vslice.assembly.TromboneStateActor.{TromboneState, TromboneStateMsg}
+
+/**
+ * Note that this state actor is not a listener for events. Only the client listens.
+ */
+class TromboneStateActor(ctx: ActorContext[TromboneStateMsg]) extends MutableBehavior[TromboneStateMsg] {
+
+  import TromboneStateActor._
+
+  var currentState: TromboneState = TromboneState(cmdDefault, moveDefault, sodiumLayerDefault, nssDefault)
+
+  override def onMessage(msg: TromboneStateMsg): Behavior[TromboneStateMsg] = msg match {
+    case SetState(tromboneState, replyTo) =>
+      if (tromboneState != currentState) {
+        ctx.system.eventStream.publish(tromboneState)
+        currentState = tromboneState
+        replyTo ! StateWasSet(true)
+        this
+      } else {
+        replyTo ! StateWasSet(false)
+        this
+      }
+    case GetState(replyTo) => {
+      replyTo ! currentState
+      this
+    }
+  }
+}
+
+class TromboneStateClient(ctx: ActorContext[TromboneState]) extends MutableBehavior[TromboneState] {
+
+  import TromboneStateActor._
+
+  ctx.system.eventStream.subscribe(ctx.self, classOf[TromboneState])
+
+  private var internalState = defaultTromboneState
+
+  override def onMessage(msg: TromboneState): Behavior[TromboneState] = msg match {
+    case ts: TromboneState =>
+      internalState = ts
+      this
+  }
+
+  /**
+   * The currentState as a TromonbeState is returned.
+   * @return TromboneState current state
+   */
+  def currentState: TromboneState = internalState
+}
 
 object TromboneStateActor {
 
@@ -79,7 +131,9 @@ object TromboneStateActor {
    * Update the current state with a TromboneState
    * @param tromboneState the new trombone state value
    */
-  case class SetState(tromboneState: TromboneState)
+  case class SetState(tromboneState: TromboneState, replyTo: ActorRef[StateWasSet]) extends TromboneStateMsg
+
+  sealed trait TromboneStateMsg
 
   object SetState {
 
@@ -94,7 +148,8 @@ object TromboneStateActor {
     def apply(cmd: ChoiceParameter,
               move: ChoiceParameter,
               sodiumLayer: BooleanParameter,
-              nss: BooleanParameter): SetState = SetState(TromboneState(cmd, move, sodiumLayer, nss))
+              nss: BooleanParameter,
+              replyTo: ActorRef[StateWasSet]): SetState = SetState(TromboneState(cmd, move, sodiumLayer, nss), replyTo)
 
     /**
      * Alternate way to create the SetState message using primitives
@@ -104,14 +159,18 @@ object TromboneStateActor {
      * @param nss a boolan for the NSS in use value
      * @return a new SetState message instance
      */
-    def apply(cmd: Choice, move: Choice, sodiumLayer: Boolean, nss: Boolean): SetState =
-      SetState(TromboneState(cmdItem(cmd), moveItem(move), sodiumItem(sodiumLayer), nssItem(nss)))
+    def apply(cmd: Choice,
+              move: Choice,
+              sodiumLayer: Boolean,
+              nss: Boolean,
+              replyTo: ActorRef[StateWasSet]): SetState =
+      SetState(TromboneState(cmdItem(cmd), moveItem(move), sodiumItem(sodiumLayer), nssItem(nss)), replyTo)
   }
 
   /**
    * A message that causes the current state to be sent back to the sender
    */
-  case object GetState
+  case class GetState(replyTo: ActorRef[TromboneState]) extends TromboneStateMsg
 
   /**
    * Reply to the SetState message that indicates if the state was actually set (only if different than current state)
