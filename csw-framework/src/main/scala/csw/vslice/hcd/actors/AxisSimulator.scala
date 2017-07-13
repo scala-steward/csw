@@ -57,6 +57,8 @@ class AxisSimulator(ctx: ActorContext[SimulatorCommand],
   private val failureCount = 0
   private var cancelCount  = 0
 
+  var f: SimulatorCommand ⇒ Behavior[SimulatorCommand]
+
   var context: Context = Context.Idle
 
   override def onMessage(msg: SimulatorCommand): Behavior[SimulatorCommand] = {

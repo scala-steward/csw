@@ -111,8 +111,8 @@ class TrombonePublisher(assemblyContext: AssemblyContext, ctx: ActorContext[Trom
 }
 
 object TrombonePublisher {
-  def props(assemblyContext: AssemblyContext) =
-    Props(classOf[TrombonePublisher], assemblyContext)
+  def make(assemblyContext: AssemblyContext, ctx: ActorContext[TromboneState]) =
+    new TrombonePublisher(assemblyContext, ctx)
 
   sealed trait TrombonePublisherMsg
 
