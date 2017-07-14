@@ -80,9 +80,9 @@ object InitialHcdMsg {
 
 sealed trait RunningHcdMsg extends HcdMsg
 object RunningHcdMsg {
-  case class Lifecycle(message: ToComponentLifecycleMessage)         extends RunningHcdMsg
-  case class Submit(command: Setup)                                  extends RunningHcdMsg
-  private[framework] case class DomainHcdMsg[T <: DomainMsg](msg: T) extends RunningHcdMsg
+  case class Lifecycle(message: ToComponentLifecycleMessage) extends RunningHcdMsg
+  case class Submit(command: Setup)                          extends RunningHcdMsg
+  case class DomainHcdMsg[T <: DomainMsg](msg: T)            extends RunningHcdMsg
 }
 
 ///////////////

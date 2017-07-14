@@ -61,8 +61,8 @@ class DiagPublisher(assemblyContext: AssemblyContext,
       this.cancelToken = cancelToken
       context = Context.Diagnostic
 
-    case UpdateTromboneHcdE(UpdateTromboneHCD) =>
-      this.running = runningIn1
+    case UpdateTromboneHcd(maybeRunning) =>
+      this.running = maybeRunning
   }
 
   def diagnosticReceive(msg: DiagPublisherMessages): Unit = msg match {
@@ -89,8 +89,8 @@ class DiagPublisher(assemblyContext: AssemblyContext,
       cancelToken.cancel
       context = Context.Operations
 
-    case UpdateTromboneHCD(tromboneHCDUpdate) =>
-      running = tromboneHCDUpdate
+    case UpdateTromboneHcd(maybeRunning) =>
+      running = maybeRunning
   }
 
   private def publishStateUpdate(cs: CurrentState): Unit = {
@@ -138,11 +138,11 @@ object DiagPublisher {
 
   sealed trait DiagPublisherMessages
   object DiagPublisherMessages {
-    final case class TimeForAxisStats(periodInseconds: Int)                   extends DiagPublisherMessages
-    final case object DiagnosticState                                         extends DiagPublisherMessages
-    final case object OperationsState                                         extends DiagPublisherMessages
-    final case class CurrentStateE(cs: CurrentState)                          extends DiagPublisherMessages
-    final case class UpdateTromboneHcdE(updateTromboneHcd: UpdateTromboneHCD) extends DiagPublisherMessages
+    final case class TimeForAxisStats(periodInseconds: Int)      extends DiagPublisherMessages
+    final case object DiagnosticState                            extends DiagPublisherMessages
+    final case object OperationsState                            extends DiagPublisherMessages
+    final case class CurrentStateE(cs: CurrentState)             extends DiagPublisherMessages
+    final case class UpdateTromboneHcd(running: Option[Running]) extends DiagPublisherMessages
   }
 
   val diagnosticSkipCount       = 2
