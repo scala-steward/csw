@@ -7,9 +7,9 @@ import akka.typed.scaladsl.Actor.MutableBehavior
 import akka.typed.scaladsl.{Actor, ActorContext}
 import akka.typed.{ActorRef, Behavior}
 import csw.param.StateVariable.CurrentState
-import csw.vslice.assembly.DiagPublisher.DiagPublisherMessages._
 import csw.vslice.assembly.DiagPublisher._
-import csw.vslice.assembly.TrombonePublisher.{AxisStateUpdate, AxisStatsUpdate, TrombonePublisherMsg}
+import csw.vslice.assembly.DiagPublisherMessages._
+import csw.vslice.assembly.TrombonePublisherMsg.{AxisStateUpdate, AxisStatsUpdate}
 import csw.vslice.framework.FromComponentLifecycleMessage.Running
 import csw.vslice.framework.PubSub
 import csw.vslice.framework.RunningHcdMsg.DomainHcdMsg
@@ -134,15 +134,6 @@ object DiagPublisher {
   object Context {
     case object Operations extends Context
     case object Diagnostic extends Context
-  }
-
-  sealed trait DiagPublisherMessages
-  object DiagPublisherMessages {
-    final case class TimeForAxisStats(periodInseconds: Int)      extends DiagPublisherMessages
-    final case object DiagnosticState                            extends DiagPublisherMessages
-    final case object OperationsState                            extends DiagPublisherMessages
-    final case class CurrentStateE(cs: CurrentState)             extends DiagPublisherMessages
-    final case class UpdateTromboneHcd(running: Option[Running]) extends DiagPublisherMessages
   }
 
   val diagnosticSkipCount       = 2

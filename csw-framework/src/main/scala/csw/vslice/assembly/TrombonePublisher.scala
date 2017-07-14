@@ -7,6 +7,7 @@ import akka.typed.scaladsl.ActorContext
 import csw.param.Events.{StatusEvent, SystemEvent}
 import csw.param._
 import csw.vslice.assembly.TrombonePublisher._
+import csw.vslice.assembly.TrombonePublisherMsg._
 import csw.vslice.assembly.TromboneStateActor.TromboneState
 
 class TrombonePublisher(assemblyContext: AssemblyContext, ctx: ActorContext[TromboneState])
@@ -111,45 +112,6 @@ class TrombonePublisher(assemblyContext: AssemblyContext, ctx: ActorContext[Trom
 }
 
 object TrombonePublisher {
-  def make(assemblyContext: AssemblyContext, ctx: ActorContext[TromboneState]) =
+  def make(assemblyContext: AssemblyContext, ctx: ActorContext[TromboneState]): TrombonePublisher =
     new TrombonePublisher(assemblyContext, ctx)
-
-  sealed trait TrombonePublisherMsg
-
-  case class TrombonePublisherMsgE(tromboneState: TromboneState) extends TrombonePublisherMsg
-
-  /**
-   * Used by actors wishing to cause an event for AO ESW
-   * @param naElevation elevation update
-   * @param naRange range update
-   */
-  case class AOESWUpdate(naElevation: DoubleParameter, naRange: DoubleParameter) extends TrombonePublisherMsg
-
-  /**
-   * Used by actors wishing to cause an engineering event update
-   * @param focusError focus error value as DoubleParameter
-   * @param stagePosition stage position as a DoubleParameter
-   * @param zenithAngle zenith angle update as a DoubleParameter
-   */
-  case class EngrUpdate(focusError: DoubleParameter, stagePosition: DoubleParameter, zenithAngle: DoubleParameter)
-      extends TrombonePublisherMsg
-
-  case class AxisStateUpdate(axisName: StringParameter,
-                             position: IntParameter,
-                             state: ChoiceParameter,
-                             inLowLimit: BooleanParameter,
-                             inHighLimit: BooleanParameter,
-                             inHome: BooleanParameter)
-      extends TrombonePublisherMsg
-
-  case class AxisStatsUpdate(axisName: StringParameter,
-                             initCount: IntParameter,
-                             moveCount: IntParameter,
-                             homeCount: IntParameter,
-                             limitCount: IntParameter,
-                             successCount: IntParameter,
-                             failCount: IntParameter,
-                             cancelCount: IntParameter)
-      extends TrombonePublisherMsg
-
 }
