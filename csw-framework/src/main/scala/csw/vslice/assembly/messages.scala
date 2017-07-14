@@ -1,9 +1,9 @@
 package csw.vslice.assembly
 
 import akka.typed.ActorRef
-import csw.param._
 import csw.param.Events.EventTime
 import csw.param.StateVariable.CurrentState
+import csw.param._
 import csw.vslice.assembly.TromboneStateActor.TromboneState
 import csw.vslice.framework.FromComponentLifecycleMessage.Running
 import csw.vslice.framework.RunningHcdMsg.Submit
