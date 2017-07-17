@@ -13,7 +13,7 @@ object MultiStateMatcherMsgs {
       StartMatch(replyTo, matchers.toList)
   }
 
-  private[ccs] sealed trait ExecutingMsg                          extends MultiStateMatcherMsgs
-  private[ccs] case class StateUpdate(currentState: CurrentState) extends ExecutingMsg
-  private[ccs] case object Stop                                   extends ExecutingMsg
+  sealed trait ExecutingMsg                          extends MultiStateMatcherMsgs
+  case class StateUpdate(currentState: CurrentState) extends ExecutingMsg
+  case object Stop                                   extends ExecutingMsg
 }

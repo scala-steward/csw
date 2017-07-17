@@ -18,5 +18,5 @@ object TromboneAssembly {
   private[assembly] case object CommandStart       extends TromboneAssemblyMsg
   private[assembly] case object StopCurrentCommand extends TromboneAssemblyMsg
 
-  private val badHCDReference = None
+//  private val badHCDReference = None
 }

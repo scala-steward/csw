@@ -5,7 +5,6 @@ import csw.param.Events.EventTime
 import csw.param.Parameters.Setup
 import csw.param.StateVariable.CurrentState
 import csw.param._
-import csw.vslice.assembly.TromboneCommandHandlerMsgs.ExecutingMsgs
 import csw.vslice.assembly.TromboneStateActor.{StateWasSet, TromboneState}
 import csw.vslice.ccs.CommandStatus.CommandResponse
 import csw.vslice.framework.FromComponentLifecycleMessage.Running
@@ -104,5 +103,5 @@ object TromboneCommandMsgs {
   private[assembly] case class CommandStart(replyTo: ActorRef[CommandResponse]) extends TromboneCommandMsgs
   private[assembly] case object StopCurrentCommand                              extends TromboneCommandMsgs
   private[assembly] case class SetStateResponseE(response: StateWasSet)         extends TromboneCommandMsgs
-  private[assembly] case object PoisonPill                                      extends TromboneCommandMsgs
+//  private[assembly] case object PoisonPill                                      extends TromboneCommandMsgs
 }

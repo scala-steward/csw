@@ -1,19 +1,15 @@
 package csw.vslice.assembly
 
-import akka.actor.Props
 import akka.typed.Behavior
 import akka.typed.scaladsl.Actor.MutableBehavior
 import akka.typed.scaladsl.ActorContext
-import csw.param.Events.{StatusEvent, SystemEvent}
 import csw.param._
-import csw.vslice.assembly.TrombonePublisher._
 import csw.vslice.assembly.TrombonePublisherMsg._
 import csw.vslice.assembly.TromboneStateActor.TromboneState
 
 class TrombonePublisher(assemblyContext: AssemblyContext, ctx: ActorContext[TromboneState])
     extends MutableBehavior[TrombonePublisherMsg] {
   import TromboneStateActor._
-  import assemblyContext._
 
   override def onMessage(msg: TrombonePublisherMsg): Behavior[TrombonePublisherMsg] = msg match {
     case AOESWUpdate(elevationItem, rangeItem) =>
@@ -46,7 +42,7 @@ class TrombonePublisher(assemblyContext: AssemblyContext, ctx: ActorContext[Trom
   }
 
   private def publishAOESW(elevationItem: DoubleParameter, rangeItem: DoubleParameter) = {
-    val se = SystemEvent(aoSystemEventPrefix).madd(elevationItem, rangeItem)
+//    val se = SystemEvent(aoSystemEventPrefix).madd(elevationItem, rangeItem)
 //    eventService.foreach(_.publish(se).onComplete {
 //      case Failure(ex) => log.error("TrombonePublisher failed to publish AO system event: $se", ex)
 //      case _           =>
@@ -56,7 +52,7 @@ class TrombonePublisher(assemblyContext: AssemblyContext, ctx: ActorContext[Trom
   private def publishEngr(rtcFocusError: DoubleParameter,
                           stagePosition: DoubleParameter,
                           zenithAngle: DoubleParameter) = {
-    val ste = StatusEvent(engStatusEventPrefix).madd(rtcFocusError, stagePosition, zenithAngle)
+//    val ste = StatusEvent(engStatusEventPrefix).madd(rtcFocusError, stagePosition, zenithAngle)
 //    telemetryService.foreach(_.publish(ste).onComplete {
 //      case Failure(ex) => log.error(s"TrombonePublisher failed to publish engr event: $ste", ex)
 //      case _           =>
@@ -65,7 +61,7 @@ class TrombonePublisher(assemblyContext: AssemblyContext, ctx: ActorContext[Trom
 
   private def publishState(ts: TromboneState) = {
     // We can do this for convenience rather than using TromboneStateHandler's stateReceive
-    val ste = StatusEvent(tromboneStateStatusEventPrefix).madd(ts.cmd, ts.move, ts.sodiumLayer, ts.nss)
+//    val ste = StatusEvent(tromboneStateStatusEventPrefix).madd(ts.cmd, ts.move, ts.sodiumLayer, ts.nss)
 //    telemetryService.foreach(_.publish(ste).onComplete {
 //      case Failure(ex) => log.error(s"TrombonePublisher failed to publish trombone state: $ste", ex)
 //      case _           =>
@@ -78,7 +74,7 @@ class TrombonePublisher(assemblyContext: AssemblyContext, ctx: ActorContext[Trom
                                inLowLimit: BooleanParameter,
                                inHighLimit: BooleanParameter,
                                inHome: BooleanParameter) = {
-    val ste = StatusEvent(axisStateEventPrefix).madd(axisName, position, state, inLowLimit, inHighLimit, inHome)
+//    val ste = StatusEvent(axisStateEventPrefix).madd(axisName, position, state, inLowLimit, inHighLimit, inHome)
 //    log.debug(s"Axis state publish of $axisStateEventPrefix: $ste")
 //    telemetryService.foreach(_.publish(ste).onComplete {
 //      case Failure(ex) => log.error(s"TrombonePublisher failed to publish trombone axis state: $ste", ex)
@@ -94,14 +90,14 @@ class TrombonePublisher(assemblyContext: AssemblyContext, ctx: ActorContext[Trom
                        successCount: IntParameter,
                        failureCount: IntParameter,
                        cancelCount: IntParameter): Unit = {
-    val ste = StatusEvent(axisStatsEventPrefix).madd(axisName,
-                                                     datumCount,
-                                                     moveCount,
-                                                     homeCount,
-                                                     limitCount,
-                                                     successCount,
-                                                     failureCount,
-                                                     cancelCount)
+//    val ste = StatusEvent(axisStatsEventPrefix).madd(axisName,
+//                                                     datumCount,
+//                                                     moveCount,
+//                                                     homeCount,
+//                                                     limitCount,
+//                                                     successCount,
+//                                                     failureCount,
+//                                                     cancelCount)
 //    log.debug(s"Axis stats publish of $axisStatsEventPrefix: $ste")
 //    telemetryService.foreach(_.publish(ste).onComplete {
 //      case Failure(ex) => log.error(s"TrombonePublisher failed to publish trombone axis stats: $ste", ex)

@@ -70,6 +70,7 @@ class MoveCommand(ac: AssemblyContext,
       case StopCurrentCommand =>
         tromboneHCD.hcdRef ! Submit(TromboneHcdState.cancelSC(s.info))
         this
+      case SetStateResponseE(_) ⇒ this
     }
   }
   private def sendState(setState: SetState): Unit = {

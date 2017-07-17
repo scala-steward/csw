@@ -1,6 +1,6 @@
 package csw.vslice.assembly
 
-import akka.actor.PoisonPill
+import akka.actor.Scheduler
 import akka.typed.scaladsl.Actor.MutableBehavior
 import akka.typed.scaladsl.AskPattern._
 import akka.typed.scaladsl.{Actor, ActorContext}
@@ -14,7 +14,7 @@ import csw.vslice.assembly.TromboneCommandHandlerMsgs._
 import csw.vslice.assembly.TromboneCommandMsgs.StopCurrentCommand
 import csw.vslice.ccs.CommandStatus._
 import csw.vslice.ccs.MultiStateMatcherMsgs.StartMatch
-import csw.vslice.ccs.Validation.{RequiredHCDUnavailableIssue, WrongInternalStateIssue}
+import csw.vslice.ccs.Validation.{RequiredHCDUnavailableIssue, UnsupportedCommandInStateIssue, WrongInternalStateIssue}
 import csw.vslice.ccs._
 import csw.vslice.framework.FromComponentLifecycleMessage.Running
 import csw.vslice.framework.PubSub
@@ -28,6 +28,10 @@ class TromboneCommandHandler(ac: AssemblyContext,
                              allEventPublisher: Option[ActorRef[TrombonePublisherMsg]],
                              ctx: ActorContext[TromboneCommandHandlerMsgs])
     extends MutableBehavior[TromboneCommandHandlerMsgs] {
+
+  implicit val scheduler: Scheduler = ctx.system.scheduler
+  import ctx.executionContext
+
   var mode: Mode = Mode.Initializing
 
   import TromboneCommandHandler._
@@ -37,7 +41,7 @@ class TromboneCommandHandler(ac: AssemblyContext,
   implicit val timeout                      = Timeout(5.seconds)
 
 //  private val tromboneStateAdapter: ActorRef[TromboneState]  = ctx.spawnAdapter(TromboneStateE)
-  private val setStateResponseAdapter: ActorRef[StateWasSet] = ctx.spawnAdapter(SetStateResponseE)
+//  private val setStateResponseAdapter: ActorRef[StateWasSet] = ctx.spawnAdapter(SetStateResponseE)
 
   private val badHCDReference    = ctx.system.deadLetters
   private val tromboneStateActor = ctx.spawnAnonymous(TromboneStateActor.make())
@@ -48,11 +52,9 @@ class TromboneCommandHandler(ac: AssemblyContext,
   private var tromboneHCD      = tromboneHCDIn.get
   private var setElevationItem = naElevation(calculationConfig.defaultInitialElevation)
 
-  private var commandActor: ActorRef[TromboneCommandMsgs]         = _
   private var followCommandActor: ActorRef[FollowCommandMessages] = _
 
   private var currentCommand: ActorRef[TromboneCommandMsgs] = _
-  private var commandOriginator: ActorRef[CommandResponse]  = _
 
   private def isHCDAvailable: Boolean = tromboneHCD != badHCDReference
 
@@ -61,6 +63,7 @@ class TromboneCommandHandler(ac: AssemblyContext,
       case (Mode.NotFollowing, x: NotFollowingMsgs) ⇒ onNotFollowing(x)
       case (Mode.Following, x: FollowingMsgs)       ⇒ onFollowing(x)
       case (Mode.Executing, x: ExecutingMsgs)       ⇒ onExecuting(x)
+      case _                                        ⇒ println(s"current context=$mode does not handle message=$msg")
     }
     this
   }
@@ -79,7 +82,7 @@ class TromboneCommandHandler(ac: AssemblyContext,
 
         case ac.datumCK =>
           if (isHCDAvailable) {
-            commandActor =
+            currentCommand =
               ctx.spawnAnonymous(DatumCommand.make(s, tromboneHCD, currentState, Some(tromboneStateActor)))
             mode = Mode.Executing
             ctx.self ! CommandStart(replyTo)
@@ -87,7 +90,7 @@ class TromboneCommandHandler(ac: AssemblyContext,
 
         case ac.moveCK =>
           if (isHCDAvailable) {
-            commandActor =
+            currentCommand =
               ctx.spawnAnonymous(MoveCommand.make(ac, s, tromboneHCD, currentState, Some(tromboneStateActor)))
             mode = Mode.Executing
             ctx.self ! CommandStart(replyTo)
@@ -95,7 +98,7 @@ class TromboneCommandHandler(ac: AssemblyContext,
 
         case ac.positionCK =>
           if (isHCDAvailable) {
-            commandActor =
+            currentCommand =
               ctx.spawnAnonymous(PositionCommand.make(ac, s, tromboneHCD, currentState, Some(tromboneStateActor)))
             mode = Mode.Executing
             ctx.self ! CommandStart(replyTo)
@@ -111,7 +114,7 @@ class TromboneCommandHandler(ac: AssemblyContext,
 
         case ac.setElevationCK =>
           setElevationItem = s(ac.naElevationKey)
-          commandActor =
+          currentCommand =
             ctx.spawnAnonymous(SetElevationCommand.make(ac, s, tromboneHCD, currentState, Some(tromboneStateActor)))
           mode = Mode.Executing
           ctx.self ! CommandStart(replyTo)
@@ -132,15 +135,19 @@ class TromboneCommandHandler(ac: AssemblyContext,
               FollowCommand.make(ac, setElevationItem, nssItem, Some(tromboneHCD.hcdRef), allEventPublisher)
             )
             mode = Mode.Executing
-            (tromboneStateActor ? SetState(cmdContinuous,
-                                           moveMoving,
-                                           sodiumLayer(currentState),
-                                           nssItem.head,
-                                           setStateResponseAdapter))
-              .onComplete { _ =>
-                replyTo ! Completed
-              }
+            (tromboneStateActor ? { x: ActorRef[StateWasSet] ⇒
+              SetState(cmdContinuous, moveMoving, sodiumLayer(currentState), nssItem.head, x)
+            }).onComplete { _ =>
+              replyTo ! Completed
+            }
           }
+        case otherCommand =>
+          replyTo ! Invalid(
+            UnsupportedCommandInStateIssue(
+              s"""Trombone assembly does not support the command \"${otherCommand.prefix}\" in the current state."""
+            )
+          )
+
       }
 
   }
@@ -157,7 +164,9 @@ class TromboneCommandHandler(ac: AssemblyContext,
 
         case ac.setAngleCK =>
           Await.ready(
-            tromboneStateActor ? SetState(cmdBusy, move(currentState), sodiumLayer(currentState), nss(currentState)),
+            tromboneStateActor ? { x: ActorRef[StateWasSet] ⇒
+              SetState(cmdBusy, move(currentState), sodiumLayer(currentState), nss(currentState), x)
+            },
             timeout.duration
           )
 
@@ -165,11 +174,12 @@ class TromboneCommandHandler(ac: AssemblyContext,
           followCommandActor ! SetZenithAngle(zenithAngleItem)
           executeMatch(ctx, idleMatcher, tromboneHCD.pubSubRef, Some(replyTo)) {
             case Completed =>
-              Await.ready(tromboneStateActor ? SetState(cmdContinuous,
-                                                        move(currentState),
-                                                        sodiumLayer(currentState),
-                                                        nss(currentState)),
-                          timeout.duration)
+              Await.ready(
+                tromboneStateActor ? { x: ActorRef[StateWasSet] ⇒
+                  SetState(cmdContinuous, move(currentState), sodiumLayer(currentState), nss(currentState), x)
+                },
+                timeout.duration
+              )
             case Error(message) =>
               println(s"setElevation command failed with message: $message")
           }
@@ -177,13 +187,15 @@ class TromboneCommandHandler(ac: AssemblyContext,
         case ac.stopCK =>
           followCommandActor ! StopFollowing
           Await.ready(
-            tromboneStateActor ? SetState(cmdReady, moveIndexed, sodiumLayer(currentState), nss(currentState)),
+            tromboneStateActor ? { x: ActorRef[StateWasSet] ⇒
+              SetState(cmdReady, moveIndexed, sodiumLayer(currentState), nss(currentState), x)
+            },
             timeout.duration
           )
           mode = Mode.NotFollowing
           replyTo ! Completed
 
-        case `x` => println(s"Unknown config key: $x")
+        case other => println(s"Unknown config key: $x")
       }
 
   }
@@ -191,10 +203,13 @@ class TromboneCommandHandler(ac: AssemblyContext,
   def onExecuting(x: ExecutingMsgs): Unit = x match {
     case CommandStart(replyTo) =>
       for {
-        cr <- (currentCommand ? CommandStart).mapTo[CommandResponse]
+        cr <- (currentCommand ? { x: ActorRef[CommandResponse] ⇒
+          TromboneCommandMsgs.CommandStart(x)
+        }).mapTo[CommandResponse]
       } {
-        commandOriginator ! cr
-        currentCommand ! PoisonPill
+        replyTo ! cr
+        ctx.stop(currentCommand)
+//        currentCommand ! PoisonPill
         ctx.self ! CommandDone
       }
 
@@ -202,14 +217,16 @@ class TromboneCommandHandler(ac: AssemblyContext,
       mode = Mode.NotFollowing
 
     case Submit(Setup(ac.commandInfo, ac.stopCK, _), replyTo) =>
-      closeDownMotionCommand(currentCommand, Some(commandOriginator))
+      closeDownMotionCommand(currentCommand, Some(replyTo))
 
+    case SetStateResponseE(_) ⇒
   }
 
-  private def closeDownMotionCommand(currentCommand: ActorRef[TromboneCommandHandlerMsgs],
+  private def closeDownMotionCommand(currentCommand: ActorRef[TromboneCommandMsgs],
                                      commandOriginator: Option[ActorRef[CommandResponse]]): Unit = {
     currentCommand ! StopCurrentCommand
-    currentCommand ! PoisonPill
+    ctx.stop(currentCommand)
+//    currentCommand ! PoisonPill
     mode = Mode.NotFollowing
     commandOriginator.foreach(_ ! Cancelled)
   }
@@ -226,17 +243,21 @@ object TromboneCommandHandler {
            allEventPublisher: Option[ActorRef[TrombonePublisherMsg]]): Behavior[TromboneCommandHandlerMsgs] =
     Actor.mutable(ctx ⇒ new TromboneCommandHandler(assemblyContext, tromboneHCDIn, allEventPublisher, ctx))
 
-  def executeMatch(context: ActorContext[TromboneCommandMsgs],
+  def executeMatch(context: ActorContext[_],
                    stateMatcher: StateMatcher,
                    currentStateSource: ActorRef[PubSub[CurrentState]],
                    replyTo: Option[ActorRef[CommandResponse]] = None,
                    timeout: Timeout = Timeout(5.seconds))(codeBlock: PartialFunction[CommandResponse, Unit]): Unit = {
-    implicit val t = Timeout(timeout.duration + 1.seconds)
+    implicit val t                    = Timeout(timeout.duration + 1.seconds)
+    implicit val scheduler: Scheduler = context.system.scheduler
+    import context.executionContext
 
     val matcher: ActorRef[MultiStateMatcherMsgs.WaitingMsg] =
       context.spawnAnonymous(MultiStateMatcherActor.make(currentStateSource, timeout))
     for {
-      cmdStatus <- matcher ? StartMatch(replyTo.get, stateMatcher)
+      cmdStatus <- matcher ? { x: ActorRef[CommandStatus.CommandResponse] ⇒
+        StartMatch(x, stateMatcher)
+      }
     } {
       codeBlock(cmdStatus)
       replyTo.foreach(_ ! cmdStatus)

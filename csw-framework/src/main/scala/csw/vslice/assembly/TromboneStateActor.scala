@@ -27,6 +27,7 @@ class TromboneStateActor(ctx: ActorContext[TromboneStateMsg]) extends MutableBeh
       replyTo ! currentState
       this
     }
+    case StateWasSet(_) ⇒ this
   }
 }
 
