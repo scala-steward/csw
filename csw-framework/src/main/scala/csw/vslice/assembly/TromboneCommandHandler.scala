@@ -32,7 +32,7 @@ class TromboneCommandHandler(ac: AssemblyContext,
   implicit val scheduler: Scheduler = ctx.system.scheduler
   import ctx.executionContext
 
-  var mode: Mode = Mode.Initializing
+  var mode: Mode = Mode.NotFollowing
 
   import TromboneCommandHandler._
   import TromboneStateActor._
@@ -40,38 +40,33 @@ class TromboneCommandHandler(ac: AssemblyContext,
   implicit val system: ActorSystem[Nothing] = ctx.system
   implicit val timeout                      = Timeout(5.seconds)
 
-//  private val tromboneStateAdapter: ActorRef[TromboneState]  = ctx.spawnAdapter(TromboneStateE)
+  private val tromboneStateAdapter: ActorRef[TromboneState] = ctx.spawnAdapter(TromboneStateE)
 //  private val setStateResponseAdapter: ActorRef[StateWasSet] = ctx.spawnAdapter(SetStateResponseE)
 
-  private val badHCDReference    = ctx.system.deadLetters
-  private val tromboneStateActor = ctx.spawnAnonymous(TromboneStateActor.make())
+  ctx.system.eventStream.subscribe(tromboneStateAdapter, classOf[TromboneState])
 
-  private var currentState: TromboneState = _
+  private val tromboneStateActor          = ctx.spawnAnonymous(TromboneStateActor.make())
+  private var currentState: TromboneState = defaultTromboneState
 
-//  private var tromboneHCD      = tromboneHCDIn.getOrElse(badHCDReference)
-  private var tromboneHCD      = tromboneHCDIn.get
+  private val badHCDReference = ctx.system.deadLetters
+  private val tromboneHCD     = tromboneHCDIn.getOrElse(Running(badHCDReference, badHCDReference))
+
   private var setElevationItem = naElevation(calculationConfig.defaultInitialElevation)
 
   private var followCommandActor: ActorRef[FollowCommandMessages] = _
+  private var currentCommand: ActorRef[TromboneCommandMsgs]       = _
 
-  private var currentCommand: ActorRef[TromboneCommandMsgs] = _
-
-  private def isHCDAvailable: Boolean = tromboneHCD != badHCDReference
+  private def isHCDAvailable: Boolean = tromboneHCD.hcdRef != badHCDReference
 
   override def onMessage(msg: TromboneCommandHandlerMsgs): Behavior[TromboneCommandHandlerMsgs] = {
     (mode, msg) match {
       case (Mode.NotFollowing, x: NotFollowingMsgs) ⇒ onNotFollowing(x)
       case (Mode.Following, x: FollowingMsgs)       ⇒ onFollowing(x)
       case (Mode.Executing, x: ExecutingMsgs)       ⇒ onExecuting(x)
+      case (_, TromboneStateE(x))                   ⇒ currentState = x
       case _                                        ⇒ println(s"current context=$mode does not handle message=$msg")
     }
     this
-  }
-
-  def onInitializing(x: InitializingMsgs): Unit = x match {
-    case TromboneStateE(tromboneState) =>
-      currentState = tromboneState
-      mode = Mode.NotFollowing
   }
 
   def onNotFollowing(x: NotFollowingMsgs): Unit = x match {
@@ -219,7 +214,7 @@ class TromboneCommandHandler(ac: AssemblyContext,
     case Submit(Setup(ac.commandInfo, ac.stopCK, _), replyTo) =>
       closeDownMotionCommand(currentCommand, Some(replyTo))
 
-    case SetStateResponseE(_) ⇒
+    case _ ⇒
   }
 
   private def closeDownMotionCommand(currentCommand: ActorRef[TromboneCommandMsgs],
@@ -277,7 +272,6 @@ object TromboneCommandHandler {
 
   sealed trait Mode
   object Mode {
-    case object Initializing extends Mode
     case object NotFollowing extends Mode
     case object Following    extends Mode
     case object Executing    extends Mode

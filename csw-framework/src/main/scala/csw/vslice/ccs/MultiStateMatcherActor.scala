@@ -37,9 +37,9 @@ class MultiStateMatcherActor(currentStateReceiver: ActorRef[PubSub[CurrentState]
   }
 
   def onWaiting(msg: WaitingMsg): Unit = msg match {
-    case StartMatch(replyToIn, matcherIn) =>
+    case StartMatch(replyToIn, matchersIn) =>
       this.replyTo = replyToIn
-      this.matchers = matcherIn
+      this.matchers = matchersIn
       timer = ctx.schedule(timeout.duration, ctx.self, Stop)
       context = Context.Executing
   }

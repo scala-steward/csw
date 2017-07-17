@@ -89,13 +89,12 @@ object TromboneCommandHandlerMsgs {
   private[assembly] case class CommandStart(replyTo: ActorRef[CommandResponse]) extends ExecutingMsgs
   private[assembly] case class SetStateResponseE(response: StateWasSet)         extends ExecutingMsgs
 
-  case class TromboneStateE(tromboneState: TromboneState) extends InitializingMsgs
+  case class TromboneStateE(tromboneState: TromboneState) extends TromboneCommandHandlerMsgs
 
   case class Submit(command: Setup, replyTo: ActorRef[CommandResponse])
       extends ExecutingMsgs
       with NotFollowingMsgs
       with FollowingMsgs
-
 }
 ///////////////////////
 sealed trait TromboneCommandMsgs

@@ -23,33 +23,10 @@ class TromboneStateActor(ctx: ActorContext[TromboneStateMsg]) extends MutableBeh
         replyTo ! StateWasSet(false)
         this
       }
-    case GetState(replyTo) => {
+    case GetState(replyTo) =>
       replyTo ! currentState
       this
-    }
-    case StateWasSet(_) ⇒ this
   }
-}
-
-class TromboneStateClient(ctx: ActorContext[TromboneState]) extends MutableBehavior[TromboneState] {
-
-  import TromboneStateActor._
-
-  ctx.system.eventStream.subscribe(ctx.self, classOf[TromboneState])
-
-  private var internalState = defaultTromboneState
-
-  override def onMessage(msg: TromboneState): Behavior[TromboneState] = msg match {
-    case ts: TromboneState =>
-      internalState = ts
-      this
-  }
-
-  /**
-   * The currentState as a TromonbeState is returned.
-   * @return TromboneState current state
-   */
-  def currentState: TromboneState = internalState
 }
 
 object TromboneStateActor {
@@ -119,6 +96,5 @@ object TromboneStateActor {
 
   case class GetState(replyTo: ActorRef[TromboneState]) extends TromboneStateMsg
 
-  case class StateWasSet(wasSet: Boolean) extends TromboneStateMsg
-
+  case class StateWasSet(wasSet: Boolean)
 }
