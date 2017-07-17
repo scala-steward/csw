@@ -1,4 +1,5 @@
 package csw.vslice.assembly
+
 import akka.typed.scaladsl.Actor.MutableBehavior
 import akka.typed.scaladsl.{Actor, ActorContext}
 import akka.typed.{ActorRef, Behavior}
@@ -11,9 +12,6 @@ import csw.vslice.framework.FromComponentLifecycleMessage.Running
 import csw.vslice.framework.RunningHcdMsg.Submit
 import csw.vslice.hcd.models.TromboneHcdState
 
-/**
- * TMT Source Code: 10/21/16.
- */
 class DatumCommand(s: Setup,
                    tromboneHCD: Running,
                    startState: TromboneState,
@@ -33,17 +31,19 @@ class DatumCommand(s: Setup,
           WrongInternalStateIssue(s"Assembly state of ${cmd(startState)}/${move(startState)} does not allow datum")
         )
       } else {
-        sendState(
-          SetState(cmdItem(cmdBusy),
-                   moveItem(moveIndexing),
-                   startState.sodiumLayer,
-                   startState.nss,
-                   setStateResponseAdapter)
+        stateActor.foreach(
+          _ ! SetState(cmdItem(cmdBusy),
+                       moveItem(moveIndexing),
+                       startState.sodiumLayer,
+                       startState.nss,
+                       setStateResponseAdapter)
         )
         tromboneHCD.hcdRef ! Submit(Setup(s.info, TromboneHcdState.axisDatumCK))
         TromboneCommandHandler.executeMatch(ctx, idleMatcher, tromboneHCD.pubSubRef, Some(replyTo)) {
           case Completed =>
-            sendState(SetState(cmdReady, moveIndexed, sodiumLayer = false, nss = false, setStateResponseAdapter))
+            stateActor.foreach(
+              _ ! SetState(cmdReady, moveIndexed, sodiumLayer = false, nss = false, setStateResponseAdapter)
+            )
           case Error(message) =>
             println(s"Data command match failed with error: $message")
         }
@@ -55,11 +55,6 @@ class DatumCommand(s: Setup,
 
     case SetStateResponseE(response: StateWasSet) => // ignore confirmation
       this
-  }
-
-  private def sendState(setState: SetState): Unit = {
-//    implicit val timeout = Timeout(5.seconds)
-//    stateActor.foreach(actorRef => Await.ready(actorRef ? setState, timeout.duration))
   }
 }
 

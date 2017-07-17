@@ -41,7 +41,6 @@ class TromboneCommandHandler(ac: AssemblyContext,
   implicit val timeout                      = Timeout(5.seconds)
 
   private val tromboneStateAdapter: ActorRef[TromboneState] = ctx.spawnAdapter(TromboneStateE)
-//  private val setStateResponseAdapter: ActorRef[StateWasSet] = ctx.spawnAdapter(SetStateResponseE)
 
   ctx.system.eventStream.subscribe(tromboneStateAdapter, classOf[TromboneState])
 
@@ -129,7 +128,7 @@ class TromboneCommandHandler(ac: AssemblyContext,
             followCommandActor = ctx.spawnAnonymous(
               FollowCommand.make(ac, setElevationItem, nssItem, Some(tromboneHCD.hcdRef), allEventPublisher)
             )
-            mode = Mode.Executing
+            mode = Mode.Following
             (tromboneStateActor ? { x: ActorRef[StateWasSet] ⇒
               SetState(cmdContinuous, moveMoving, sodiumLayer(currentState), nssItem.head, x)
             }).onComplete { _ =>
@@ -198,32 +197,20 @@ class TromboneCommandHandler(ac: AssemblyContext,
   def onExecuting(x: ExecutingMsgs): Unit = x match {
     case CommandStart(replyTo) =>
       for {
-        cr <- (currentCommand ? { x: ActorRef[CommandResponse] ⇒
-          TromboneCommandMsgs.CommandStart(x)
-        }).mapTo[CommandResponse]
+        cr <- currentCommand ? TromboneCommandMsgs.CommandStart
       } {
         replyTo ! cr
         ctx.stop(currentCommand)
-//        currentCommand ! PoisonPill
-        ctx.self ! CommandDone
+        mode = Mode.NotFollowing
       }
 
-    case CommandDone =>
-      mode = Mode.NotFollowing
-
     case Submit(Setup(ac.commandInfo, ac.stopCK, _), replyTo) =>
-      closeDownMotionCommand(currentCommand, Some(replyTo))
+      currentCommand ! StopCurrentCommand
+      ctx.stop(currentCommand)
+      mode = Mode.NotFollowing
+      replyTo ! Cancelled
 
-    case _ ⇒
-  }
-
-  private def closeDownMotionCommand(currentCommand: ActorRef[TromboneCommandMsgs],
-                                     commandOriginator: Option[ActorRef[CommandResponse]]): Unit = {
-    currentCommand ! StopCurrentCommand
-    ctx.stop(currentCommand)
-//    currentCommand ! PoisonPill
-    mode = Mode.NotFollowing
-    commandOriginator.foreach(_ ! Cancelled)
+    case s: Submit ⇒
   }
 
   private def hcdNotAvailableResponse(commandOriginator: Option[ActorRef[CommandResponse]]): Unit = {

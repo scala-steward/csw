@@ -76,25 +76,18 @@ object DiagPublisherMessages {
 ////////////////////
 sealed trait TromboneCommandHandlerMsgs
 object TromboneCommandHandlerMsgs {
+  case class TromboneStateE(tromboneState: TromboneState) extends TromboneCommandHandlerMsgs
 
   sealed trait NotFollowingMsgs extends TromboneCommandHandlerMsgs
-
-  sealed trait FollowingMsgs extends TromboneCommandHandlerMsgs
-
-  sealed trait ExecutingMsgs extends TromboneCommandHandlerMsgs
-
-  sealed trait InitializingMsgs extends TromboneCommandHandlerMsgs
-
-  private[assembly] case object CommandDone                                     extends ExecutingMsgs
-  private[assembly] case class CommandStart(replyTo: ActorRef[CommandResponse]) extends ExecutingMsgs
-  private[assembly] case class SetStateResponseE(response: StateWasSet)         extends ExecutingMsgs
-
-  case class TromboneStateE(tromboneState: TromboneState) extends TromboneCommandHandlerMsgs
+  sealed trait FollowingMsgs    extends TromboneCommandHandlerMsgs
+  sealed trait ExecutingMsgs    extends TromboneCommandHandlerMsgs
 
   case class Submit(command: Setup, replyTo: ActorRef[CommandResponse])
       extends ExecutingMsgs
       with NotFollowingMsgs
       with FollowingMsgs
+
+  private[assembly] case class CommandStart(replyTo: ActorRef[CommandResponse]) extends ExecutingMsgs
 }
 ///////////////////////
 sealed trait TromboneCommandMsgs
@@ -102,5 +95,4 @@ object TromboneCommandMsgs {
   private[assembly] case class CommandStart(replyTo: ActorRef[CommandResponse]) extends TromboneCommandMsgs
   private[assembly] case object StopCurrentCommand                              extends TromboneCommandMsgs
   private[assembly] case class SetStateResponseE(response: StateWasSet)         extends TromboneCommandMsgs
-//  private[assembly] case object PoisonPill                                      extends TromboneCommandMsgs
 }
