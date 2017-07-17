@@ -1,10 +1,11 @@
 package csw.vslice.hcd.models
 
 import akka.typed.ActorRef
+import csw.services.location.models.TmtSerializable
 import csw.vslice.framework.DomainMsg
 import csw.vslice.hcd.models.AxisResponse.{AxisStatistics, AxisUpdate}
 
-sealed trait SimulatorCommand
+sealed trait SimulatorCommand extends TmtSerializable
 
 sealed trait AxisRequest extends SimulatorCommand
 object AxisRequest {
