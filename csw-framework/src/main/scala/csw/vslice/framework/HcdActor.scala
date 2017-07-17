@@ -5,7 +5,7 @@ import akka.typed.{ActorRef, Behavior}
 import csw.param.Parameters.Setup
 import csw.param.StateVariable.CurrentState
 import csw.vslice.framework.FromComponentLifecycleMessage.{Initialized, Running}
-import csw.vslice.framework.HcdActor.Context
+import csw.vslice.framework.HcdActor.Mode
 import csw.vslice.framework.InitialHcdMsg.{Run, ShutdownComplete}
 import csw.vslice.framework.RunningHcdMsg._
 
@@ -14,10 +14,10 @@ import scala.concurrent.Future
 import scala.reflect.ClassTag
 
 object HcdActor {
-  sealed trait Context
-  object Context {
-    case object Initial extends Context
-    case object Running extends Context
+  sealed trait Mode
+  object Mode {
+    case object Initial extends Mode
+    case object Running extends Mode
   }
 }
 
@@ -31,7 +31,7 @@ abstract class HcdActor[Msg <: DomainMsg: ClassTag](ctx: ActorContext[HcdMsg],
 
   import ctx.executionContext
 
-  var context: Context = _
+  var context: Mode = _
 
   def initialize(): Future[Unit]
   def onRun(): Unit
@@ -44,14 +44,14 @@ abstract class HcdActor[Msg <: DomainMsg: ClassTag](ctx: ActorContext[HcdMsg],
   async {
     await(initialize())
     supervisor ! Initialized(ctx.self, pubSubRef)
-    context = Context.Initial
+    context = Mode.Initial
   }
 
   override def onMessage(msg: HcdMsg): Behavior[HcdMsg] = {
     (context, msg) match {
-      case (Context.Initial, x: InitialHcdMsg) ⇒ handleInitial(x)
-      case (Context.Running, x: RunningHcdMsg) ⇒ handleRunning(x)
-      case _                                   ⇒ println(s"current context=$context does not handle message=$msg")
+      case (Mode.Initial, x: InitialHcdMsg) ⇒ handleInitial(x)
+      case (Mode.Running, x: RunningHcdMsg) ⇒ handleRunning(x)
+      case _                                ⇒ println(s"current context=$context does not handle message=$msg")
     }
     this
   }
@@ -59,7 +59,7 @@ abstract class HcdActor[Msg <: DomainMsg: ClassTag](ctx: ActorContext[HcdMsg],
   private def handleInitial(x: InitialHcdMsg): Unit = x match {
     case Run(replyTo) =>
       onRun()
-      context = Context.Running
+      context = Mode.Running
       replyTo ! Running(ctx.self, pubSubRef)
     case ShutdownComplete =>
       onShutdown()

@@ -2,12 +2,12 @@ package csw.vslice.assembly
 
 import akka.typed.Behavior
 import akka.typed.scaladsl.Actor.MutableBehavior
-import akka.typed.scaladsl.ActorContext
+import akka.typed.scaladsl.{Actor, ActorContext}
 import csw.param._
 import csw.vslice.assembly.TrombonePublisherMsg._
 import csw.vslice.assembly.TromboneStateActor.TromboneState
 
-class TrombonePublisher(assemblyContext: AssemblyContext, ctx: ActorContext[TromboneState])
+class TrombonePublisher(assemblyContext: AssemblyContext, ctx: ActorContext[TrombonePublisherMsg])
     extends MutableBehavior[TrombonePublisherMsg] {
   import TromboneStateActor._
 
@@ -108,6 +108,6 @@ class TrombonePublisher(assemblyContext: AssemblyContext, ctx: ActorContext[Trom
 }
 
 object TrombonePublisher {
-  def make(assemblyContext: AssemblyContext, ctx: ActorContext[TromboneState]): TrombonePublisher =
-    new TrombonePublisher(assemblyContext, ctx)
+  def make(assemblyContext: AssemblyContext): Behavior[TrombonePublisherMsg] =
+    Actor.mutable(ctx ⇒ new TrombonePublisher(assemblyContext, ctx))
 }
