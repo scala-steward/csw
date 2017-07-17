@@ -2,7 +2,7 @@ package csw.vslice.assembly
 
 import akka.typed.{ActorRef, Behavior}
 import akka.typed.scaladsl.Actor.MutableBehavior
-import akka.typed.scaladsl.ActorContext
+import akka.typed.scaladsl.{Actor, ActorContext}
 import csw.param._
 import csw.vslice.assembly.TromboneStateActor.{TromboneState, TromboneStateMsg}
 
@@ -53,7 +53,7 @@ class TromboneStateClient(ctx: ActorContext[TromboneState]) extends MutableBehav
 
 object TromboneStateActor {
 
-//  def props(): Props = Props(new TromboneStateActor())
+  def make(): Behavior[TromboneStateMsg] = Actor.mutable(ctx ⇒ new TromboneStateActor(ctx))
 
   // Keys for state telemetry item
   val cmdUninitialized               = Choice("uninitialized")
@@ -118,6 +118,6 @@ object TromboneStateActor {
 
   case class GetState(replyTo: ActorRef[TromboneState]) extends TromboneStateMsg
 
-  case class StateWasSet(wasSet: Boolean)
+  case class StateWasSet(wasSet: Boolean) extends TromboneStateMsg
 
 }

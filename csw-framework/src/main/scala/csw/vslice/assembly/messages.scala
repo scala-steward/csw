@@ -2,9 +2,12 @@ package csw.vslice.assembly
 
 import akka.typed.ActorRef
 import csw.param.Events.EventTime
+import csw.param.Parameters.Setup
 import csw.param.StateVariable.CurrentState
 import csw.param._
-import csw.vslice.assembly.TromboneStateActor.TromboneState
+import csw.vslice.assembly.TromboneCommandHandlerMsgs.ExecutingMsgs
+import csw.vslice.assembly.TromboneStateActor.{StateWasSet, TromboneState}
+import csw.vslice.ccs.CommandStatus.CommandResponse
 import csw.vslice.framework.FromComponentLifecycleMessage.Running
 import csw.vslice.framework.RunningHcdMsg.Submit
 
@@ -69,4 +72,37 @@ object DiagPublisherMessages {
   final case object OperationsState                            extends DiagPublisherMessages
   final case class CurrentStateE(cs: CurrentState)             extends DiagPublisherMessages
   final case class UpdateTromboneHcd(running: Option[Running]) extends DiagPublisherMessages
+}
+
+////////////////////
+sealed trait TromboneCommandHandlerMsgs
+object TromboneCommandHandlerMsgs {
+
+  sealed trait NotFollowingMsgs extends TromboneCommandHandlerMsgs
+
+  sealed trait FollowingMsgs extends TromboneCommandHandlerMsgs
+
+  sealed trait ExecutingMsgs extends TromboneCommandHandlerMsgs
+
+  sealed trait InitializingMsgs extends TromboneCommandHandlerMsgs
+
+  private[assembly] case object CommandDone                                     extends ExecutingMsgs
+  private[assembly] case class CommandStart(replyTo: ActorRef[CommandResponse]) extends ExecutingMsgs
+  private[assembly] case class SetStateResponseE(response: StateWasSet)         extends ExecutingMsgs
+
+  case class TromboneStateE(tromboneState: TromboneState) extends InitializingMsgs
+
+  case class Submit(command: Setup, replyTo: ActorRef[CommandResponse])
+      extends ExecutingMsgs
+      with NotFollowingMsgs
+      with FollowingMsgs
+
+}
+///////////////////////
+sealed trait TromboneCommandMsgs
+object TromboneCommandMsgs {
+  private[assembly] case class CommandStart(replyTo: ActorRef[CommandResponse]) extends TromboneCommandMsgs
+  private[assembly] case object StopCurrentCommand                              extends TromboneCommandMsgs
+  private[assembly] case class SetStateResponseE(response: StateWasSet)         extends TromboneCommandMsgs
+  private[assembly] case object PoisonPill                                      extends TromboneCommandMsgs
 }

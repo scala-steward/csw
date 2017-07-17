@@ -7,10 +7,13 @@ import csw.vslice.ccs.CommandStatus.CommandResponse
 sealed trait MultiStateMatcherMsgs
 object MultiStateMatcherMsgs {
   sealed trait WaitingMsg                                                                 extends MultiStateMatcherMsgs
-  case class StartMatch(matchers: List[StateMatcher], replyTo: ActorRef[CommandResponse]) extends WaitingMsg
-  private[ccs] sealed trait ExecutingMsg                                                  extends MultiStateMatcherMsgs
-  private[ccs] case class StateUpdate(currentState: CurrentState)                         extends ExecutingMsg
-  private[ccs] case object Stop                                                           extends ExecutingMsg
-}
+  case class StartMatch(replyTo: ActorRef[CommandResponse], matchers: List[StateMatcher]) extends WaitingMsg
+  object StartMatch {
+    def apply(replyTo: ActorRef[CommandResponse], matchers: StateMatcher*): StartMatch =
+      StartMatch(replyTo, matchers.toList)
+  }
 
-class AAAAAA
+  private[ccs] sealed trait ExecutingMsg                          extends MultiStateMatcherMsgs
+  private[ccs] case class StateUpdate(currentState: CurrentState) extends ExecutingMsg
+  private[ccs] case object Stop                                   extends ExecutingMsg
+}

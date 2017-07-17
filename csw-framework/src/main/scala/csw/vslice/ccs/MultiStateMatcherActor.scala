@@ -37,7 +37,7 @@ class MultiStateMatcherActor(currentStateReceiver: ActorRef[PubSub[CurrentState]
   }
 
   def onWaiting(msg: WaitingMsg): Unit = msg match {
-    case StartMatch(matcherIn, replyToIn) =>
+    case StartMatch(replyToIn, matcherIn) =>
       this.replyTo = replyToIn
       this.matchers = matcherIn
       timer = ctx.schedule(timeout.duration, ctx.self, Stop)
@@ -53,6 +53,7 @@ class MultiStateMatcherActor(currentStateReceiver: ActorRef[PubSub[CurrentState]
           timer.cancel()
           currentStateReceiver ! Unsubscribe(currentStateAdapter)
           replyTo ! CommandStatus.Completed
+          ctx.stop(currentStateAdapter)
           ctx.stop(ctx.self)
         } else {
           matchers = newMatchers
