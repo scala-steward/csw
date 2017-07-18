@@ -27,16 +27,13 @@ object TromboneTypedActor {
 class TromboneTypedActor(ctx: ActorContext[LogCommand]) extends TromboneTypedHcdLogger.TypedActor[LogCommand](ctx) {
   override def onMessage(msg: LogCommand): Behavior[LogCommand] = {
     msg match {
-      case LogCommand.LogTrace =>
-        log.trace("Level is trace")
-      case LogDebug =>
-        log.debug("Level is debug")
+      case LogTrace => log.trace("Level is trace")
+      case LogDebug => log.debug("Level is debug")
       case LogInfo  => log.info("Level is info")
       case LogWarn  => log.warn("Level is warn")
       case LogError => log.error("Level is error")
       case LogFatal => log.fatal("Level is fatal")
-      case x: Any   =>
-        log.error(Map("@errorMsg" -> "Unexpected actor message", "message" -> x.toString))
+      case Unknown   => log.error(Map("@errorMsg" -> "Unexpected actor message", "message" -> Unknown))
     }
     this
   }
