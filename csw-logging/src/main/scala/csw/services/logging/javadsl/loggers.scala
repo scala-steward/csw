@@ -43,6 +43,11 @@ abstract class JComponentLoggerActor extends JBasicLoggerActor {
   override protected def maybeComponentName: Optional[String] = Optional.of(componentName)
 }
 
+abstract class JComponentLoggerTypedActor[T](actorContext: ActorContext[T]) extends JBasicLoggerTypedActor(actorContext) {
+  protected def componentName: String
+  override protected def maybeComponentName: Optional[String] = Optional.of(componentName)
+}
+
 /**
  * Implement this trait to obtain a reference to a logger initialized with name of the component
  */
