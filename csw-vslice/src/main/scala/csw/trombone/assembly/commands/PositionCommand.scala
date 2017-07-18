@@ -15,12 +15,12 @@ import csw.common.framework.HcdComponentLifecycleMessage.Running
 import csw.common.framework.RunningHcdMsg.Submit
 import csw.trombone.hcd.TromboneHcdState
 
-class PositionCommand(ac: AssemblyContext,
+class PositionCommand(ctx: ActorContext[CommandMsgs],
+                      ac: AssemblyContext,
                       s: Setup,
                       tromboneHCD: Running,
                       startState: TromboneState,
-                      stateActor: Option[ActorRef[TromboneStateMsg]],
-                      ctx: ActorContext[CommandMsgs])
+                      stateActor: Option[ActorRef[TromboneStateMsg]])
     extends MutableBehavior[CommandMsgs] {
 
   import csw.trombone.assembly.actors.TromboneCommandHandler._
@@ -86,5 +86,5 @@ object PositionCommand {
            tromboneHCD: Running,
            startState: TromboneState,
            stateActor: Option[ActorRef[TromboneStateMsg]]): Behavior[CommandMsgs] =
-    Actor.mutable(ctx ⇒ new PositionCommand(ac, s, tromboneHCD, startState, stateActor, ctx))
+    Actor.mutable(ctx ⇒ new PositionCommand(ctx, ac, s, tromboneHCD, startState, stateActor))
 }

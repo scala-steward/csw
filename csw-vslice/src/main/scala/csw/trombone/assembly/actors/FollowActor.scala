@@ -12,13 +12,13 @@ import csw.trombone.assembly.TrombonePublisherMsg.{AOESWUpdate, EngrUpdate}
 import csw.trombone.assembly._
 
 class FollowActor(
+    ctx: ActorContext[FollowActorMessages],
     ac: AssemblyContext,
     val initialElevation: DoubleParameter,
     val inNSSMode: BooleanParameter,
     val tromboneControl: Option[ActorRef[TromboneControlMsg]],
     val aoPublisher: Option[ActorRef[TrombonePublisherMsg]],
-    val engPublisher: Option[ActorRef[TrombonePublisherMsg]],
-    ctx: ActorContext[FollowActorMessages]
+    val engPublisher: Option[ActorRef[TrombonePublisherMsg]]
 ) extends MutableBehavior[FollowActorMessages] {
 
   import Algorithms._
@@ -89,7 +89,6 @@ class FollowActor(
     spos(stagePosition)
   }
 
-  //
   def sendTrombonePosition(controlConfig: TromboneControlConfig, stagePosition: DoubleParameter): Unit = {
     tromboneControl.foreach(_ ! GoToStagePosition(stagePosition))
   }
@@ -115,6 +114,6 @@ object FollowActor {
       engPublisher: Option[ActorRef[TrombonePublisherMsg]]
   ): Behavior[FollowActorMessages] =
     Actor.mutable(
-      ctx ⇒ new FollowActor(ac, initialElevation, inNSSMode, tromboneControl, aoPublisher, engPublisher, ctx)
+      ctx ⇒ new FollowActor(ctx, ac, initialElevation, inNSSMode, tromboneControl, aoPublisher, engPublisher)
     )
 }
