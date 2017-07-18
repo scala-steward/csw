@@ -33,7 +33,7 @@ class TromboneTypedActor(ctx: ActorContext[LogCommand]) extends TromboneTypedHcd
       case LogWarn  => log.warn("Level is warn")
       case LogError => log.error("Level is error")
       case LogFatal => log.fatal("Level is fatal")
-      case Unknown   => log.error(Map("@errorMsg" -> "Unexpected actor message", "message" -> Unknown))
+      case Unknown   => log.error("Unexpected actor message", Map("message" -> Unknown))
     }
     this
   }
