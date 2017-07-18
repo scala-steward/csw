@@ -20,10 +20,28 @@ import csw.trombone.hcd.TromboneHcdState
 
 import scala.concurrent.duration.DurationDouble
 
-class DiagPublisher(assemblyContext: AssemblyContext,
+object DiagPublisher {
+
+  def make(assemblyContext: AssemblyContext,
+           runningIn: Option[Running],
+           eventPublisher: Option[ActorRef[TrombonePublisherMsg]]): Behavior[DiagPublisherMessages] =
+    Actor.mutable(ctx ⇒ new DiagPublisher(ctx, assemblyContext, runningIn, eventPublisher))
+
+  sealed trait Mode
+  object Mode {
+    case object Operations extends Mode
+    case object Diagnostic extends Mode
+  }
+
+  val diagnosticSkipCount       = 2
+  val operationsSkipCount       = 5
+  val diagnosticAxisStatsPeriod = 1
+}
+
+class DiagPublisher(ctx: ActorContext[DiagPublisherMessages],
+                    assemblyContext: AssemblyContext,
                     runningIn: Option[Running],
-                    eventPublisher: Option[ActorRef[TrombonePublisherMsg]],
-                    ctx: ActorContext[DiagPublisherMessages])
+                    eventPublisher: Option[ActorRef[TrombonePublisherMsg]])
     extends MutableBehavior[DiagPublisherMessages] {
 
   val currentStateAdapter: ActorRef[CurrentState] = ctx.spawnAdapter(CurrentStateE)
@@ -122,23 +140,4 @@ class DiagPublisher(assemblyContext: AssemblyContext,
       )
     )
   }
-
-}
-
-object DiagPublisher {
-
-  def make(assemblyContext: AssemblyContext,
-           runningIn: Option[Running],
-           eventPublisher: Option[ActorRef[TrombonePublisherMsg]]): Behavior[DiagPublisherMessages] =
-    Actor.mutable(ctx ⇒ new DiagPublisher(assemblyContext, runningIn, eventPublisher, ctx))
-
-  sealed trait Mode
-  object Mode {
-    case object Operations extends Mode
-    case object Diagnostic extends Mode
-  }
-
-  val diagnosticSkipCount       = 2
-  val operationsSkipCount       = 5
-  val diagnosticAxisStatsPeriod = 1
 }

@@ -11,6 +11,20 @@ import csw.trombone.assembly.TromboneControlMsg.GoToStagePosition
 import csw.trombone.assembly.TrombonePublisherMsg.{AOESWUpdate, EngrUpdate}
 import csw.trombone.assembly._
 
+object FollowActor {
+  def make(
+      ac: AssemblyContext,
+      initialElevation: DoubleParameter,
+      inNSSMode: BooleanParameter,
+      tromboneControl: Option[ActorRef[TromboneControlMsg]],
+      aoPublisher: Option[ActorRef[TrombonePublisherMsg]],
+      engPublisher: Option[ActorRef[TrombonePublisherMsg]]
+  ): Behavior[FollowActorMessages] =
+    Actor.mutable(
+      ctx ⇒ new FollowActor(ctx, ac, initialElevation, inNSSMode, tromboneControl, aoPublisher, engPublisher)
+    )
+}
+
 class FollowActor(
     ctx: ActorContext[FollowActorMessages],
     ac: AssemblyContext,
@@ -102,18 +116,4 @@ class FollowActor(
                      zenithAngle: DoubleParameter): Unit = {
     engPublisher.foreach(_ ! EngrUpdate(focusError, trombonePosition, zenithAngle))
   }
-}
-
-object FollowActor {
-  def make(
-      ac: AssemblyContext,
-      initialElevation: DoubleParameter,
-      inNSSMode: BooleanParameter,
-      tromboneControl: Option[ActorRef[TromboneControlMsg]],
-      aoPublisher: Option[ActorRef[TrombonePublisherMsg]],
-      engPublisher: Option[ActorRef[TrombonePublisherMsg]]
-  ): Behavior[FollowActorMessages] =
-    Actor.mutable(
-      ctx ⇒ new FollowActor(ctx, ac, initialElevation, inNSSMode, tromboneControl, aoPublisher, engPublisher)
-    )
 }

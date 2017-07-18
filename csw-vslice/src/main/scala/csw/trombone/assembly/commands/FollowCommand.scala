@@ -11,6 +11,18 @@ import csw.trombone.assembly._
 import csw.trombone.assembly.actors.{FollowActor, TromboneControl}
 import csw.common.framework.RunningHcdMsg.Submit
 
+object FollowCommand {
+
+  def make(assemblyContext: AssemblyContext,
+           initialElevation: DoubleParameter,
+           nssInUse: BooleanParameter,
+           tromboneHCD: Option[ActorRef[Submit]],
+           eventPublisher: Option[ActorRef[TrombonePublisherMsg]]): Behavior[FollowCommandMessages] =
+    Actor.mutable(
+      ctx ⇒ new FollowCommand(assemblyContext, initialElevation, nssInUse, tromboneHCD, eventPublisher, ctx)
+    )
+}
+
 class FollowCommand(ac: AssemblyContext,
                     initialElevation: DoubleParameter,
                     val nssInUseIn: BooleanParameter,
@@ -59,17 +71,4 @@ class FollowCommand(ac: AssemblyContext,
       followActor ! m
       this
   }
-
-}
-
-object FollowCommand {
-
-  def make(assemblyContext: AssemblyContext,
-           initialElevation: DoubleParameter,
-           nssInUse: BooleanParameter,
-           tromboneHCD: Option[ActorRef[Submit]],
-           eventPublisher: Option[ActorRef[TrombonePublisherMsg]]): Behavior[FollowCommandMessages] =
-    Actor.mutable(
-      ctx ⇒ new FollowCommand(assemblyContext, initialElevation, nssInUse, tromboneHCD, eventPublisher, ctx)
-    )
 }

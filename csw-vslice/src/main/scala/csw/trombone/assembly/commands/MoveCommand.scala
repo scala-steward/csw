@@ -15,6 +15,15 @@ import csw.common.framework.HcdComponentLifecycleMessage.Running
 import csw.common.framework.RunningHcdMsg.Submit
 import csw.trombone.hcd.TromboneHcdState
 
+object MoveCommand {
+  def make(ac: AssemblyContext,
+           s: Setup,
+           tromboneHCD: Running,
+           startState: TromboneState,
+           stateActor: Option[ActorRef[TromboneStateMsg]]): Behavior[CommandMsgs] =
+    Actor.mutable(ctx ⇒ new MoveCommand(ctx, ac, s, tromboneHCD, startState, stateActor))
+}
+
 class MoveCommand(ctx: ActorContext[CommandMsgs],
                   ac: AssemblyContext,
                   s: Setup,
@@ -75,13 +84,4 @@ class MoveCommand(ctx: ActorContext[CommandMsgs],
       case SetStateResponseE(_) ⇒ this
     }
   }
-}
-
-object MoveCommand {
-  def make(ac: AssemblyContext,
-           s: Setup,
-           tromboneHCD: Running,
-           startState: TromboneState,
-           stateActor: Option[ActorRef[TromboneStateMsg]]): Behavior[CommandMsgs] =
-    Actor.mutable(ctx ⇒ new MoveCommand(ctx, ac, s, tromboneHCD, startState, stateActor))
 }

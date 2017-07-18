@@ -11,9 +11,22 @@ import csw.common.ccs.MultiStateMatcherMsgs._
 import csw.common.framework.PubSub
 import csw.common.framework.PubSub.{Subscribe, Unsubscribe}
 
-class MultiStateMatcherActor(currentStateReceiver: ActorRef[PubSub[CurrentState]],
-                             timeout: Timeout,
-                             ctx: ActorContext[MultiStateMatcherMsgs])
+object MultiStateMatcherActor {
+
+  def make(currentStateReceiver: ActorRef[PubSub[CurrentState]], timeout: Timeout): Behavior[WaitingMsg] =
+    Actor.mutable[MultiStateMatcherMsgs](ctx ⇒ new MultiStateMatcherActor(ctx, currentStateReceiver, timeout)).narrow
+
+  sealed trait Mode
+  object Mode {
+    case object Waiting   extends Mode
+    case object Executing extends Mode
+  }
+
+}
+
+class MultiStateMatcherActor(ctx: ActorContext[MultiStateMatcherMsgs],
+                             currentStateReceiver: ActorRef[PubSub[CurrentState]],
+                             timeout: Timeout)
     extends MutableBehavior[MultiStateMatcherMsgs] {
 
   import MultiStateMatcherActor._
@@ -21,7 +34,7 @@ class MultiStateMatcherActor(currentStateReceiver: ActorRef[PubSub[CurrentState]
   val currentStateAdapter: ActorRef[CurrentState] = ctx.spawnAdapter(StateUpdate)
 
   var replyTo: ActorRef[CommandResponse] = _
-  var context: Context                   = Context.Waiting
+  var context: Mode                      = Mode.Waiting
   var timer: Cancellable                 = _
   var matchers: List[StateMatcher]       = _
 
@@ -29,9 +42,9 @@ class MultiStateMatcherActor(currentStateReceiver: ActorRef[PubSub[CurrentState]
 
   def onMessage(msg: MultiStateMatcherMsgs): Behavior[MultiStateMatcherMsgs] = {
     (context, msg) match {
-      case (Context.Waiting, x: WaitingMsg)     ⇒ onWaiting(x)
-      case (Context.Executing, x: ExecutingMsg) ⇒ onExecuting(x)
-      case _                                    ⇒ println(s"current context=$context does not handle message=$msg")
+      case (Mode.Waiting, x: WaitingMsg)     ⇒ onWaiting(x)
+      case (Mode.Executing, x: ExecutingMsg) ⇒ onExecuting(x)
+      case _                                 ⇒ println(s"current context=$context does not handle message=$msg")
     }
     this
   }
@@ -41,7 +54,7 @@ class MultiStateMatcherActor(currentStateReceiver: ActorRef[PubSub[CurrentState]
       this.replyTo = replyToIn
       this.matchers = matchersIn
       timer = ctx.schedule(timeout.duration, ctx.self, Stop)
-      context = Context.Executing
+      context = Mode.Executing
   }
 
   def onExecuting(msg: ExecutingMsg): Unit = msg match {
@@ -66,17 +79,4 @@ class MultiStateMatcherActor(currentStateReceiver: ActorRef[PubSub[CurrentState]
       ctx.stop(currentStateAdapter)
       ctx.stop(ctx.self)
   }
-}
-
-object MultiStateMatcherActor {
-
-  def make(currentStateReceiver: ActorRef[PubSub[CurrentState]], timeout: Timeout): Behavior[WaitingMsg] =
-    Actor.mutable[MultiStateMatcherMsgs](ctx ⇒ new MultiStateMatcherActor(currentStateReceiver, timeout, ctx)).narrow
-
-  sealed trait Context
-  object Context {
-    case object Waiting   extends Context
-    case object Executing extends Context
-  }
-
 }

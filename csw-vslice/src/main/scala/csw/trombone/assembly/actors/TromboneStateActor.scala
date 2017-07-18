@@ -6,29 +6,6 @@ import akka.typed.{ActorRef, Behavior}
 import csw.param._
 import csw.trombone.assembly.actors.TromboneStateActor.TromboneStateMsg
 
-class TromboneStateActor(ctx: ActorContext[TromboneStateMsg]) extends MutableBehavior[TromboneStateMsg] {
-
-  import TromboneStateActor._
-
-  var currentState: TromboneState = TromboneState(cmdDefault, moveDefault, sodiumLayerDefault, nssDefault)
-
-  override def onMessage(msg: TromboneStateMsg): Behavior[TromboneStateMsg] = msg match {
-    case SetState(tromboneState, replyTo) =>
-      if (tromboneState != currentState) {
-        ctx.system.eventStream.publish(tromboneState)
-        currentState = tromboneState
-        replyTo ! StateWasSet(true)
-        this
-      } else {
-        replyTo ! StateWasSet(false)
-        this
-      }
-    case GetState(replyTo) =>
-      replyTo ! currentState
-      this
-  }
-}
-
 object TromboneStateActor {
 
   def make(): Behavior[TromboneStateMsg] = Actor.mutable(ctx ⇒ new TromboneStateActor(ctx))
@@ -97,4 +74,27 @@ object TromboneStateActor {
   case class GetState(replyTo: ActorRef[TromboneState]) extends TromboneStateMsg
 
   case class StateWasSet(wasSet: Boolean)
+}
+
+class TromboneStateActor(ctx: ActorContext[TromboneStateMsg]) extends MutableBehavior[TromboneStateMsg] {
+
+  import TromboneStateActor._
+
+  var currentState: TromboneState = TromboneState(cmdDefault, moveDefault, sodiumLayerDefault, nssDefault)
+
+  override def onMessage(msg: TromboneStateMsg): Behavior[TromboneStateMsg] = msg match {
+    case SetState(tromboneState, replyTo) =>
+      if (tromboneState != currentState) {
+        ctx.system.eventStream.publish(tromboneState)
+        currentState = tromboneState
+        replyTo ! StateWasSet(true)
+        this
+      } else {
+        replyTo ! StateWasSet(false)
+        this
+      }
+    case GetState(replyTo) =>
+      replyTo ! currentState
+      this
+  }
 }

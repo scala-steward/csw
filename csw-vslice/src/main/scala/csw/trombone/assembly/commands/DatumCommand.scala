@@ -14,6 +14,14 @@ import csw.common.framework.HcdComponentLifecycleMessage.Running
 import csw.common.framework.RunningHcdMsg.Submit
 import csw.trombone.hcd.TromboneHcdState
 
+object DatumCommand {
+  def make(s: Setup,
+           tromboneHCD: Running,
+           startState: TromboneState,
+           stateActor: Option[ActorRef[TromboneStateMsg]]): Behavior[CommandMsgs] =
+    Actor.mutable(ctx ⇒ new DatumCommand(ctx, s, tromboneHCD, startState, stateActor))
+}
+
 class DatumCommand(ctx: ActorContext[CommandMsgs],
                    s: Setup,
                    tromboneHCD: Running,
@@ -58,12 +66,4 @@ class DatumCommand(ctx: ActorContext[CommandMsgs],
     case SetStateResponseE(response: StateWasSet) => // ignore confirmation
       this
   }
-}
-
-object DatumCommand {
-  def make(s: Setup,
-           tromboneHCD: Running,
-           startState: TromboneState,
-           stateActor: Option[ActorRef[TromboneStateMsg]]): Behavior[CommandMsgs] =
-    Actor.mutable(ctx ⇒ new DatumCommand(ctx, s, tromboneHCD, startState, stateActor))
 }

@@ -7,6 +7,11 @@ import csw.param._
 import csw.trombone.assembly.TrombonePublisherMsg._
 import csw.trombone.assembly.{AssemblyContext, TrombonePublisherMsg}
 
+object TrombonePublisher {
+  def make(assemblyContext: AssemblyContext): Behavior[TrombonePublisherMsg] =
+    Actor.mutable(ctx ⇒ new TrombonePublisher(assemblyContext, ctx))
+}
+
 class TrombonePublisher(assemblyContext: AssemblyContext, ctx: ActorContext[TrombonePublisherMsg])
     extends MutableBehavior[TrombonePublisherMsg] {
   import TromboneStateActor._
@@ -105,9 +110,4 @@ class TrombonePublisher(assemblyContext: AssemblyContext, ctx: ActorContext[Trom
 //    })
   }
 
-}
-
-object TrombonePublisher {
-  def make(assemblyContext: AssemblyContext): Behavior[TrombonePublisherMsg] =
-    Actor.mutable(ctx ⇒ new TrombonePublisher(assemblyContext, ctx))
 }

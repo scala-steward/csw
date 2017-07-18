@@ -19,12 +19,12 @@ import scala.concurrent.Future
 
 object TromboneAssembly {
   def make(assemblyInfo: AssemblyInfo, supervisor: ActorRef[AssemblyComponentLifecycleMessage]): Behavior[Nothing] =
-    Actor.mutable[AssemblyMsg](ctx ⇒ new TromboneAssembly(assemblyInfo, supervisor, ctx)).narrow
+    Actor.mutable[AssemblyMsg](ctx ⇒ new TromboneAssembly(ctx, assemblyInfo, supervisor)).narrow
 }
 
-class TromboneAssembly(info: AssemblyInfo,
-                       supervisor: ActorRef[AssemblyComponentLifecycleMessage],
-                       ctx: ActorContext[AssemblyMsg])
+class TromboneAssembly(ctx: ActorContext[AssemblyMsg],
+                       info: AssemblyInfo,
+                       supervisor: ActorRef[AssemblyComponentLifecycleMessage])
     extends AssemblyActor[DiagPublisherMessages](ctx, info, supervisor) {
 
   private var diagPublsher: ActorRef[DiagPublisherMessages] = _

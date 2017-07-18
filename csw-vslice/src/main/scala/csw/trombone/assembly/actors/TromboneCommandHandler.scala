@@ -25,10 +25,57 @@ import csw.trombone.hcd.TromboneHcdState
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
 
-class TromboneCommandHandler(ac: AssemblyContext,
+object TromboneCommandHandler {
+
+  def make(assemblyContext: AssemblyContext,
+           tromboneHCDIn: Option[Running],
+           allEventPublisher: Option[ActorRef[TrombonePublisherMsg]]): Behavior[TromboneCommandHandlerMsgs] =
+    Actor.mutable(ctx ⇒ new TromboneCommandHandler(ctx, assemblyContext, tromboneHCDIn, allEventPublisher))
+
+  def executeMatch(ctx: ActorContext[_],
+                   stateMatcher: StateMatcher,
+                   currentStateSource: ActorRef[PubSub[CurrentState]],
+                   replyTo: Option[ActorRef[CommandResponse]] = None,
+                   timeout: Timeout = Timeout(5.seconds))(codeBlock: PartialFunction[CommandResponse, Unit]): Unit = {
+    implicit val t                    = Timeout(timeout.duration + 1.seconds)
+    implicit val scheduler: Scheduler = ctx.system.scheduler
+    import ctx.executionContext
+
+    val matcher: ActorRef[MultiStateMatcherMsgs.WaitingMsg] =
+      ctx.spawnAnonymous(MultiStateMatcherActor.make(currentStateSource, timeout))
+    for {
+      cmdStatus <- matcher ? { x: ActorRef[CommandStatus.CommandResponse] ⇒
+        StartMatch(x, stateMatcher)
+      }
+    } {
+      codeBlock(cmdStatus)
+      replyTo.foreach(_ ! cmdStatus)
+    }
+  }
+
+  def idleMatcher: DemandMatcher =
+    DemandMatcher(
+      DemandState(TromboneHcdState.axisStateCK).add(TromboneHcdState.stateKey -> TromboneHcdState.AXIS_IDLE)
+    )
+
+  def posMatcher(position: Int): DemandMatcher =
+    DemandMatcher(
+      DemandState(TromboneHcdState.axisStateCK)
+        .madd(TromboneHcdState.stateKey -> TromboneHcdState.AXIS_IDLE, TromboneHcdState.positionKey -> position)
+    )
+
+  sealed trait Mode
+  object Mode {
+    case object NotFollowing extends Mode
+    case object Following    extends Mode
+    case object Executing    extends Mode
+  }
+}
+
+class TromboneCommandHandler(ctx: ActorContext[TromboneCommandHandlerMsgs],
+                             ac: AssemblyContext,
                              tromboneHCDIn: Option[Running],
-                             allEventPublisher: Option[ActorRef[TrombonePublisherMsg]],
-                             ctx: ActorContext[TromboneCommandHandlerMsgs])
+                             allEventPublisher: Option[ActorRef[TrombonePublisherMsg]])
     extends MutableBehavior[TromboneCommandHandlerMsgs] {
 
   implicit val scheduler: Scheduler = ctx.system.scheduler
@@ -217,52 +264,5 @@ class TromboneCommandHandler(ac: AssemblyContext,
 
   private def hcdNotAvailableResponse(commandOriginator: Option[ActorRef[CommandResponse]]): Unit = {
     commandOriginator.foreach(_ ! NoLongerValid(RequiredHCDUnavailableIssue(s"${ac.hcdComponentId} is not available")))
-  }
-}
-
-object TromboneCommandHandler {
-
-  def make(assemblyContext: AssemblyContext,
-           tromboneHCDIn: Option[Running],
-           allEventPublisher: Option[ActorRef[TrombonePublisherMsg]]): Behavior[TromboneCommandHandlerMsgs] =
-    Actor.mutable(ctx ⇒ new TromboneCommandHandler(assemblyContext, tromboneHCDIn, allEventPublisher, ctx))
-
-  def executeMatch(context: ActorContext[_],
-                   stateMatcher: StateMatcher,
-                   currentStateSource: ActorRef[PubSub[CurrentState]],
-                   replyTo: Option[ActorRef[CommandResponse]] = None,
-                   timeout: Timeout = Timeout(5.seconds))(codeBlock: PartialFunction[CommandResponse, Unit]): Unit = {
-    implicit val t                    = Timeout(timeout.duration + 1.seconds)
-    implicit val scheduler: Scheduler = context.system.scheduler
-    import context.executionContext
-
-    val matcher: ActorRef[MultiStateMatcherMsgs.WaitingMsg] =
-      context.spawnAnonymous(MultiStateMatcherActor.make(currentStateSource, timeout))
-    for {
-      cmdStatus <- matcher ? { x: ActorRef[CommandStatus.CommandResponse] ⇒
-        StartMatch(x, stateMatcher)
-      }
-    } {
-      codeBlock(cmdStatus)
-      replyTo.foreach(_ ! cmdStatus)
-    }
-  }
-
-  def idleMatcher: DemandMatcher =
-    DemandMatcher(
-      DemandState(TromboneHcdState.axisStateCK).add(TromboneHcdState.stateKey -> TromboneHcdState.AXIS_IDLE)
-    )
-
-  def posMatcher(position: Int): DemandMatcher =
-    DemandMatcher(
-      DemandState(TromboneHcdState.axisStateCK)
-        .madd(TromboneHcdState.stateKey -> TromboneHcdState.AXIS_IDLE, TromboneHcdState.positionKey -> position)
-    )
-
-  sealed trait Mode
-  object Mode {
-    case object NotFollowing extends Mode
-    case object Following    extends Mode
-    case object Executing    extends Mode
   }
 }
