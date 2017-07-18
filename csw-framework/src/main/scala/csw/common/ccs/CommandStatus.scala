@@ -1,6 +1,6 @@
-package csw.trombone.ccs
+package csw.common.ccs
 
-import csw.trombone.ccs.Validation.{Validation, ValidationIssue}
+import csw.common.ccs.Validation.{Validation, ValidationIssue}
 
 object CommandStatus {
 

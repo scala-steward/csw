@@ -1,4 +1,4 @@
-package csw.trombone.framework
+package csw.common.framework
 
 import akka.typed.scaladsl.{Actor, ActorContext}
 import akka.typed.{ActorRef, Behavior}

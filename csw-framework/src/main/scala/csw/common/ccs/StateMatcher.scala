@@ -1,4 +1,4 @@
-package csw.trombone.ccs
+package csw.common.ccs
 
 import csw.param.Parameter
 import csw.param.StateVariable.{CurrentState, DemandState}

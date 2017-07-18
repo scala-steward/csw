@@ -13,15 +13,15 @@ import csw.trombone.assembly.DiagPublisherMessages.{DiagnosticState, OperationsS
 import csw.trombone.assembly.ParamValidation._
 import csw.trombone.assembly._
 import csw.trombone.assembly.actors.TromboneAssembly.Mode
-import csw.trombone.ccs.CommandStatus.CommandResponse
-import csw.trombone.ccs.Validation.{Valid, Validation}
-import csw.trombone.ccs.{CommandStatus, Validation}
-import csw.trombone.framework.Component.AssemblyInfo
-import csw.trombone.framework.HcdComponentLifecycleMessage.Running
-import csw.trombone.framework.InitialAssemblyMsg.Run
-import csw.trombone.framework.RunningAssemblyMsg._
-import csw.trombone.framework.ToComponentLifecycleMessage.{DoRestart, DoShutdown, LifecycleFailureInfo, RunningOffline}
-import csw.trombone.framework._
+import csw.common.ccs.CommandStatus.CommandResponse
+import csw.common.ccs.Validation.{Valid, Validation}
+import csw.common.ccs.{CommandStatus, Validation}
+import csw.common.framework.Component.AssemblyInfo
+import csw.common.framework.HcdComponentLifecycleMessage.Running
+import csw.common.framework.InitialAssemblyMsg.Run
+import csw.common.framework.RunningAssemblyMsg._
+import csw.common.framework.ToComponentLifecycleMessage.{DoRestart, DoShutdown, LifecycleFailureInfo, RunningOffline}
+import csw.common.framework._
 
 import scala.async.Async.{async, await}
 import scala.concurrent.Future
@@ -88,8 +88,8 @@ class TromboneAssembly(val info: AssemblyInfo, supervisor: ActorRef[Any], ctx: A
     case DoShutdown =>
       println("Received doshutdown")
       tromboneHCD.foreach(
-        _.hcdRef ! csw.trombone.framework.RunningHcdMsg
-          .Lifecycle(csw.trombone.framework.ToComponentLifecycleMessage.DoShutdown)
+        _.hcdRef ! RunningHcdMsg
+          .Lifecycle(DoShutdown)
       )
       supervisor ! ShutdownComplete
     case LifecycleFailureInfo(state: LifecycleState, reason: String) =>

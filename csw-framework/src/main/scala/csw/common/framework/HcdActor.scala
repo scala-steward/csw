@@ -1,13 +1,13 @@
-package csw.trombone.framework
+package csw.common.framework
 
 import akka.typed.scaladsl.{Actor, ActorContext}
 import akka.typed.{ActorRef, Behavior}
 import csw.param.Parameters.Setup
 import csw.param.StateVariable.CurrentState
-import csw.trombone.framework.HcdActor.Mode
-import csw.trombone.framework.HcdComponentLifecycleMessage.{Initialized, Running}
-import csw.trombone.framework.InitialHcdMsg.Run
-import csw.trombone.framework.RunningHcdMsg._
+import csw.common.framework.HcdActor.Mode
+import csw.common.framework.HcdComponentLifecycleMessage.{Initialized, Running}
+import csw.common.framework.InitialHcdMsg.Run
+import csw.common.framework.RunningHcdMsg._
 
 import scala.async.Async.{async, await}
 import scala.concurrent.Future

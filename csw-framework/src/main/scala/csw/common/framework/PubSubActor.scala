@@ -1,8 +1,8 @@
-package csw.trombone.framework
+package csw.common.framework
 
 import akka.typed.scaladsl.{Actor, ActorContext}
 import akka.typed.{ActorRef, Behavior, Signal, Terminated}
-import csw.trombone.framework.PubSub.{Publish, Subscribe, Unsubscribe}
+import csw.common.framework.PubSub.{Publish, Subscribe, Unsubscribe}
 
 object PubSubActor {
   def behaviour[T]: Behavior[PubSub[T]] = Actor.mutable(ctx ⇒ new PubSubActor[T](ctx))

@@ -13,17 +13,13 @@ import csw.trombone.assembly.TromboneCommandHandlerMsgs._
 import csw.trombone.assembly._
 import csw.trombone.assembly.actors.TromboneCommandHandler.Mode
 import csw.trombone.assembly.commands._
-import csw.trombone.ccs.CommandStatus._
-import csw.trombone.ccs.MultiStateMatcherMsgs.StartMatch
-import csw.trombone.ccs.Validation.{
-  RequiredHCDUnavailableIssue,
-  UnsupportedCommandInStateIssue,
-  WrongInternalStateIssue
-}
-import csw.trombone.ccs._
-import csw.trombone.framework.CommandMsgs.StopCurrentCommand
-import csw.trombone.framework.HcdComponentLifecycleMessage.Running
-import csw.trombone.framework.{CommandMsgs, PubSub}
+import csw.common.ccs.CommandStatus._
+import csw.common.ccs.MultiStateMatcherMsgs.StartMatch
+import csw.common.ccs.Validation.{RequiredHCDUnavailableIssue, UnsupportedCommandInStateIssue, WrongInternalStateIssue}
+import csw.common.ccs._
+import csw.common.framework.CommandMsgs.StopCurrentCommand
+import csw.common.framework.HcdComponentLifecycleMessage.Running
+import csw.common.framework.{CommandMsgs, PubSub}
 import csw.trombone.hcd.models.TromboneHcdState
 
 import scala.concurrent.Await

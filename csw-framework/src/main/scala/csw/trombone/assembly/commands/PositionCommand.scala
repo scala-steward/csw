@@ -7,12 +7,12 @@ import csw.param.Parameters.Setup
 import csw.param.UnitsOfMeasure.encoder
 import csw.trombone.assembly._
 import csw.trombone.assembly.actors.TromboneStateActor.{TromboneState, TromboneStateMsg}
-import csw.trombone.ccs.CommandStatus.{Completed, Error, NoLongerValid}
-import csw.trombone.ccs.Validation.WrongInternalStateIssue
-import csw.trombone.framework.CommandMsgs
-import csw.trombone.framework.CommandMsgs.{CommandStart, SetStateResponseE, StopCurrentCommand}
-import csw.trombone.framework.HcdComponentLifecycleMessage.Running
-import csw.trombone.framework.RunningHcdMsg.Submit
+import csw.common.ccs.CommandStatus.{Completed, Error, NoLongerValid}
+import csw.common.ccs.Validation.WrongInternalStateIssue
+import csw.common.framework.CommandMsgs
+import csw.common.framework.CommandMsgs.{CommandStart, SetStateResponseE, StopCurrentCommand}
+import csw.common.framework.HcdComponentLifecycleMessage.Running
+import csw.common.framework.RunningHcdMsg.Submit
 import csw.trombone.hcd.models.TromboneHcdState
 
 class PositionCommand(ac: AssemblyContext,

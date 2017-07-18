@@ -1,8 +1,8 @@
-package csw.trombone.framework
+package csw.common.framework
 
 import csw.services.location.models.ComponentType.{Assembly, Container, HCD}
 import csw.services.location.models.{ComponentType, Connection, ConnectionType}
-import csw.trombone.framework.Component.ComponentInfo
+import csw.common.framework.Component.ComponentInfo
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._

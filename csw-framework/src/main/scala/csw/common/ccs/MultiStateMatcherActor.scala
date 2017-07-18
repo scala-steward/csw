@@ -1,4 +1,4 @@
-package csw.trombone.ccs
+package csw.common.ccs
 
 import akka.actor.Cancellable
 import akka.typed.scaladsl.Actor.MutableBehavior
@@ -6,10 +6,10 @@ import akka.typed.scaladsl.{Actor, ActorContext}
 import akka.typed.{ActorRef, Behavior}
 import akka.util.Timeout
 import csw.param.StateVariable.CurrentState
-import csw.trombone.ccs.CommandStatus.CommandResponse
-import csw.trombone.ccs.MultiStateMatcherMsgs._
-import csw.trombone.framework.PubSub
-import csw.trombone.framework.PubSub.{Subscribe, Unsubscribe}
+import csw.common.ccs.CommandStatus.CommandResponse
+import csw.common.ccs.MultiStateMatcherMsgs._
+import csw.common.framework.PubSub
+import csw.common.framework.PubSub.{Subscribe, Unsubscribe}
 
 class MultiStateMatcherActor(currentStateReceiver: ActorRef[PubSub[CurrentState]],
                              timeout: Timeout,

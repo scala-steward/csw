@@ -1,11 +1,11 @@
-package csw.trombone.framework
+package csw.common.framework
 
 import akka.typed.scaladsl.Actor
 import akka.typed.scaladsl.Actor.MutableBehavior
 import akka.typed.testkit.TestKitSettings
 import akka.typed.testkit.scaladsl.TestProbe
 import akka.typed.{ActorRef, ActorSystem, Behavior}
-import csw.trombone.framework.A.Submit
+import csw.common.framework.A.Submit
 import org.scalatest.{FunSuite, Matchers}
 
 object A {

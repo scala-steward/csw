@@ -4,7 +4,7 @@ import akka.typed.scaladsl.Actor
 import akka.typed.{ActorRef, Behavior}
 import csw.trombone.assembly.TromboneControlMsg.{GoToStagePosition, UpdateTromboneHcd}
 import csw.trombone.assembly.{Algorithms, AssemblyContext, TromboneControlMsg}
-import csw.trombone.framework.RunningHcdMsg.Submit
+import csw.common.framework.RunningHcdMsg.Submit
 import csw.trombone.hcd.models.TromboneHcdState
 
 object TromboneControl {

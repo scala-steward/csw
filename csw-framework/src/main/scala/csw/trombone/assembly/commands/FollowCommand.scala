@@ -9,7 +9,7 @@ import csw.trombone.assembly.FollowActorMessages.{StopFollowing, UpdatedEventDat
 import csw.trombone.assembly.FollowCommandMessages.{UpdateNssInUse, UpdateTromboneHcd, UpdateZAandFE}
 import csw.trombone.assembly._
 import csw.trombone.assembly.actors.{FollowActor, TromboneControl}
-import csw.trombone.framework.RunningHcdMsg.Submit
+import csw.common.framework.RunningHcdMsg.Submit
 
 class FollowCommand(ac: AssemblyContext,
                     initialElevation: DoubleParameter,

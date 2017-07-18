@@ -7,8 +7,8 @@ import akka.typed.scaladsl.AskPattern.Askable
 import akka.util.Timeout
 import csw.param.Parameters.Setup
 import csw.param.UnitsOfMeasure.encoder
-import csw.trombone.framework.ToComponentLifecycleMessage._
-import csw.trombone.framework._
+import csw.common.framework.ToComponentLifecycleMessage._
+import csw.common.framework._
 import csw.trombone.hcd.models.AxisRequest._
 import csw.trombone.hcd.models.AxisResponse._
 import csw.trombone.hcd.models.TromboneEngineering.{GetAxisConfig, GetAxisStats, GetAxisUpdate, GetAxisUpdateNow}

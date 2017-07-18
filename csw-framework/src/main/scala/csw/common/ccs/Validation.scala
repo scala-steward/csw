@@ -1,4 +1,4 @@
-package csw.trombone.ccs
+package csw.common.ccs
 
 /**
  * Describes the reason for a setup validation failure

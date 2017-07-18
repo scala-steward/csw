@@ -1,8 +1,8 @@
-package csw.trombone.ccs
+package csw.common.ccs
 
 import akka.typed.ActorRef
 import csw.param.StateVariable.CurrentState
-import csw.trombone.ccs.CommandStatus.CommandResponse
+import csw.common.ccs.CommandStatus.CommandResponse
 
 sealed trait MultiStateMatcherMsgs
 object MultiStateMatcherMsgs {

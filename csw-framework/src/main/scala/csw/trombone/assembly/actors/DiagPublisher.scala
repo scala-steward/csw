@@ -12,9 +12,9 @@ import csw.trombone.assembly.actors.DiagPublisher._
 import csw.trombone.assembly.TrombonePublisherMsg.{AxisStateUpdate, AxisStatsUpdate}
 import csw.trombone.assembly.actors.DiagPublisher.Mode
 import csw.trombone.assembly.{AssemblyContext, DiagPublisherMessages, TrombonePublisherMsg}
-import csw.trombone.framework.HcdComponentLifecycleMessage.Running
-import csw.trombone.framework.PubSub
-import csw.trombone.framework.RunningHcdMsg.DomainHcdMsg
+import csw.common.framework.HcdComponentLifecycleMessage.Running
+import csw.common.framework.PubSub
+import csw.common.framework.RunningHcdMsg.DomainHcdMsg
 import csw.trombone.hcd.models.TromboneEngineering.GetAxisStats
 import csw.trombone.hcd.models.TromboneHcdState
 
