@@ -3,7 +3,6 @@ package csw.common.framework
 import akka.typed.ActorRef
 import csw.param.Parameters.{ControlCommand, Setup}
 import csw.param.StateVariable.CurrentState
-import csw.trombone.assembly.DiagPublisherMessages
 import csw.trombone.assembly.actors.TromboneStateActor.StateWasSet
 import csw.common.ccs.CommandStatus.CommandResponse
 import csw.common.framework.HcdComponentLifecycleMessage.Running
@@ -72,6 +71,10 @@ object PubSub {
 
 ///////////////
 
+trait DomainMsg
+
+///////////////
+
 sealed trait HcdMsg
 
 sealed trait InitialHcdMsg extends HcdMsg
@@ -88,25 +91,11 @@ object RunningHcdMsg {
 
 case object HcdShutdownComplete extends InitialHcdMsg with RunningHcdMsg
 
-///////////////
-
-trait DomainMsg
-
-///////////////////////
-sealed trait CommandMsgs
-object CommandMsgs {
-  case class CommandStart(replyTo: ActorRef[CommandResponse]) extends CommandMsgs
-  case object StopCurrentCommand                              extends CommandMsgs
-  case class SetStateResponseE(response: StateWasSet)         extends CommandMsgs
-}
-
-////////////////////
-
 //////////////////////////
 sealed trait AssemblyMsg
 sealed trait InitialAssemblyMsg extends AssemblyMsg
 object InitialAssemblyMsg {
-  case class Run(replyTo: ActorRef[Running]) extends InitialAssemblyMsg
+  case class Run(replyTo: ActorRef[AssemblyComponentLifecycleMessage.Running]) extends InitialAssemblyMsg
 }
 
 sealed trait RunningAssemblyMsg extends AssemblyMsg
@@ -114,5 +103,13 @@ object RunningAssemblyMsg {
   case class Lifecycle(message: ToComponentLifecycleMessage)                     extends RunningAssemblyMsg
   case class Submit(command: ControlCommand, replyTo: ActorRef[CommandResponse]) extends RunningAssemblyMsg
   case class Oneway(command: ControlCommand, replyTo: ActorRef[CommandResponse]) extends RunningAssemblyMsg
-  case class DiagMsgs(mode: DiagPublisherMessages)                               extends RunningAssemblyMsg
+  case class DomainAssemblyMsg[T <: DomainMsg](msg: T)                           extends RunningAssemblyMsg
+}
+
+///////////////////////
+sealed trait CommandMsgs
+object CommandMsgs {
+  case class CommandStart(replyTo: ActorRef[CommandResponse]) extends CommandMsgs
+  case object StopCurrentCommand                              extends CommandMsgs
+  case class SetStateResponseE(response: StateWasSet)         extends CommandMsgs
 }

@@ -7,6 +7,7 @@ import csw.param.StateVariable.CurrentState
 import csw.param._
 import csw.trombone.assembly.actors.TromboneStateActor.TromboneState
 import csw.common.ccs.CommandStatus.CommandResponse
+import csw.common.framework.DomainMsg
 import csw.common.framework.HcdComponentLifecycleMessage.Running
 import csw.common.framework.RunningHcdMsg.Submit
 
@@ -64,7 +65,7 @@ object TromboneControlMsg {
 
 /////////////////////
 
-sealed trait DiagPublisherMessages
+sealed trait DiagPublisherMessages extends DomainMsg
 object DiagPublisherMessages {
   final case class TimeForAxisStats(periodInseconds: Int)      extends DiagPublisherMessages
   final case object DiagnosticState                            extends DiagPublisherMessages

@@ -1,46 +1,40 @@
 package csw.trombone.assembly.actors
 
-import java.io.File
-
-import akka.actor.Scheduler
-import akka.typed.scaladsl.Actor.MutableBehavior
 import akka.typed.scaladsl.{Actor, ActorContext}
 import akka.typed.{ActorRef, Behavior}
-import csw.param.Parameters
+import csw.common.ccs.CommandStatus.CommandResponse
+import csw.common.ccs.Validation
+import csw.common.ccs.Validation.{Valid, Validation}
+import csw.common.framework.Component.AssemblyInfo
+import csw.common.framework.ToComponentLifecycleMessage.{DoRestart, DoShutdown, LifecycleFailureInfo, RunningOffline}
+import csw.common.framework._
 import csw.param.Parameters.{Observe, Setup}
 import csw.trombone.assembly.AssemblyContext.{TromboneCalculationConfig, TromboneControlConfig}
 import csw.trombone.assembly.DiagPublisherMessages.{DiagnosticState, OperationsState}
 import csw.trombone.assembly.ParamValidation._
 import csw.trombone.assembly._
-import csw.trombone.assembly.actors.TromboneAssembly.Mode
-import csw.common.ccs.CommandStatus.CommandResponse
-import csw.common.ccs.Validation.{Valid, Validation}
-import csw.common.ccs.{CommandStatus, Validation}
-import csw.common.framework.Component.AssemblyInfo
-import csw.common.framework.HcdComponentLifecycleMessage.Running
-import csw.common.framework.InitialAssemblyMsg.Run
-import csw.common.framework.RunningAssemblyMsg._
-import csw.common.framework.ToComponentLifecycleMessage.{DoRestart, DoShutdown, LifecycleFailureInfo, RunningOffline}
-import csw.common.framework._
 
 import scala.async.Async.{async, await}
 import scala.concurrent.Future
 
-class TromboneAssembly(val info: AssemblyInfo, supervisor: ActorRef[Any], ctx: ActorContext[AssemblyMsg])
-    extends MutableBehavior[AssemblyMsg] {
+object TromboneAssembly {
+  def make(assemblyInfo: AssemblyInfo, supervisor: ActorRef[AssemblyComponentLifecycleMessage]): Behavior[Nothing] =
+    Actor.mutable[AssemblyMsg](ctx ⇒ new TromboneAssembly(assemblyInfo, supervisor, ctx)).narrow
+}
 
-  private val tromboneHCD: Option[Running] = ???
+class TromboneAssembly(info: AssemblyInfo,
+                       supervisor: ActorRef[AssemblyComponentLifecycleMessage],
+                       ctx: ActorContext[AssemblyMsg])
+    extends AssemblyActor[DiagPublisherMessages](ctx, info, supervisor) {
 
   private var diagPublsher: ActorRef[DiagPublisherMessages] = _
 
   private var commandHandler: ActorRef[TromboneCommandHandlerMsgs] = _
 
   implicit var ac: AssemblyContext = _
-
-  var mode: Mode = _
-
-  implicit val scheduler: Scheduler = ctx.system.scheduler
   import ctx.executionContext
+
+  def onRun(): Unit = ()
 
   def initialize(): Future[Unit] = async {
     val (calculationConfig, controlConfig) = await(getAssemblyConfigs)
@@ -48,33 +42,12 @@ class TromboneAssembly(val info: AssemblyInfo, supervisor: ActorRef[Any], ctx: A
 
     val eventPublisher = ctx.spawnAnonymous(TrombonePublisher.make(ac))
 
-    commandHandler = ctx.spawnAnonymous(TromboneCommandHandler.make(ac, tromboneHCD, Some(eventPublisher)))
+    commandHandler = ctx.spawnAnonymous(TromboneCommandHandler.make(ac, runningHcd, Some(eventPublisher)))
 
-    diagPublsher = ctx.spawnAnonymous(DiagPublisher.make(ac, tromboneHCD, Some(eventPublisher)))
+    diagPublsher = ctx.spawnAnonymous(DiagPublisher.make(ac, runningHcd, Some(eventPublisher)))
   }
 
-  override def onMessage(msg: AssemblyMsg): Behavior[AssemblyMsg] = {
-    (mode, msg) match {
-      case (Mode.Initial, x: InitialAssemblyMsg) ⇒ handleInitial(x)
-      case (Mode.Running, x: RunningAssemblyMsg) ⇒ handleRunning(x)
-      case _                                     ⇒ println(s"current context=$mode does not handle message=$msg")
-    }
-    this
-  }
-
-  def handleInitial(x: InitialAssemblyMsg): Unit = x match {
-    case Run(replyTo) =>
-      mode = Mode.Running
-  }
-
-  def handleRunning(x: RunningAssemblyMsg): Any = x match {
-    case Lifecycle(message)       => onLifecycle(message)
-    case Submit(command, replyTo) => onSubmit(command, replyTo)
-    case Oneway(command, replyTo) ⇒ onOneWay(command, replyTo)
-    case DiagMsgs(diagMode)       ⇒ onDiag(diagMode)
-  }
-
-  def onDiag(mode: DiagPublisherMessages): Unit = mode match {
+  def onDomainMsg(mode: DiagPublisherMessages): Unit = mode match {
     case DiagnosticState => diagPublsher ! DiagnosticState
     case OperationsState => diagPublsher ! OperationsState
     case _               ⇒
@@ -87,7 +60,7 @@ class TromboneAssembly(val info: AssemblyInfo, supervisor: ActorRef[Any], ctx: A
     case DoRestart                           => println("Received dorestart")
     case DoShutdown =>
       println("Received doshutdown")
-      tromboneHCD.foreach(
+      runningHcd.foreach(
         _.hcdRef ! RunningHcdMsg
           .Lifecycle(DoShutdown)
       )
@@ -96,32 +69,7 @@ class TromboneAssembly(val info: AssemblyInfo, supervisor: ActorRef[Any], ctx: A
       println(s"TromboneAssembly received failed lifecycle state: $state for reason: $reason")
   }
 
-  def onSubmit(command: Parameters.ControlCommand, replyTo: ActorRef[CommandResponse]): Any = command match {
-    case si: Setup   => setupSubmit(si, oneway = false, replyTo)
-    case oi: Observe => observeSubmit(oi, oneway = false, replyTo)
-  }
-
-  def onOneWay(command: Parameters.ControlCommand, replyTo: ActorRef[CommandResponse]): Any = command match {
-    case sca: Setup   => setupSubmit(sca, oneway = true, replyTo)
-    case oca: Observe => observeSubmit(oca, oneway = true, replyTo)
-  }
-
   private def getAssemblyConfigs: Future[(TromboneCalculationConfig, TromboneControlConfig)] = ???
-
-  private def setupSubmit(s: Setup, oneway: Boolean, replyTo: ActorRef[CommandResponse]): Unit = {
-    val completionReplyTo       = if (oneway) None else Some(replyTo)
-    val validation              = setup(s, completionReplyTo)
-    val validationCommandResult = CommandStatus.validationAsCommandStatus(validation)
-    replyTo ! validationCommandResult
-  }
-
-  private def observeSubmit(o: Observe, oneway: Boolean, replyTo: ActorRef[CommandResponse]): Unit = {
-    val completionReplyTo = if (oneway) None else Some(replyTo)
-    val validation        = observe(o, completionReplyTo)
-
-    val validationCommandResult = CommandStatus.validationAsCommandStatus(validation)
-    replyTo ! validationCommandResult
-  }
 
   def setup(s: Setup, commandOriginator: Option[ActorRef[CommandResponse]]): Validation = {
     val validation = validateOneSetup(s)
@@ -134,25 +82,5 @@ class TromboneAssembly(val info: AssemblyInfo, supervisor: ActorRef[Any], ctx: A
     validation
   }
 
-  protected def observe(o: Observe, replyTo: Option[ActorRef[CommandResponse]]): Validation = Validation.Valid
-}
-
-object TromboneAssembly {
-
-  val tromboneConfigFile = new File("trombone/tromboneAssembly.conf")
-  val resource           = new File("tromboneAssembly.conf")
-
-  def make(assemblyInfo: AssemblyInfo, supervisor: ActorRef[Any]): Behavior[AssemblyMsg] =
-    Actor.mutable(ctx ⇒ new TromboneAssembly(assemblyInfo, supervisor, ctx))
-
-  sealed trait TromboneAssemblyMsg
-  private[assembly] case object CommandStart       extends TromboneAssemblyMsg
-  private[assembly] case object StopCurrentCommand extends TromboneAssemblyMsg
-
-  sealed trait Mode
-  object Mode {
-    case object Initial extends Mode
-    case object Running extends Mode
-  }
-  //  private val badHCDReference = None
+  def observe(o: Observe, replyTo: Option[ActorRef[CommandResponse]]): Validation = Validation.Valid
 }
