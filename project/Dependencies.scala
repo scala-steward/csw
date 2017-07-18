@@ -96,7 +96,7 @@ object Dependencies {
     Akka.`akka-stream-testkit`     % Test
   )
 
-  val Framework = Seq(
+  val Vslice = Seq(
     Libs.`scala-async`,
     Akka.`akka-typed`,
     Akka.`akka-typed-testkit` % Test,

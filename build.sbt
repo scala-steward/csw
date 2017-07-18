@@ -118,10 +118,10 @@ lazy val `csw-config-client-cli` = project
     libraryDependencies ++= Dependencies.CswConfigClientCli
   )
 
-lazy val `csw-framework` = project
+lazy val `csw-vslice` = project
   .dependsOn(`csw-params`, `csw-location`)
   .settings(
-    libraryDependencies ++= Dependencies.Framework
+    libraryDependencies ++= Dependencies.Vslice
   )
 
 //Integration test project

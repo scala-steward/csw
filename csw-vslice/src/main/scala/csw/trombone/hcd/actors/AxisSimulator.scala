@@ -23,11 +23,11 @@ object AxisSimulator {
 
   def isHomed(ac: AxisConfig, current: Int): Boolean = current == ac.home
 
-  sealed trait Context
-  object Context {
-    case object Idle                                      extends Context
-    case class Homing(worker: ActorRef[MotionWorkerMsgs]) extends Context
-    case class Moving(worker: ActorRef[MotionWorkerMsgs]) extends Context
+  sealed trait Mode
+  object Mode {
+    case object Idle                                      extends Mode
+    case class Homing(worker: ActorRef[MotionWorkerMsgs]) extends Mode
+    case class Moving(worker: ActorRef[MotionWorkerMsgs]) extends Mode
   }
 }
 
@@ -57,15 +57,15 @@ class AxisSimulator(ctx: ActorContext[SimulatorCommand],
   private val failureCount = 0
   private var cancelCount  = 0
 
-  var context: Context = Context.Idle
+  var context: Mode = Mode.Idle
 
   override def onMessage(msg: SimulatorCommand): Behavior[SimulatorCommand] = {
     (context, msg) match {
-      case (Context.Idle, x: AxisRequest)                ⇒ mainReceive(x)
-      case (Context.Idle, x: InternalMessages)           ⇒ internalReceive(x)
-      case (Context.Homing(worker), x: MotionWorkerMsgs) ⇒ homeReceive(x, worker)
-      case (Context.Moving(worker), x: MotionWorkerMsgs) ⇒ moveReceive(x, worker)
-      case _                                             ⇒ println(s"current context=$context does not handle message=$msg")
+      case (Mode.Idle, x: AxisRequest)                ⇒ mainReceive(x)
+      case (Mode.Idle, x: InternalMessages)           ⇒ internalReceive(x)
+      case (Mode.Homing(worker), x: MotionWorkerMsgs) ⇒ homeReceive(x, worker)
+      case (Mode.Moving(worker), x: MotionWorkerMsgs) ⇒ moveReceive(x, worker)
+      case _                                          ⇒ println(s"current context=$context does not handle message=$msg")
     }
     this
   }
@@ -108,7 +108,7 @@ class AxisSimulator(ctx: ActorContext[SimulatorCommand],
       val worker = ctx.spawnAnonymous(workerB)
 
       worker ! Start(ctx.self)
-      context = Context.Homing(worker)
+      context = Mode.Homing(worker)
 
     case Move(position, diagFlag) =>
       axisState = AXIS_MOVING
@@ -124,7 +124,7 @@ class AxisSimulator(ctx: ActorContext[SimulatorCommand],
       val worker = ctx.spawn(workerB, s"moveWorker-${System.currentTimeMillis}")
 
       worker ! Start(ctx.self)
-      context = Context.Moving(worker)
+      context = Mode.Moving(worker)
 
     case CancelMove =>
       println("Received Cancel Move while idle :-(")
@@ -138,7 +138,7 @@ class AxisSimulator(ctx: ActorContext[SimulatorCommand],
 
     case End(finalpos) =>
       println("Move End")
-      context = Context.Idle
+      context = Mode.Idle
       ctx.self ! HomeComplete(finalpos)
 
     case Tick(currentIn) =>
@@ -158,7 +158,7 @@ class AxisSimulator(ctx: ActorContext[SimulatorCommand],
       println("Cancel MOVE")
       worker ! Cancel
       cancelCount = cancelCount + 1
-      context = Context.Idle
+      context = Mode.Idle
 
     case MoveUpdate(targetPosition) =>
       worker ! MoveUpdate(targetPosition)
@@ -171,7 +171,7 @@ class AxisSimulator(ctx: ActorContext[SimulatorCommand],
 
     case End(finalpos) =>
       println("Move End")
-      context = Context.Idle
+      context = Mode.Idle
       ctx.self ! MoveComplete(finalpos)
 
   }

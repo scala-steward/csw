@@ -15,12 +15,12 @@ import csw.common.framework.HcdComponentLifecycleMessage.Running
 import csw.common.framework.RunningHcdMsg.Submit
 import csw.trombone.hcd.TromboneHcdState
 
-class SetElevationCommand(ac: AssemblyContext,
+class SetElevationCommand(ctx: ActorContext[CommandMsgs],
+                          ac: AssemblyContext,
                           s: Setup,
                           tromboneHCD: Running,
                           startState: TromboneState,
-                          stateActor: Option[ActorRef[TromboneStateMsg]],
-                          ctx: ActorContext[CommandMsgs])
+                          stateActor: Option[ActorRef[TromboneStateMsg]])
     extends MutableBehavior[CommandMsgs] {
 
   import TromboneHcdState._
@@ -93,5 +93,5 @@ object SetElevationCommand {
            tromboneHCD: Running,
            startState: TromboneState,
            stateActor: Option[ActorRef[TromboneStateMsg]]): Behavior[CommandMsgs] =
-    Actor.mutable(ctx ⇒ new SetElevationCommand(ac, s, tromboneHCD, startState, stateActor, ctx))
+    Actor.mutable(ctx ⇒ new SetElevationCommand(ctx, ac, s, tromboneHCD, startState, stateActor))
 }
