@@ -1,9 +1,9 @@
-package csw.trombone.hcd.models
+package csw.trombone.hcd
 
 import akka.typed.ActorRef
 import csw.services.location.models.TmtSerializable
 import csw.common.framework.DomainMsg
-import csw.trombone.hcd.models.AxisResponse.{AxisStatistics, AxisUpdate}
+import csw.trombone.hcd.AxisResponse.{AxisStatistics, AxisUpdate}
 
 sealed trait SimulatorCommand extends TmtSerializable
 

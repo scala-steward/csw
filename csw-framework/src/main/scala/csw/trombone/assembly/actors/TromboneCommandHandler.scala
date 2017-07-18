@@ -20,7 +20,7 @@ import csw.common.ccs._
 import csw.common.framework.CommandMsgs.StopCurrentCommand
 import csw.common.framework.HcdComponentLifecycleMessage.Running
 import csw.common.framework.{CommandMsgs, PubSub}
-import csw.trombone.hcd.models.TromboneHcdState
+import csw.trombone.hcd.TromboneHcdState
 
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt

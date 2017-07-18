@@ -2,8 +2,8 @@ package csw.trombone.hcd.actors
 
 import akka.typed.{ActorRef, Behavior}
 import akka.typed.scaladsl.{Actor, ActorContext}
-import csw.trombone.hcd.models.MotionWorkerMsgs
-import csw.trombone.hcd.models.MotionWorkerMsgs._
+import csw.trombone.hcd.MotionWorkerMsgs
+import csw.trombone.hcd.MotionWorkerMsgs._
 
 import scala.concurrent.duration.DurationLong
 

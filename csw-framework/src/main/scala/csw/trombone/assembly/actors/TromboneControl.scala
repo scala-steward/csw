@@ -5,7 +5,7 @@ import akka.typed.{ActorRef, Behavior}
 import csw.trombone.assembly.TromboneControlMsg.{GoToStagePosition, UpdateTromboneHcd}
 import csw.trombone.assembly.{Algorithms, AssemblyContext, TromboneControlMsg}
 import csw.common.framework.RunningHcdMsg.Submit
-import csw.trombone.hcd.models.TromboneHcdState
+import csw.trombone.hcd.TromboneHcdState
 
 object TromboneControl {
   def behaviour(ac: AssemblyContext, tromboneHcd: Option[ActorRef[Submit]]): Behavior[TromboneControlMsg] =

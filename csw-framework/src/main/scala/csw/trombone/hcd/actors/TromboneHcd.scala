@@ -9,10 +9,10 @@ import csw.param.Parameters.Setup
 import csw.param.UnitsOfMeasure.encoder
 import csw.common.framework.ToComponentLifecycleMessage._
 import csw.common.framework._
-import csw.trombone.hcd.models.AxisRequest._
-import csw.trombone.hcd.models.AxisResponse._
-import csw.trombone.hcd.models.TromboneEngineering.{GetAxisConfig, GetAxisStats, GetAxisUpdate, GetAxisUpdateNow}
-import csw.trombone.hcd.models._
+import csw.trombone.hcd._
+import csw.trombone.hcd.AxisRequest._
+import csw.trombone.hcd.AxisResponse._
+import csw.trombone.hcd.TromboneEngineering.{GetAxisConfig, GetAxisStats, GetAxisUpdate, GetAxisUpdateNow}
 
 import scala.async.Async._
 import scala.concurrent.Future
@@ -61,7 +61,7 @@ class TromboneHcd(ctx: ActorContext[HcdMsg], supervisor: ActorRef[HcdComponentLi
   }
 
   def onSetup(sc: Setup): Unit = {
-    import csw.trombone.hcd.models.TromboneHcdState._
+    import csw.trombone.hcd.TromboneHcdState._
     println(s"Trombone process received sc: $sc")
 
     sc.prefix match {
@@ -88,7 +88,7 @@ class TromboneHcd(ctx: ActorContext[HcdMsg], supervisor: ActorRef[HcdComponentLi
     case GetAxisUpdate             => tromboneAxis ! PublishAxisUpdate
     case GetAxisUpdateNow(replyTo) => replyTo ! current
     case GetAxisConfig =>
-      import csw.trombone.hcd.models.TromboneHcdState._
+      import csw.trombone.hcd.TromboneHcdState._
       val axisConfigState = defaultConfigState.madd(
         lowLimitKey    -> axisConfig.lowLimit,
         lowUserKey     -> axisConfig.lowUser,
@@ -105,7 +105,7 @@ class TromboneHcd(ctx: ActorContext[HcdMsg], supervisor: ActorRef[HcdComponentLi
     case AxisStarted          =>
     case AxisFinished(newRef) =>
     case au @ AxisUpdate(axisName, axisState, current1, inLowLimit, inHighLimit, inHomed) =>
-      import csw.trombone.hcd.models.TromboneHcdState._
+      import csw.trombone.hcd.TromboneHcdState._
       val tromboneAxisState = defaultAxisState.madd(
         positionKey    -> current1 withUnits encoder,
         stateKey       -> axisState.toString,
@@ -117,7 +117,7 @@ class TromboneHcd(ctx: ActorContext[HcdMsg], supervisor: ActorRef[HcdComponentLi
       current = au
     case AxisFailure(reason) =>
     case as: AxisStatistics =>
-      import csw.trombone.hcd.models.TromboneHcdState._
+      import csw.trombone.hcd.TromboneHcdState._
       val tromboneStats = defaultStatsState.madd(
         datumCountKey   -> as.initCount,
         moveCountKey    -> as.moveCount,

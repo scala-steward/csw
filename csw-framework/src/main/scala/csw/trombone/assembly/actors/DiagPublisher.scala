@@ -15,8 +15,8 @@ import csw.trombone.assembly.{AssemblyContext, DiagPublisherMessages, TrombonePu
 import csw.common.framework.HcdComponentLifecycleMessage.Running
 import csw.common.framework.PubSub
 import csw.common.framework.RunningHcdMsg.DomainHcdMsg
-import csw.trombone.hcd.models.TromboneEngineering.GetAxisStats
-import csw.trombone.hcd.models.TromboneHcdState
+import csw.trombone.hcd.TromboneEngineering.GetAxisStats
+import csw.trombone.hcd.TromboneHcdState
 
 import scala.concurrent.duration.DurationDouble
 

@@ -2,11 +2,11 @@ package csw.trombone.hcd.actors
 
 import akka.typed.scaladsl.{Actor, ActorContext}
 import akka.typed.{ActorRef, Behavior}
-import csw.trombone.hcd.models.AxisRequest._
-import csw.trombone.hcd.models.AxisResponse.{AxisStarted, AxisStatistics, AxisUpdate}
-import csw.trombone.hcd.models.InternalMessages.{DatumComplete, HomeComplete, InitialStatistics, MoveComplete}
-import csw.trombone.hcd.models.AxisState.{AXIS_IDLE, AXIS_MOVING}
-import csw.trombone.hcd.models._
+import csw.trombone.hcd._
+import csw.trombone.hcd.AxisRequest._
+import csw.trombone.hcd.AxisResponse.{AxisStarted, AxisStatistics, AxisUpdate}
+import csw.trombone.hcd.InternalMessages.{DatumComplete, HomeComplete, InitialStatistics, MoveComplete}
+import csw.trombone.hcd.AxisState.{AXIS_IDLE, AXIS_MOVING}
 
 import scala.concurrent.duration.DurationInt
 

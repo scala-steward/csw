@@ -1,4 +1,4 @@
-package csw.trombone.hcd.models
+package csw.trombone.hcd
 
 import com.typesafe.config.Config
 

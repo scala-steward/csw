@@ -12,7 +12,7 @@ import csw.common.framework.CommandMsgs
 import csw.common.framework.CommandMsgs.{CommandStart, SetStateResponseE, StopCurrentCommand}
 import csw.common.framework.HcdComponentLifecycleMessage.Running
 import csw.common.framework.RunningHcdMsg.Submit
-import csw.trombone.hcd.models.TromboneHcdState
+import csw.trombone.hcd.TromboneHcdState
 
 class DatumCommand(s: Setup,
                    tromboneHCD: Running,
