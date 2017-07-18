@@ -65,5 +65,5 @@ object DatumCommand {
            tromboneHCD: Running,
            startState: TromboneState,
            stateActor: Option[ActorRef[TromboneStateMsg]]): Behavior[CommandMsgs] =
-    Actor.mutable(ctx ⇒ new DatumCommand(s, tromboneHCD, startState, stateActor, ctx))
+    Actor.mutable(ctx ⇒ new DatumCommand(ctx, s, tromboneHCD, startState, stateActor))
 }
