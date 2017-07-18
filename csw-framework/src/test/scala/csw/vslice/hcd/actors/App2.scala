@@ -5,10 +5,9 @@ import akka.typed.scaladsl.Actor
 import akka.typed.scaladsl.adapter._
 import akka.typed.{ActorRef, Behavior}
 import csw.services.location.models.Connection.AkkaConnection
-import csw.services.location.models.{AkkaLocation, AkkaRegistration, ComponentId, ComponentType}
+import csw.services.location.models.{AkkaRegistration, ComponentId, ComponentType}
 import csw.services.location.scaladsl.{ActorSystemFactory, LocationServiceFactory}
-import csw.vslice.hcd.models.MotionWorkerMsgs
-import csw.vslice.hcd.models.MotionWorkerMsgs.Start
+import csw.trombone.hcd.MotionWorkerMsgs
 
 object App2 extends App {
   private val actorSystem: actor.ActorSystem = ActorSystemFactory.remote()

@@ -2,8 +2,9 @@ package csw.vslice.hcd.actors
 
 import akka.typed.scaladsl.Actor
 import akka.typed.{ActorSystem, Behavior}
-import csw.vslice.hcd.models.MotionWorkerMsgs
-import csw.vslice.hcd.models.MotionWorkerMsgs.Start
+import csw.trombone.hcd.MotionWorkerMsgs
+import csw.trombone.hcd.MotionWorkerMsgs.Start
+import csw.trombone.hcd.actors.MotionWorker
 import org.scalatest.FunSuite
 
 class MotionWorkerTest extends FunSuite {

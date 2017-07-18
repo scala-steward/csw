@@ -5,7 +5,8 @@ import akka.typed.scaladsl.adapter._
 import csw.services.location.models.Connection.AkkaConnection
 import csw.services.location.models.{AkkaLocation, ComponentId, ComponentType}
 import csw.services.location.scaladsl.{ActorSystemFactory, LocationServiceFactory}
-import csw.vslice.hcd.models.MotionWorkerMsgs.Start
+import csw.trombone.hcd.MotionWorkerMsgs.Start
+import csw.trombone.hcd.actors.MotionWorker
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
