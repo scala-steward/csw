@@ -4,9 +4,9 @@ import akka.typed.scaladsl.{Actor, ActorContext}
 import akka.typed.{ActorRef, Behavior}
 import csw.param.Parameters.Setup
 import csw.param.StateVariable.CurrentState
-import csw.vslice.framework.FromComponentLifecycleMessage.{Initialized, Running}
 import csw.vslice.framework.HcdActor.Mode
-import csw.vslice.framework.InitialHcdMsg.{Run, ShutdownComplete}
+import csw.vslice.framework.HcdComponentLifecycleMessage.{Initialized, Running}
+import csw.vslice.framework.InitialHcdMsg.Run
 import csw.vslice.framework.RunningHcdMsg._
 
 import scala.async.Async.{async, await}
@@ -22,7 +22,7 @@ object HcdActor {
 }
 
 abstract class HcdActor[Msg <: DomainMsg: ClassTag](ctx: ActorContext[HcdMsg],
-                                                    supervisor: ActorRef[FromComponentLifecycleMessage])
+                                                    supervisor: ActorRef[HcdComponentLifecycleMessage])
     extends Actor.MutableBehavior[HcdMsg] {
 
   val domainAdapter: ActorRef[Msg] = ctx.spawnAdapter(DomainHcdMsg.apply)
@@ -61,12 +61,12 @@ abstract class HcdActor[Msg <: DomainMsg: ClassTag](ctx: ActorContext[HcdMsg],
       onRun()
       context = Mode.Running
       replyTo ! Running(ctx.self, pubSubRef)
-    case ShutdownComplete =>
+    case HcdShutdownComplete =>
       onShutdown()
   }
 
   private def handleRunning(x: RunningHcdMsg): Unit = x match {
-    case ShutdownComplete     => onShutdownComplete()
+    case HcdShutdownComplete  => onShutdownComplete()
     case Lifecycle(message)   => onLifecycle(message)
     case Submit(command)      => onSetup(command)
     case DomainHcdMsg(y: Msg) ⇒ onDomainMsg(y)

@@ -5,11 +5,12 @@ import akka.typed.scaladsl.{Actor, ActorContext}
 import akka.typed.{ActorRef, Behavior}
 import csw.param.Parameters.Setup
 import csw.param.UnitsOfMeasure.encoder
-import csw.vslice.assembly.TromboneCommandMsgs.{CommandStart, SetStateResponseE, StopCurrentCommand}
 import csw.vslice.assembly.TromboneStateActor.{TromboneState, TromboneStateMsg}
 import csw.vslice.ccs.CommandStatus.{Completed, Error, NoLongerValid}
 import csw.vslice.ccs.Validation.WrongInternalStateIssue
-import csw.vslice.framework.FromComponentLifecycleMessage.Running
+import csw.vslice.framework.CommandMsgs
+import csw.vslice.framework.CommandMsgs.{CommandStart, SetStateResponseE, StopCurrentCommand}
+import csw.vslice.framework.HcdComponentLifecycleMessage.Running
 import csw.vslice.framework.RunningHcdMsg.Submit
 import csw.vslice.hcd.models.TromboneHcdState
 
@@ -18,15 +19,15 @@ class PositionCommand(ac: AssemblyContext,
                       tromboneHCD: Running,
                       startState: TromboneState,
                       stateActor: Option[ActorRef[TromboneStateMsg]],
-                      ctx: ActorContext[TromboneCommandMsgs])
-    extends MutableBehavior[TromboneCommandMsgs] {
+                      ctx: ActorContext[CommandMsgs])
+    extends MutableBehavior[CommandMsgs] {
 
   import TromboneCommandHandler._
   import TromboneStateActor._
 
   private val setStateResponseAdapter: ActorRef[StateWasSet] = ctx.spawnAdapter(SetStateResponseE)
 
-  override def onMessage(msg: TromboneCommandMsgs): Behavior[TromboneCommandMsgs] = msg match {
+  override def onMessage(msg: CommandMsgs): Behavior[CommandMsgs] = msg match {
     case CommandStart(replyTo) =>
       if (cmd(startState) == cmdUninitialized || (move(startState) != moveIndexed && move(startState) != moveMoving)) {
         replyTo ! NoLongerValid(
@@ -87,6 +88,6 @@ object PositionCommand {
            s: Setup,
            tromboneHCD: Running,
            startState: TromboneState,
-           stateActor: Option[ActorRef[TromboneStateMsg]]): Behavior[TromboneCommandMsgs] =
+           stateActor: Option[ActorRef[TromboneStateMsg]]): Behavior[CommandMsgs] =
     Actor.mutable(ctx ⇒ new PositionCommand(ac, s, tromboneHCD, startState, stateActor, ctx))
 }

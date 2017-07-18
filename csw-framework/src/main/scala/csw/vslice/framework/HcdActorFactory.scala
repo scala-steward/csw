@@ -7,8 +7,8 @@ import scala.reflect.ClassTag
 
 abstract class HcdActorFactory[Msg <: DomainMsg: ClassTag] {
 
-  def behavior(supervisor: ActorRef[FromComponentLifecycleMessage]): Behavior[Nothing] =
+  def behavior(supervisor: ActorRef[HcdComponentLifecycleMessage]): Behavior[Nothing] =
     Actor.mutable[HcdMsg](ctx ⇒ make(ctx, supervisor)).narrow
 
-  protected def make(ctx: ActorContext[HcdMsg], supervisor: ActorRef[FromComponentLifecycleMessage]): HcdActor[Msg]
+  protected def make(ctx: ActorContext[HcdMsg], supervisor: ActorRef[HcdComponentLifecycleMessage]): HcdActor[Msg]
 }

@@ -10,18 +10,17 @@ import csw.param.Parameters
 import csw.param.Parameters.{Observe, Setup}
 import csw.vslice.assembly.AssemblyContext.{TromboneCalculationConfig, TromboneControlConfig}
 import csw.vslice.assembly.DiagPublisherMessages.{DiagnosticState, OperationsState}
-import csw.vslice.assembly.FromComponentLifecycleMessage.ShutdownComplete
-import csw.vslice.assembly.InitialAssemblyMsg.Run
 import csw.vslice.assembly.ParamValidation._
-import csw.vslice.assembly.RunningAssemblyMsg._
-import csw.vslice.assembly.ToComponentLifecycleMessage.{DoRestart, DoShutdown, LifecycleFailureInfo, RunningOffline}
 import csw.vslice.assembly.TromboneAssembly.Mode
 import csw.vslice.ccs.CommandStatus.CommandResponse
 import csw.vslice.ccs.Validation.{Valid, Validation}
 import csw.vslice.ccs.{CommandStatus, Validation}
 import csw.vslice.framework.Component.AssemblyInfo
-import csw.vslice.framework.FromComponentLifecycleMessage.Running
-import csw.vslice.framework.LifecycleState
+import csw.vslice.framework.HcdComponentLifecycleMessage.Running
+import csw.vslice.framework.InitialAssemblyMsg.Run
+import csw.vslice.framework.RunningAssemblyMsg._
+import csw.vslice.framework.ToComponentLifecycleMessage.{DoRestart, DoShutdown, LifecycleFailureInfo, RunningOffline}
+import csw.vslice.framework._
 
 import scala.async.Async.{async, await}
 import scala.concurrent.Future
@@ -81,6 +80,7 @@ class TromboneAssembly(val info: AssemblyInfo, supervisor: ActorRef[Any], ctx: A
   }
 
   def onLifecycle(message: ToComponentLifecycleMessage): Unit = message match {
+    case ShutdownComplete                    ⇒
     case ToComponentLifecycleMessage.Running =>
     case RunningOffline                      => println("Received running offline")
     case DoRestart                           => println("Received dorestart")

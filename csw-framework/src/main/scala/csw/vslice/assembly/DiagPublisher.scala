@@ -10,7 +10,7 @@ import csw.param.StateVariable.CurrentState
 import csw.vslice.assembly.DiagPublisher._
 import csw.vslice.assembly.DiagPublisherMessages._
 import csw.vslice.assembly.TrombonePublisherMsg.{AxisStateUpdate, AxisStatsUpdate}
-import csw.vslice.framework.FromComponentLifecycleMessage.Running
+import csw.vslice.framework.HcdComponentLifecycleMessage.Running
 import csw.vslice.framework.PubSub
 import csw.vslice.framework.RunningHcdMsg.DomainHcdMsg
 import csw.vslice.hcd.models.TromboneEngineering.GetAxisStats

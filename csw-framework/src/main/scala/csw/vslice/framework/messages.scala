@@ -1,9 +1,12 @@
 package csw.vslice.framework
 
 import akka.typed.ActorRef
-import csw.param.Parameters.Setup
+import csw.param.Parameters.{ControlCommand, Setup}
 import csw.param.StateVariable.CurrentState
-import csw.vslice.framework.FromComponentLifecycleMessage.Running
+import csw.vslice.assembly.DiagPublisherMessages
+import csw.vslice.assembly.TromboneStateActor.StateWasSet
+import csw.vslice.ccs.CommandStatus.CommandResponse
+import csw.vslice.framework.HcdComponentLifecycleMessage.Running
 
 sealed trait LifecycleState
 
@@ -15,20 +18,6 @@ object LifecycleState {
   case object LifecyclePreparingToShutdown   extends LifecycleState
   case object LifecycleShutdown              extends LifecycleState
   case object LifecycleShutdownFailure       extends LifecycleState
-}
-
-///////////////
-
-sealed trait SupervisorExternalMessage
-
-object SupervisorExternalMessage {
-  case class SubscribeLifecycleCallback(actorRef: ActorRef[Any])   extends SupervisorExternalMessage
-  case class UnsubscribeLifecycleCallback(actorRef: ActorRef[Any]) extends SupervisorExternalMessage
-  case class LifecycleStateChanged(state: LifecycleState)          extends SupervisorExternalMessage
-  case object ExComponentRestart                                   extends SupervisorExternalMessage
-  case object ExComponentShutdown                                  extends SupervisorExternalMessage
-  case object ExComponentOnline                                    extends SupervisorExternalMessage
-  case object ExComponentOffline                                   extends SupervisorExternalMessage
 }
 
 ///////////////
@@ -45,19 +34,33 @@ object ToComponentLifecycleMessage {
 
 ///////////////
 
-sealed trait FromComponentLifecycleMessage
+sealed trait HcdComponentLifecycleMessage
+
+object HcdComponentLifecycleMessage {
+  case class Initialized(hcdRef: ActorRef[InitialHcdMsg], pubSubRef: ActorRef[PubSub[CurrentState]])
+      extends HcdComponentLifecycleMessage
+  case class Running(hcdRef: ActorRef[RunningHcdMsg], pubSubRef: ActorRef[PubSub[CurrentState]])
+      extends HcdComponentLifecycleMessage
+}
+
+sealed trait AssemblyComponentLifecycleMessage
+
+object AssemblyComponentLifecycleMessage {
+  case class Initialized(assemblyRef: ActorRef[InitialAssemblyMsg]) extends AssemblyComponentLifecycleMessage
+  case class Running(assemblyRef: ActorRef[RunningAssemblyMsg])     extends AssemblyComponentLifecycleMessage
+}
+
+sealed trait FromComponentLifecycleMessage extends HcdComponentLifecycleMessage with AssemblyComponentLifecycleMessage
 
 object FromComponentLifecycleMessage {
-  case class Initialized(hcdRef: ActorRef[InitialHcdMsg], pubSubRef: ActorRef[PubSub[CurrentState]])
-      extends FromComponentLifecycleMessage
-  case class Running(hcdRef: ActorRef[RunningHcdMsg], pubSubRef: ActorRef[PubSub[CurrentState]])
   case class InitializeFailure(reason: String) extends FromComponentLifecycleMessage
-  case object ShutdownComplete                 extends FromComponentLifecycleMessage with ToComponentLifecycleMessage
   case class ShutdownFailure(reason: String)   extends FromComponentLifecycleMessage
   case object HaltComponent                    extends FromComponentLifecycleMessage
 }
 
-///////////////
+case object ShutdownComplete extends FromComponentLifecycleMessage with ToComponentLifecycleMessage
+
+/////////////
 
 sealed trait PubSub[T]
 
@@ -74,8 +77,6 @@ sealed trait HcdMsg
 sealed trait InitialHcdMsg extends HcdMsg
 object InitialHcdMsg {
   case class Run(replyTo: ActorRef[Running]) extends InitialHcdMsg
-  case object ShutdownComplete               extends InitialHcdMsg with RunningHcdMsg
-
 }
 
 sealed trait RunningHcdMsg extends HcdMsg
@@ -85,6 +86,33 @@ object RunningHcdMsg {
   case class DomainHcdMsg[T <: DomainMsg](msg: T)            extends RunningHcdMsg
 }
 
+case object HcdShutdownComplete extends InitialHcdMsg with RunningHcdMsg
+
 ///////////////
 
 trait DomainMsg
+
+///////////////////////
+sealed trait CommandMsgs
+object CommandMsgs {
+  case class CommandStart(replyTo: ActorRef[CommandResponse]) extends CommandMsgs
+  case object StopCurrentCommand                              extends CommandMsgs
+  case class SetStateResponseE(response: StateWasSet)         extends CommandMsgs
+}
+
+////////////////////
+
+//////////////////////////
+sealed trait AssemblyMsg
+sealed trait InitialAssemblyMsg extends AssemblyMsg
+object InitialAssemblyMsg {
+  case class Run(replyTo: ActorRef[Running]) extends InitialAssemblyMsg
+}
+
+sealed trait RunningAssemblyMsg extends AssemblyMsg
+object RunningAssemblyMsg {
+  case class Lifecycle(message: ToComponentLifecycleMessage)                     extends RunningAssemblyMsg
+  case class Submit(command: ControlCommand, replyTo: ActorRef[CommandResponse]) extends RunningAssemblyMsg
+  case class Oneway(command: ControlCommand, replyTo: ActorRef[CommandResponse]) extends RunningAssemblyMsg
+  case class DiagMsgs(mode: DiagPublisherMessages)                               extends RunningAssemblyMsg
+}

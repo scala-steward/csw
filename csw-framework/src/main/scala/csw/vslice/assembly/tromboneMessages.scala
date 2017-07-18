@@ -2,14 +2,13 @@ package csw.vslice.assembly
 
 import akka.typed.ActorRef
 import csw.param.Events.EventTime
-import csw.param.Parameters.{ControlCommand, Setup}
+import csw.param.Parameters.Setup
 import csw.param.StateVariable.CurrentState
 import csw.param._
-import csw.vslice.assembly.TromboneStateActor.{StateWasSet, TromboneState}
+import csw.vslice.assembly.TromboneStateActor.TromboneState
 import csw.vslice.ccs.CommandStatus.CommandResponse
-import csw.vslice.framework.FromComponentLifecycleMessage.Running
+import csw.vslice.framework.HcdComponentLifecycleMessage.Running
 import csw.vslice.framework.RunningHcdMsg.Submit
-import csw.vslice.framework._
 
 sealed trait FollowCommandMessages
 object FollowCommandMessages {
@@ -90,52 +89,3 @@ object TromboneCommandHandlerMsgs {
 
   private[assembly] case class CommandStart(replyTo: ActorRef[CommandResponse]) extends ExecutingMsgs
 }
-
-///////////////////////
-sealed trait TromboneCommandMsgs
-object TromboneCommandMsgs {
-  private[assembly] case class CommandStart(replyTo: ActorRef[CommandResponse]) extends TromboneCommandMsgs
-  private[assembly] case object StopCurrentCommand                              extends TromboneCommandMsgs
-  private[assembly] case class SetStateResponseE(response: StateWasSet)         extends TromboneCommandMsgs
-}
-///////////////////////////
-
-sealed trait ToComponentLifecycleMessage
-
-object ToComponentLifecycleMessage {
-  case object DoShutdown                                                 extends ToComponentLifecycleMessage
-  case object DoRestart                                                  extends ToComponentLifecycleMessage
-  case object Running                                                    extends ToComponentLifecycleMessage
-  case object RunningOffline                                             extends ToComponentLifecycleMessage
-  case class LifecycleFailureInfo(state: LifecycleState, reason: String) extends ToComponentLifecycleMessage
-}
-
-////////////////////
-
-sealed trait FromComponentLifecycleMessage
-
-object FromComponentLifecycleMessage {
-  case class Initialized(assemblyRef: ActorRef[InitialAssemblyMsg]) extends FromComponentLifecycleMessage
-  case class Running(assemblyRef: ActorRef[RunningAssemblyMsg])
-  case class InitializeFailure(reason: String) extends FromComponentLifecycleMessage
-  case object ShutdownComplete                 extends FromComponentLifecycleMessage
-  case class ShutdownFailure(reason: String)   extends FromComponentLifecycleMessage
-  case object HaltComponent                    extends FromComponentLifecycleMessage
-}
-
-//////////////////////////
-sealed trait AssemblyMsg
-sealed trait InitialAssemblyMsg extends AssemblyMsg
-object InitialAssemblyMsg {
-  case class Run(replyTo: ActorRef[Running]) extends InitialAssemblyMsg
-}
-
-sealed trait RunningAssemblyMsg extends AssemblyMsg
-object RunningAssemblyMsg {
-  case class Lifecycle(message: ToComponentLifecycleMessage)                     extends RunningAssemblyMsg
-  case class Submit(command: ControlCommand, replyTo: ActorRef[CommandResponse]) extends RunningAssemblyMsg
-  case class Oneway(command: ControlCommand, replyTo: ActorRef[CommandResponse]) extends RunningAssemblyMsg
-  case class DiagMsgs(mode: DiagPublisherMessages)                               extends RunningAssemblyMsg
-}
-
-trait DomainMsg

@@ -11,13 +11,13 @@ import csw.param.StateVariable.{CurrentState, DemandState}
 import csw.vslice.assembly.FollowActorMessages.{SetZenithAngle, StopFollowing}
 import csw.vslice.assembly.TromboneCommandHandler.Mode
 import csw.vslice.assembly.TromboneCommandHandlerMsgs._
-import csw.vslice.assembly.TromboneCommandMsgs.StopCurrentCommand
 import csw.vslice.ccs.CommandStatus._
 import csw.vslice.ccs.MultiStateMatcherMsgs.StartMatch
 import csw.vslice.ccs.Validation.{RequiredHCDUnavailableIssue, UnsupportedCommandInStateIssue, WrongInternalStateIssue}
 import csw.vslice.ccs._
-import csw.vslice.framework.FromComponentLifecycleMessage.Running
-import csw.vslice.framework.PubSub
+import csw.vslice.framework.CommandMsgs.StopCurrentCommand
+import csw.vslice.framework.HcdComponentLifecycleMessage.Running
+import csw.vslice.framework.{CommandMsgs, PubSub}
 import csw.vslice.hcd.models.TromboneHcdState
 
 import scala.concurrent.Await
@@ -53,7 +53,7 @@ class TromboneCommandHandler(ac: AssemblyContext,
   private var setElevationItem = naElevation(calculationConfig.defaultInitialElevation)
 
   private var followCommandActor: ActorRef[FollowCommandMessages] = _
-  private var currentCommand: ActorRef[TromboneCommandMsgs]       = _
+  private var currentCommand: ActorRef[CommandMsgs]               = _
 
   private def isHCDAvailable: Boolean = tromboneHCD.hcdRef != badHCDReference
 
@@ -197,7 +197,7 @@ class TromboneCommandHandler(ac: AssemblyContext,
   def onExecuting(x: ExecutingMsgs): Unit = x match {
     case CommandStart(replyTo) =>
       for {
-        cr <- currentCommand ? TromboneCommandMsgs.CommandStart
+        cr <- currentCommand ? CommandMsgs.CommandStart
       } {
         replyTo ! cr
         ctx.stop(currentCommand)

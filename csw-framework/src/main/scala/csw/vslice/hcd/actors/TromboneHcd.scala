@@ -7,10 +7,10 @@ import akka.typed.scaladsl.AskPattern.Askable
 import akka.util.Timeout
 import csw.param.Parameters.Setup
 import csw.param.UnitsOfMeasure.encoder
+import csw.vslice.framework.ToComponentLifecycleMessage._
 import csw.vslice.framework._
 import csw.vslice.hcd.models.AxisRequest._
 import csw.vslice.hcd.models.AxisResponse._
-import csw.vslice.framework.ToComponentLifecycleMessage._
 import csw.vslice.hcd.models.TromboneEngineering.{GetAxisConfig, GetAxisStats, GetAxisUpdate, GetAxisUpdateNow}
 import csw.vslice.hcd.models._
 
@@ -20,11 +20,11 @@ import scala.concurrent.duration.DurationLong
 
 object TromboneHcd extends HcdActorFactory[TromboneMsg] {
   override protected def make(ctx: ActorContext[HcdMsg],
-                              supervisor: ActorRef[FromComponentLifecycleMessage]): HcdActor[TromboneMsg] =
+                              supervisor: ActorRef[HcdComponentLifecycleMessage]): HcdActor[TromboneMsg] =
     new TromboneHcd(ctx, supervisor)
 }
 
-class TromboneHcd(ctx: ActorContext[HcdMsg], supervisor: ActorRef[FromComponentLifecycleMessage])
+class TromboneHcd(ctx: ActorContext[HcdMsg], supervisor: ActorRef[HcdComponentLifecycleMessage])
     extends HcdActor[TromboneMsg](ctx, supervisor) {
 
   implicit val timeout              = Timeout(2.seconds)
@@ -52,12 +52,12 @@ class TromboneHcd(ctx: ActorContext[HcdMsg], supervisor: ActorRef[FromComponentL
   def onLifecycle(x: ToComponentLifecycleMessage): Unit = x match {
     case DoShutdown =>
       println("Received doshutdown")
-      supervisor ! FromComponentLifecycleMessage.ShutdownComplete
-    case DoRestart                                      => println("Received dorestart")
-    case ToComponentLifecycleMessage.Running            => println("Received running")
-    case RunningOffline                                 => println("Received running offline")
-    case LifecycleFailureInfo(state, reason)            => println(s"Received failed state: $state for reason: $reason")
-    case FromComponentLifecycleMessage.ShutdownComplete => println("shutdown complete during Running context")
+      supervisor ! ShutdownComplete
+    case DoRestart                           => println("Received dorestart")
+    case ToComponentLifecycleMessage.Running => println("Received running")
+    case RunningOffline                      => println("Received running offline")
+    case LifecycleFailureInfo(state, reason) => println(s"Received failed state: $state for reason: $reason")
+    case ShutdownComplete                    => println("shutdown complete during Running context")
   }
 
   def onSetup(sc: Setup): Unit = {
