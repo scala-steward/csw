@@ -38,8 +38,7 @@ class SetElevationCommand(ctx: ActorContext[CommandMsgs],
           )
         )
       } else {
-        val elevationItem = s(ac.naElevationKey)
-
+        val elevationItem   = s(ac.naElevationKey)
         val stagePosition   = Algorithms.rangeDistanceToStagePosition(elevationItem.head)
         val encoderPosition = Algorithms.stagePositionToEncoder(ac.controlConfig, stagePosition)
 
@@ -48,9 +47,10 @@ class SetElevationCommand(ctx: ActorContext[CommandMsgs],
         )
 
         val stateMatcher = posMatcher(encoderPosition)
-        // Position key is encoder units
-        val scOut = Setup(ac.commandInfo, axisMoveCK).add(positionKey -> encoderPosition withUnits encoder)
-        sendState(
+        val scOut        = Setup(ac.commandInfo, axisMoveCK).add(positionKey -> encoderPosition withUnits encoder)
+
+        stateActor.foreach(
+          _ !
           SetState(cmdItem(cmdBusy),
                    moveItem(moveMoving),
                    startState.sodiumLayer,
@@ -61,8 +61,8 @@ class SetElevationCommand(ctx: ActorContext[CommandMsgs],
 
         executeMatch(ctx, stateMatcher, tromboneHCD.pubSubRef, Some(replyTo)) {
           case Completed =>
-            // NOTE ---> This is the place where sodium layer state gets set to TRUE
-            sendState(
+            stateActor.foreach(
+              _ !
               SetState(cmdItem(cmdReady),
                        moveItem(moveIndexed),
                        sodiumItem(true),
@@ -78,11 +78,6 @@ class SetElevationCommand(ctx: ActorContext[CommandMsgs],
       tromboneHCD.hcdRef ! Submit(cancelSC(s.info))
       this
     case SetStateResponseE(_) ⇒ this
-  }
-
-  private def sendState(setState: SetState): Unit = {
-//    implicit val timeout = Timeout(5.seconds)
-//    stateActor.foreach(actorRef => Await.ready(actorRef ? setState, timeout.duration))
   }
 }
 

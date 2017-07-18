@@ -14,11 +14,11 @@ import csw.common.framework.HcdComponentLifecycleMessage.Running
 import csw.common.framework.RunningHcdMsg.Submit
 import csw.trombone.hcd.TromboneHcdState
 
-class DatumCommand(s: Setup,
+class DatumCommand(ctx: ActorContext[CommandMsgs],
+                   s: Setup,
                    tromboneHCD: Running,
                    startState: TromboneState,
-                   stateActor: Option[ActorRef[TromboneStateMsg]],
-                   ctx: ActorContext[CommandMsgs])
+                   stateActor: Option[ActorRef[TromboneStateMsg]])
     extends MutableBehavior[CommandMsgs] {
 
   import csw.trombone.assembly.actors.TromboneCommandHandler._

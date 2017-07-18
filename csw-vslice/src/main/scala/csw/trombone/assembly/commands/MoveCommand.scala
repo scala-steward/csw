@@ -36,16 +36,14 @@ class MoveCommand(ac: AssemblyContext,
             WrongInternalStateIssue(s"Assembly state of ${cmd(startState)}/${move(startState)} does not allow move")
           )
         } else {
-          val stagePosition = s(ac.stagePositionKey)
-
+          val stagePosition   = s(ac.stagePositionKey)
           val encoderPosition = Algorithms.stagePositionToEncoder(ac.controlConfig, stagePosition.head)
-
-          val stateMatcher = posMatcher(encoderPosition)
-
+          val stateMatcher    = posMatcher(encoderPosition)
           val scOut = Setup(s.info, TromboneHcdState.axisMoveCK)
             .add(TromboneHcdState.positionKey -> encoderPosition withUnits encoder)
 
-          sendState(
+          stateActor.foreach(
+            _ !
             SetState(cmdItem(cmdBusy),
                      moveItem(moveMoving),
                      startState.sodiumLayer,
@@ -57,7 +55,8 @@ class MoveCommand(ac: AssemblyContext,
 
           executeMatch(ctx, stateMatcher, tromboneHCD.pubSubRef, Some(replyTo)) {
             case Completed =>
-              sendState(
+              stateActor.foreach(
+                _ !
                 SetState(cmdItem(cmdReady),
                          moveItem(moveIndexed),
                          sodiumItem(false),
@@ -75,10 +74,6 @@ class MoveCommand(ac: AssemblyContext,
         this
       case SetStateResponseE(_) ⇒ this
     }
-  }
-  private def sendState(setState: SetState): Unit = {
-//    implicit val timeout = Timeout(5.seconds)
-//    stateActor.foreach(actorRef => Await.ready(actorRef ! setState, timeout.duration))
   }
 }
 
