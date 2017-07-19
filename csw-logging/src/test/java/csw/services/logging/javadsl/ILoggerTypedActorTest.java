@@ -1,17 +1,18 @@
 package csw.services.logging.javadsl;
 
-import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
-import akka.actor.Props;
+import akka.typed.ActorRef;
+import akka.typed.javadsl.Adapter;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import csw.services.logging.appenders.LogAppenderBuilder;
 import csw.services.logging.commons.LoggingKeys$;
+import csw.services.logging.components.iris.JIrisSupervisorTypedActor;
 import csw.services.logging.components.trombone.JTromboneHCDSupervisorActor;
 import csw.services.logging.internal.LoggingLevels;
 import csw.services.logging.internal.LoggingSystem;
-import csw.services.logging.utils.JLogUtil;
+import csw.services.logging.scaladsl.LogCommand;
 import csw.services.logging.utils.TestAppender;
 import org.junit.*;
 import scala.concurrent.Await;
@@ -58,23 +59,26 @@ public class ILoggerTypedActorTest {
     }
     @Test
     public void testDefaultLogConfigurationForActor() throws InterruptedException {
-        ActorRef tromboneActor = actorSystem.actorOf(Props.create(JTromboneHCDSupervisorActor.class), "JTromboneActor");
-        String actorPath = tromboneActor.path().toString();
-        String className = JTromboneHCDSupervisorActor.class.getName();
 
-        JLogUtil.sendLogMsgToActorInBulk(tromboneActor);
+        ActorRef<LogCommand> irisTyped = Adapter.spawn(actorSystem, JIrisSupervisorTypedActor.irisBeh(), "irisTyped");
+
+        String actorPath = irisTyped.path().toString();
+        String className = JIrisSupervisorTypedActor.class.getName();
+
+        //TODO: make send log method to tell to typed actor
+        sendLogMsgToTypedActorInBulk(irisTyped);
 
         Thread.sleep(300);
 
         Assert.assertEquals(4, logBuffer.size());
         logBuffer.forEach(log -> {
-            Assert.assertEquals("jTromboneHcdActor", log.get(LoggingKeys$.MODULE$.COMPONENT_NAME()).getAsString());
+            Assert.assertEquals("jIRISTyped", log.get(LoggingKeys$.MODULE$.COMPONENT_NAME()).getAsString());
             Assert.assertEquals(actorPath, log.get(LoggingKeys$.MODULE$.ACTOR()).getAsString());
 
             Assert.assertTrue(log.has(LoggingKeys$.MODULE$.SEVERITY()));
             String severity = log.get(LoggingKeys$.MODULE$.SEVERITY()).getAsString().toLowerCase();
 
-            Assert.assertEquals(severity, log.get(LoggingKeys$.MODULE$.MESSAGE()).getAsString());
+            Assert.assertEquals(severity, log.get(LoggingKeys$.MODULE$.SEVERITY()).getAsString().toLowerCase());
             Assert.assertEquals(className, log.get(LoggingKeys$.MODULE$.CLASS()).getAsString());
 
             LoggingLevels.Level currentLogLevel = LoggingLevels.Level$.MODULE$.apply(severity);
@@ -82,4 +86,12 @@ public class ILoggerTypedActorTest {
         });
     }
 
+    private static void sendLogMsgToTypedActorInBulk(akka.typed.ActorRef<LogCommand> actorRef) {
+        actorRef.tell(LogCommand.LogTrace$.MODULE$);
+        actorRef.tell(LogCommand.LogDebug$.MODULE$);
+        actorRef.tell(LogCommand.LogInfo$.MODULE$);
+        actorRef.tell(LogCommand.LogWarn$.MODULE$);
+        actorRef.tell(LogCommand.LogError$.MODULE$);
+        actorRef.tell(LogCommand.LogFatal$.MODULE$);
+    }
 }
