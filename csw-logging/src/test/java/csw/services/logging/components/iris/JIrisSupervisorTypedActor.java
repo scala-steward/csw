@@ -10,6 +10,7 @@ import csw.services.logging.scaladsl.LogCommand;
 
 public class JIrisSupervisorTypedActor extends JIrisTypedActorLogger<LogCommand> {
 
+
     private ActorContext<LogCommand> actorContext = null;
     private ILogger log = getLogger();
 

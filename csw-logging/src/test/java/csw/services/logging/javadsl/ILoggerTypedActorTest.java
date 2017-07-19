@@ -9,7 +9,6 @@ import com.google.gson.JsonObject;
 import csw.services.logging.appenders.LogAppenderBuilder;
 import csw.services.logging.commons.LoggingKeys$;
 import csw.services.logging.components.iris.JIrisSupervisorTypedActor;
-import csw.services.logging.components.trombone.JTromboneHCDSupervisorActor;
 import csw.services.logging.internal.LoggingLevels;
 import csw.services.logging.internal.LoggingSystem;
 import csw.services.logging.scaladsl.LogCommand;
@@ -87,11 +86,11 @@ public class ILoggerTypedActorTest {
     }
 
     private static void sendLogMsgToTypedActorInBulk(akka.typed.ActorRef<LogCommand> actorRef) {
-        actorRef.tell(LogCommand.LogTrace$.MODULE$);
-        actorRef.tell(LogCommand.LogDebug$.MODULE$);
-        actorRef.tell(LogCommand.LogInfo$.MODULE$);
-        actorRef.tell(LogCommand.LogWarn$.MODULE$);
-        actorRef.tell(LogCommand.LogError$.MODULE$);
-        actorRef.tell(LogCommand.LogFatal$.MODULE$);
+        actorRef.tell(JLogCommand.LogTrace);
+        actorRef.tell(JLogCommand.LogDebug);
+        actorRef.tell(JLogCommand.LogInfo);
+        actorRef.tell(JLogCommand.LogWarn);
+        actorRef.tell(JLogCommand.LogError);
+        actorRef.tell(JLogCommand.LogFatal);
     }
 }

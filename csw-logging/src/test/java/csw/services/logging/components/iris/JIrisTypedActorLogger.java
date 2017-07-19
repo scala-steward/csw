@@ -3,7 +3,7 @@ package csw.services.logging.components.iris;
 import akka.typed.javadsl.ActorContext;
 import csw.services.logging.javadsl.JComponentLoggerTypedActor;
 //TODO: implement java version for LogCommand
-import csw.services.logging.scaladsl.LogCommand;
+
 
 abstract public class JIrisTypedActorLogger<T> extends JComponentLoggerTypedActor<T> {
 
