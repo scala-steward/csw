@@ -11,7 +11,7 @@ import csw.services.logging.commons.LoggingKeys$;
 import csw.services.logging.components.iris.JIrisSupervisorTypedActor;
 import csw.services.logging.internal.LoggingLevels;
 import csw.services.logging.internal.LoggingSystem;
-import csw.services.logging.scaladsl.LogCommand;
+import csw.services.logging.LogCommand;
 import csw.services.logging.utils.TestAppender;
 import org.junit.*;
 import scala.concurrent.Await;
@@ -64,7 +64,6 @@ public class ILoggerTypedActorTest {
         String actorPath = irisTyped.path().toString();
         String className = JIrisSupervisorTypedActor.class.getName();
 
-        //TODO: make send log method to tell to typed actor
         sendLogMsgToTypedActorInBulk(irisTyped);
 
         Thread.sleep(300);

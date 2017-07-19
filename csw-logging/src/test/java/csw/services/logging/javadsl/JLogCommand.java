@@ -1,6 +1,6 @@
 package csw.services.logging.javadsl;
 
-import csw.services.logging.scaladsl.LogCommand;
+import csw.services.logging.LogCommand;
 
 public class JLogCommand {
     public static final LogCommand LogTrace = LogCommand.LogTrace$.MODULE$;

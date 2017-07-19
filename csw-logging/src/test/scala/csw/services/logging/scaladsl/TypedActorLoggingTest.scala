@@ -2,9 +2,10 @@ package csw.services.logging.scaladsl
 
 import akka.typed.Behavior
 import akka.typed.scaladsl.{Actor, ActorContext}
+import csw.services.logging.LogCommand
 import csw.services.logging.internal.LoggingLevels
 import csw.services.logging.internal.LoggingLevels.Level
-import csw.services.logging.scaladsl.LogCommand._
+import csw.services.logging.LogCommand._
 import csw.services.logging.utils.LoggingTestSuite
 
 object TromboneTypedHcdLogger extends ComponentLogger("tromboneTypedHcdActor")

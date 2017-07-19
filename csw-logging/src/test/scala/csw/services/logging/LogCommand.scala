@@ -1,4 +1,4 @@
-package csw.services.logging.scaladsl
+package csw.services.logging
 
 sealed trait LogCommand
 object LogCommand {
