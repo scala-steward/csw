@@ -57,6 +57,7 @@ class Demo(ctx: ActorContext[Command], monitor: ActorRef[Response]) extends Muta
   async {
     sum += await(getCurrentState)
     monitor ! Initialized(ctx.self)
+    mode = Mode.Initial
   }
 
   override def onMessage(msg: Command): Behavior[Command] = {
@@ -71,6 +72,7 @@ class Demo(ctx: ActorContext[Command], monitor: ActorRef[Response]) extends Muta
   def onInitialCommand(initialCommand: InitialCommand): Unit = initialCommand match {
     case Log  => println(sum)
     case Run  => monitor ! Running(ctx.self)
+      mode = Mode.Running
     case Stop ⇒ ctx.stop(ctx.self)
   }
 
