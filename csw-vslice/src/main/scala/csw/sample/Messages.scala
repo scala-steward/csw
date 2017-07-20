@@ -50,7 +50,7 @@ class Aggregator(ctx: ActorContext[Command]) extends MutableBehavior[Command] {
       case (_, GetMode(replyTo))                   ⇒ replyTo ! mode
       case (m: Idle, x: IdleCommand)               ⇒ onIdleCommand(x)
       case (m: Initialized, x: InitializedCommand) ⇒ onInitializedCommand(x)
-      case _                                       ⇒ println(s"msg=$msg can be handled in mode=$mode")
+      case _                                       ⇒ println(s"msg=$msg can not be handled in mode=$mode")
     }
     this
   }
@@ -103,12 +103,12 @@ object Client {
 }
 
 object Demo extends App {
-  private val root = Actor.deferred[NotUsed] { ctx ⇒
+  private val wiring = Actor.deferred[NotUsed] { ctx ⇒
     val aggregator = ctx.spawn(Aggregator.behaviour, "aggregator")
     val client     = ctx.spawn(Client.behavior(0), "client")
     aggregator ! GetMode(client)
     Actor.empty
   }
 
-  ActorSystem("demo", root)
+  ActorSystem("demo", wiring)
 }
