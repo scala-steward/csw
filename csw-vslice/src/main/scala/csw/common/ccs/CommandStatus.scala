@@ -1,5 +1,6 @@
 package csw.common.ccs
 
+import akka.typed.ActorRef
 import csw.common.ccs.Validation.{Validation, ValidationIssue}
 
 object CommandStatus {
@@ -85,4 +86,6 @@ object CommandStatus {
    * Cancelled means the command/actions were stopped at the next convenient place. This is usually appropriate for
    */
   case object Cancelled extends CommandResponse
+
+  case class BehaviorChanged[T](ref: ActorRef[T]) extends CommandResponse
 }

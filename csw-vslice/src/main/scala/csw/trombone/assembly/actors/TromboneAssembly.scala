@@ -12,6 +12,7 @@ import csw.param.Parameters.{Observe, Setup}
 import csw.trombone.assembly.AssemblyContext.{TromboneCalculationConfig, TromboneControlConfig}
 import csw.trombone.assembly.DiagPublisherMessages.{DiagnosticState, OperationsState}
 import csw.trombone.assembly.ParamValidation._
+import csw.trombone.assembly.TromboneCommandHandlerMsgs.NotFollowingMsgs
 import csw.trombone.assembly._
 
 import scala.async.Async.{async, await}
@@ -29,7 +30,7 @@ class TromboneAssembly(ctx: ActorContext[AssemblyMsg],
 
   private var diagPublsher: ActorRef[DiagPublisherMessages] = _
 
-  private var commandHandler: ActorRef[TromboneCommandHandlerMsgs] = _
+  private var commandHandler: ActorRef[NotFollowingMsgs] = _
 
   implicit var ac: AssemblyContext = _
   import ctx.executionContext

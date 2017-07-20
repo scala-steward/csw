@@ -29,8 +29,8 @@ object TromboneCommandHandler {
 
   def make(assemblyContext: AssemblyContext,
            tromboneHCDIn: Option[Running],
-           allEventPublisher: Option[ActorRef[TrombonePublisherMsg]]): Behavior[TromboneCommandHandlerMsgs] =
-    Actor.mutable(ctx ⇒ new TromboneCommandHandler(ctx, assemblyContext, tromboneHCDIn, allEventPublisher))
+           allEventPublisher: Option[ActorRef[TrombonePublisherMsg]]): Behavior[NotFollowingMsgs] =
+    Actor.mutable[TromboneCommandHandlerMsgs](ctx ⇒ new TromboneCommandHandler(ctx, assemblyContext, tromboneHCDIn, allEventPublisher)).narrow
 
   def executeMatch(ctx: ActorContext[_],
                    stateMatcher: StateMatcher,
@@ -111,13 +111,12 @@ class TromboneCommandHandler(ctx: ActorContext[TromboneCommandHandlerMsgs],
       case (Mode.NotFollowing, x: NotFollowingMsgs) ⇒ onNotFollowing(x)
       case (Mode.Following, x: FollowingMsgs)       ⇒ onFollowing(x)
       case (Mode.Executing, x: ExecutingMsgs)       ⇒ onExecuting(x)
-      case (_, TromboneStateE(x))                   ⇒ currentState = x
       case _                                        ⇒ println(s"current context=$mode does not handle message=$msg")
     }
     this
   }
 
-  def onNotFollowing(x: NotFollowingMsgs): Unit = x match {
+  def onNotFollowing(msg: NotFollowingMsgs): Unit = msg match {
     case Submit(s, replyTo) =>
       s.prefix match {
         case ac.initCK =>
@@ -183,6 +182,8 @@ class TromboneCommandHandler(ctx: ActorContext[TromboneCommandHandlerMsgs],
             }).onComplete { _ =>
               replyTo ! Completed
             }
+
+            replyTo ! BehaviorChanged[FollowingMsgs](ctx.self)
           }
         case otherCommand =>
           replyTo ! Invalid(
@@ -190,12 +191,11 @@ class TromboneCommandHandler(ctx: ActorContext[TromboneCommandHandlerMsgs],
               s"""Trombone assembly does not support the command \"${otherCommand.prefix}\" in the current state."""
             )
           )
-
       }
-
+    case TromboneStateE(x)                   ⇒ currentState = x
   }
 
-  def onFollowing(x: FollowingMsgs): Unit = x match {
+  def onFollowing(msg: FollowingMsgs): Unit = msg match {
     case Submit(s, replyTo) =>
       s.prefix match {
         case ac.datumCK | ac.moveCK | ac.positionCK | ac.followCK | ac.setElevationCK =>
@@ -238,12 +238,13 @@ class TromboneCommandHandler(ctx: ActorContext[TromboneCommandHandlerMsgs],
           mode = Mode.NotFollowing
           replyTo ! Completed
 
-        case other => println(s"Unknown config key: $x")
+        case other => println(s"Unknown config key: $msg")
       }
+    case TromboneStateE(x)                   ⇒ currentState = x
 
   }
 
-  def onExecuting(x: ExecutingMsgs): Unit = x match {
+  def onExecuting(msg: ExecutingMsgs): Unit = msg match {
     case CommandStart(replyTo) =>
       for {
         cr <- currentCommand ? CommandMsgs.CommandStart
@@ -259,6 +260,7 @@ class TromboneCommandHandler(ctx: ActorContext[TromboneCommandHandlerMsgs],
       mode = Mode.NotFollowing
       replyTo ! Cancelled
 
+    case TromboneStateE(x)                   ⇒ currentState = x
     case s: Submit ⇒
   }
 
