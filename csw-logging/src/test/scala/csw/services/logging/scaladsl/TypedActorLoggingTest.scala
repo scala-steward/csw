@@ -23,17 +23,17 @@ class TromboneTypedActor(ctx: ActorContext[LogCommand]) extends TromboneTypedHcd
       case LogWarn  => log.warn("Level is warn")
       case LogError => log.error("Level is error")
       case LogFatal => log.fatal("Level is fatal")
-      case Unknown   => log.error("Unexpected actor message", Map("message" -> Unknown))
+      case Unknown  => log.error("Unexpected actor message", Map("message" -> Unknown))
     }
     this
   }
 }
 
+// DEOPSCSW-280 SPIKE: Introduce Akkatyped in logging
 class TypedActorLoggingTest extends LoggingTestSuite {
   import akka.typed.scaladsl.adapter._
 
   private val tromboneActorRef = actorSystem.spawn(TromboneTypedActor.beh, "TromboneTypedActor")
-
 
   def sendMessagesToActor(): Unit = {
     tromboneActorRef ! LogTrace

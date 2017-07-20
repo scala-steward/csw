@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+// DEOPSCSW-280 SPIKE: Introduce Akkatyped in logging
 public class ILoggerTypedActorTest {
     protected static ActorSystem actorSystem = ActorSystem.create("base-system");
     protected static LoggingSystem loggingSystem;
