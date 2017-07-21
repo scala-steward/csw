@@ -5,7 +5,8 @@ import akka.typed.testkit.TestKitSettings
 import akka.typed.testkit.scaladsl.TestProbe
 import akka.typed.{ActorRef, ActorSystem, Behavior}
 import akka.util.Timeout
-import csw.common.framework.HcdComponentLifecycleMessage.Initialized
+import csw.common.framework.HcdComponentLifecycleMessage.{Initialized, Running}
+import csw.common.framework.InitialHcdMsg.Run
 import csw.param.Parameters
 import org.scalatest.{FunSuite, Matchers}
 
@@ -24,7 +25,7 @@ class TestHcd(ctx: ActorContext[HcdMsg], supervisor: ActorRef[HcdComponentLifecy
 
   override def initialize(): Future[Unit] = Future.unit
 
-  override def onRun(): Unit = ???
+  override def onRun(): Unit = Unit
 
   override def onShutdown(): Unit = ???
 
@@ -51,5 +52,8 @@ class HcdFrameworkTest extends FunSuite with Matchers {
 
     val initialized = testProbe.expectMsgType[Initialized]
     initialized.hcdRef shouldBe hcdRef
+
+    initialized.hcdRef ! Run(testProbe.ref)
+    testProbe.expectMsgType[Running]
   }
 }
