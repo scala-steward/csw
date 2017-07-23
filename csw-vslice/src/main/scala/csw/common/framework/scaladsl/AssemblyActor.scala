@@ -15,6 +15,7 @@ import csw.common.framework.models._
 import csw.common.framework.scaladsl.AssemblyActor.Mode
 import csw.param.Parameters
 import csw.param.Parameters.{Observe, Setup}
+import csw.services.logging.scaladsl.ComponentLogger
 
 import scala.async.Async.{async, await}
 import scala.concurrent.Future
@@ -28,10 +29,11 @@ object AssemblyActor {
   }
 }
 
+object AssemblyLogger extends ComponentLogger("assembly")
 abstract class AssemblyActor[Msg <: DomainMsg: ClassTag](ctx: ActorContext[AssemblyMsg],
                                                          info: AssemblyInfo,
                                                          supervisor: ActorRef[AssemblyComponentLifecycleMessage])
-    extends MutableBehavior[AssemblyMsg] {
+    extends AssemblyLogger.TypedActor[AssemblyMsg](ctx) {
 
   val runningHcd: Option[HcdComponentLifecycleMessage.Running] = None
 

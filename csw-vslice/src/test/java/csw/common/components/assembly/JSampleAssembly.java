@@ -13,11 +13,19 @@ import csw.common.framework.models.AssemblyMsg;
 import csw.common.framework.models.Component.AssemblyInfo;
 import csw.common.framework.models.ToComponentLifecycleMessage;
 import csw.param.Parameters;
+import csw.services.logging.javadsl.ILogger;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public class JSampleAssembly extends JAssemblyActor<JAssemblyDomainMessages> {
+
+    @Override
+    public String componentName() {
+        return "Assembly";
+    }
+
+    ILogger jLogger = getLogger();
 
     public JSampleAssembly(ActorContext<AssemblyMsg> ctx, AssemblyInfo assemblyInfo, ActorRef<AssemblyComponentLifecycleMessage> supervisor) {
         super(ctx, assemblyInfo, supervisor, scala.reflect.ClassTag$.MODULE$.apply(JAssemblyDomainMessages.class));
