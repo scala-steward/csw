@@ -1,8 +1,6 @@
 package csw.common.components.assembly;
 
 import akka.typed.ActorRef;
-import akka.typed.Behavior;
-import akka.typed.javadsl.Actor;
 import akka.typed.javadsl.ActorContext;
 import csw.common.ccs.CommandStatus;
 import csw.common.ccs.Validation;

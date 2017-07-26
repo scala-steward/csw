@@ -1,7 +1,10 @@
 package csw.param
 
+import java.util
+
 import csw.param.UnitsOfMeasure.{NoUnits, Units}
 
+import scala.collection.JavaConverters.{iterableAsScalaIterableConverter, seqAsJavaListConverter}
 import scala.collection.immutable.Vector
 
 /**
@@ -25,6 +28,9 @@ trait Parameter[S] {
    * @return All the values for this parameter
    */
   def values: Vector[S]
+
+  // TODO: Proposal 2
+//  def jValues: java.util.Vector[S] = new java.util.Vector[S](values.asJava)
 
   /**
    * The number of values in this parameter (values.size)
@@ -93,6 +99,9 @@ abstract class Key[S, I <: Parameter[S]](val keyName: String) extends Serializab
    * @return a parameter containing the key name, values and units
    */
   def set(v: Vector[S], units: Units = NoUnits): I
+
+  //TODO: Proposal 2
+//  def jSet(v: Array[S], units: Units): I
 
   /**
    * Sets the values for the key using a variable number of arguments

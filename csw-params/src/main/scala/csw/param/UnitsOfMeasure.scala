@@ -1,5 +1,7 @@
 package csw.param
 
+import csw.param.UnitsOfMeasure.Units
+
 /**
  * This Units stuff is just for play
  * although something should be developed or borrowed
@@ -31,6 +33,8 @@ object UnitsOfMeasure {
   object milliseconds extends Units("ms")
 
   object Units {
+    object NoUnits extends Units("none")
+
     def fromString(name: String): Units = name match {
       case encoder.name      => encoder
       case micrometers.name  => micrometers
@@ -43,5 +47,8 @@ object UnitsOfMeasure {
       case _                 => NoUnits
     }
   }
+}
 
+object JUnits {
+  val meters: Units = UnitsOfMeasure.NoUnits
 }
