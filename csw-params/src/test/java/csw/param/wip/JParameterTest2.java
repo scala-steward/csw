@@ -6,6 +6,7 @@ import csw.param.proposal2.BooleanParameter;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.Vector;
 
 public class JParameterTest2 {
@@ -19,13 +20,14 @@ public class JParameterTest2 {
         v.add(true);
         v.add(false);
 
-        BooleanParameter params = encoderKey.jSet(v, UnitsOfMeasure.NoUnits$.MODULE$);
+        BooleanParameter p1 = encoderKey.jSet(v, UnitsOfMeasure.NoUnits$.MODULE$);
+        BooleanParameter p2 = encoderKey.set(true, false).withUnits(UnitsOfMeasure.NoUnits$.MODULE$);
 
-        Assert.assertEquals(v.get(0), params.value(0));
-        Assert.assertEquals(v.get(1), params.value(1));
-
-        Assert.assertEquals(encoder, params.keyName());
-        Assert.assertEquals(UnitsOfMeasure.NoUnits$.MODULE$, params.units());
-
+        Arrays.asList(p1, p2).forEach((parameter) -> {
+            Assert.assertEquals(v.get(0), parameter.value(0));
+            Assert.assertEquals(v.get(1), parameter.value(1));
+            Assert.assertEquals(encoder, parameter.keyName());
+            Assert.assertEquals(UnitsOfMeasure.NoUnits$.MODULE$, parameter.units());
+        });
     }
 }

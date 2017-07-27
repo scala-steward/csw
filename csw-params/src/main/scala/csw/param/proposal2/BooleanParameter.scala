@@ -5,6 +5,7 @@ import java.{lang, util}
 import csw.param.UnitsOfMeasure
 import csw.param.UnitsOfMeasure.{NoUnits, Units}
 
+import scala.annotation.varargs
 import scala.collection.JavaConverters.collectionAsScalaIterableConverter
 import scala.collection.immutable.Vector
 
@@ -31,6 +32,7 @@ final case class BooleanKey(nameIn: String) extends Key[java.lang.Boolean, Boole
 
   override def set(v: Vector[java.lang.Boolean], units: Units = NoUnits) = BooleanParameter(keyName, v, units)
 
+  @varargs
   override def set(v: java.lang.Boolean*) = BooleanParameter(keyName, v.toVector, units = UnitsOfMeasure.NoUnits)
 
   override def jSet(v: util.Vector[lang.Boolean], units: Units): BooleanParameter = set(v.asScala.toVector, units)
