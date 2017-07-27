@@ -1,5 +1,6 @@
-package csw.param
+package csw.param.proposal2
 
+import csw.param.UnitsOfMeasure
 import csw.param.UnitsOfMeasure.{NoUnits, Units}
 
 import scala.collection.immutable.Vector
@@ -9,7 +10,7 @@ import scala.collection.immutable.Vector
  *
  * @tparam S the Scala type
  */
-trait Parameter[S] {
+trait Parameter[S <: AnyRef] {
 
   /**
    * @return the name of the key for this parameter
@@ -25,9 +26,6 @@ trait Parameter[S] {
    * @return All the values for this parameter
    */
   def values: Vector[S]
-
-  // TODO: Proposal 2
-//  def jValues: java.util.Vector[S] = new java.util.Vector[S](values.asJava)
 
   /**
    * The number of values in this parameter (values.size)
@@ -86,7 +84,7 @@ trait Parameter[S] {
  * @tparam S the value's Scala type
  * @tparam I the type of the parameter created by this Key
  */
-abstract class Key[S, I <: Parameter[S]](val keyName: String) extends Serializable {
+abstract class Key[S <: AnyRef, I <: Parameter[S]](val keyName: String) extends Serializable {
 
   /**
    * Sets the values for the key as a Scala Vector
@@ -97,20 +95,19 @@ abstract class Key[S, I <: Parameter[S]](val keyName: String) extends Serializab
    */
   def set(v: Vector[S], units: Units = NoUnits): I
 
-  //TODO: Proposal 2
-//  def jSet(v: Array[S], units: Units): I
-
   /**
    * Sets the values for the key using a variable number of arguments
    *
    * @param v one or more values
    * @return a parameter containing the key name, values (call withUnits() on the result to set the units)
    */
-  def set(v: S*): I
+  def set(v: S*): I = ???
+
+  def jSet(v: java.util.Vector[S], units: Units = NoUnits): I
 
   /**
    * Sets the values for the key
-   * This definition enables writing code like this (see [[ParameterSetDsl]]):
+   * This definition enables writing code like this (see [[csw.param.ParameterSetDsl]]):
    * {{{
    *   val setup = sc(
    *    prefix,
@@ -126,7 +123,7 @@ abstract class Key[S, I <: Parameter[S]](val keyName: String) extends Serializab
 
   /**
    * Sets the value and units for the key
-   * This definition enables writing code like this (see [[ParameterSetDsl]]):
+   * This definition enables writing code like this (see [[csw.param.ParameterSetDsl]]):
    * {{{
    *   val setup = sc(
    *    prefix,
@@ -142,7 +139,7 @@ abstract class Key[S, I <: Parameter[S]](val keyName: String) extends Serializab
 
   /**
    * Sets the values for the key as a Scala Vector
-   * This definition enables writing code like this (see [[ParameterSetDsl]]):
+   * This definition enables writing code like this (see [[csw.param.ParameterSetDsl]]):
    * {{{
    *   val setup = sc(prefix,
    *     key1 -> Vector(...),

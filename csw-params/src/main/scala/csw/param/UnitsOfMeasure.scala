@@ -1,7 +1,5 @@
 package csw.param
 
-import csw.param.UnitsOfMeasure.Units
-
 /**
  * This Units stuff is just for play
  * although something should be developed or borrowed
@@ -47,8 +45,4 @@ object UnitsOfMeasure {
       case _                 => NoUnits
     }
   }
-}
-
-object JUnits {
-  val meters: Units = UnitsOfMeasure.NoUnits
 }
