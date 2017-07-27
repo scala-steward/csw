@@ -1,5 +1,6 @@
-package csw.param
+package csw.param.proposal3
 
+import csw.param.UnitsOfMeasure
 import csw.param.UnitsOfMeasure.{NoUnits, Units}
 
 import scala.collection.immutable.Vector
@@ -9,7 +10,7 @@ import scala.collection.immutable.Vector
  *
  * @tparam S the Scala type
  */
-trait Parameter[S] {
+trait Parameter[S <: AnyRef] {
 
   /**
    * @return the name of the key for this parameter
@@ -83,7 +84,7 @@ trait Parameter[S] {
  * @tparam S the value's Scala type
  * @tparam I the type of the parameter created by this Key
  */
-abstract class Key[S, I <: Parameter[S]](val keyName: String) extends Serializable {
+abstract class Key[S <: AnyRef, I <: Parameter[S]](val keyName: String) extends Serializable {
 
   /**
    * Sets the values for the key as a Scala Vector
@@ -100,11 +101,13 @@ abstract class Key[S, I <: Parameter[S]](val keyName: String) extends Serializab
    * @param v one or more values
    * @return a parameter containing the key name, values (call withUnits() on the result to set the units)
    */
-  def set(v: S*): I
+  def set(v: S*): I = ???
+
+  def jSet(v: java.util.Vector[S], units: Units = NoUnits): I
 
   /**
    * Sets the values for the key
-   * This definition enables writing code like this (see [[ParameterSetDsl]]):
+   * This definition enables writing code like this (see [[csw.param.ParameterSetDsl]]):
    * {{{
    *   val setup = sc(
    *    prefix,
@@ -120,7 +123,7 @@ abstract class Key[S, I <: Parameter[S]](val keyName: String) extends Serializab
 
   /**
    * Sets the value and units for the key
-   * This definition enables writing code like this (see [[ParameterSetDsl]]):
+   * This definition enables writing code like this (see [[csw.param.ParameterSetDsl]]):
    * {{{
    *   val setup = sc(
    *    prefix,
@@ -136,7 +139,7 @@ abstract class Key[S, I <: Parameter[S]](val keyName: String) extends Serializab
 
   /**
    * Sets the values for the key as a Scala Vector
-   * This definition enables writing code like this (see [[ParameterSetDsl]]):
+   * This definition enables writing code like this (see [[csw.param.ParameterSetDsl]]):
    * {{{
    *   val setup = sc(prefix,
    *     key1 -> Vector(...),
@@ -148,6 +151,38 @@ abstract class Key[S, I <: Parameter[S]](val keyName: String) extends Serializab
    * @return a parameter containing the key name and values (call withUnits() on the result to set the units)
    */
   def ->(v: Vector[S]): I = set(v)
+
+  override def toString: String = keyName
+
+  override def equals(that: Any): Boolean = {
+    that match {
+      case that: Key[S, I] => this.keyName == that.keyName
+      case _               => false
+    }
+  }
+
+  override def hashCode: Int = 41 * keyName.hashCode
+}
+
+/**
+ * The type of a parameter key.
+ * Note that the Parameter is f-bounded polymorphic so that parameter returns will have the correct types
+ *
+ * @param keyName the key
+ * @tparam S the value's Scala type
+ * @tparam I the type of the parameter created by this Key
+ */
+abstract class JKey[S <: AnyRef, I <: Parameter[S]](val keyName: String) extends Serializable {
+
+  /**
+   * Sets the values for the key using a variable number of arguments
+   *
+   * @param v one or more values
+   * @return a parameter containing the key name, values (call withUnits() on the result to set the units)
+   */
+  def jSet(v: S*): I = ???
+
+  def jSet(v: java.util.Vector[S], units: Units = NoUnits): I
 
   override def toString: String = keyName
 

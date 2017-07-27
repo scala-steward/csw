@@ -1,4 +1,4 @@
-package csw.param.proposal2
+package csw.param.proposal3
 
 import java.time.Instant
 

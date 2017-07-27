@@ -20,6 +20,7 @@ public class JParameterTest2 {
         v.add(true);
         v.add(false);
 
+        //Do we need this overload for java ?
         BooleanParameter p1 = encoderKey.jSet(v, UnitsOfMeasure.NoUnits$.MODULE$);
         BooleanParameter p2 = encoderKey.set(true, false).withUnits(UnitsOfMeasure.NoUnits$.MODULE$);
 
