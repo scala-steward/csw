@@ -21,28 +21,29 @@ import scala.async.Async.{async, await}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
 
-class ComponentBehavior[Msg <: DomainMsgNew: ClassTag](ctx: ActorContext[HcdMsgNew],
-                                                       runningComponentBehavior: Behavior[RunningComponentMsg],
-                                                       supervisor: ActorRef[ComponentResponseMode],
-                                                       hcdHandlers: HcdHandlers[Msg])
-    extends Actor.MutableBehavior[HcdMsgNew] {
+abstract class ComponentBehavior[Msg <: DomainMsgNew: ClassTag](ctx: ActorContext[ComponentMsg],
+                                                                supervisor: ActorRef[ComponentResponseMode],
+                                                                lifecycleHandlers: LifecycleHandlers[Msg])
+    extends Actor.MutableBehavior[ComponentMsg] {
 
   implicit val ec: ExecutionContext = ctx.executionContext
 
   var mode: ComponentResponseMode = Idle
   ctx.self ! Initialize
 
-  override def onMessage(msg: HcdMsgNew): Behavior[HcdMsgNew] =
+  def runningComponentBehavior(x: RunningComponentMsg): Behavior[ComponentMsg]
+
+  def onMessage(msg: HcdMsgNew): Behavior[ComponentMsg] =
     (mode, msg) match {
       case (Idle, x: IdleComponentMsg)              ⇒ onIdle(x); Actor.same
       case (_: Initialized, x: InitialComponentMsg) ⇒ onInitial(x); Actor.same
-      case (_: Running, x: RunningComponentMsg)     ⇒ runningComponentBehavior
+      case (_: Running, x: RunningComponentMsg)     ⇒ runningComponentBehavior(x)
       case _                                        ⇒ println(s"current context=$mode does not handle message=$msg"); Actor.same
     }
   this
 
   def initialization(): Future[Unit] = async {
-    await(hcdHandlers.initialize())
+    await(lifecycleHandlers.initialize())
     mode = Initialized(ctx.self)
   }
 
@@ -61,44 +62,32 @@ class ComponentBehavior[Msg <: DomainMsgNew: ClassTag](ctx: ActorContext[HcdMsgN
 
   private def onInitial(x: InitialComponentMsg): Unit = x match {
     case Run =>
-      hcdHandlers.onRun()
+      lifecycleHandlers.onRun()
       val running = Running(ctx.self.upcast)
       mode = running
-      hcdHandlers.isOnline = true
+      lifecycleHandlers.isOnline = true
       supervisor ! running
-  }
-
-  private def onRunning1(x: RunningComponentMsg): Unit = x match {
-    case Lifecycle(message) =>
-    case DomainHcdMsg(msg)  =>
-  }
-
-  private def onRunning(x: RunningComponentMsg): Unit = x match {
-    case Lifecycle(message)   => onLifecycle(message)
-    case Submit(command)      => hcdHandlers.onSetup(command)
-    case DomainHcdMsg(y: Msg) ⇒ hcdHandlers.onDomainMsg(y)
-    case DomainHcdMsg(y)      ⇒ println(s"unhandled domain msg: $y")
   }
 
   private def onLifecycle(message: ToComponentLifecycleMessageNew): Unit = message match {
     case Shutdown =>
-      hcdHandlers.onShutdown()
-      hcdHandlers.stopChildren()
+      lifecycleHandlers.onShutdown()
+//      lifecycleHandlers.stopChildren()
       supervisor ! ShutdownComplete
     case Restart =>
-      hcdHandlers.onRestart()
+      lifecycleHandlers.onRestart()
       mode = Idle
       ctx.self ! Start
     case GoOnline =>
-      if (!hcdHandlers.isOnline) {
-        hcdHandlers.onGoOnline()
-        hcdHandlers.isOnline = true
+      if (!lifecycleHandlers.isOnline) {
+        lifecycleHandlers.onGoOnline()
+        lifecycleHandlers.isOnline = true
       }
     case GoOffline =>
-      if (hcdHandlers.isOnline) {
-        hcdHandlers.onGoOffline()
-        hcdHandlers.isOnline = false
+      if (lifecycleHandlers.isOnline) {
+        lifecycleHandlers.onGoOffline()
+        lifecycleHandlers.isOnline = false
       }
-    case LifecycleFailureInfo(state, reason) => hcdHandlers.onLifecycleFailureInfo(state, reason)
+    case LifecycleFailureInfo(state, reason) => lifecycleHandlers.onLifecycleFailureInfo(state, reason)
   }
 }

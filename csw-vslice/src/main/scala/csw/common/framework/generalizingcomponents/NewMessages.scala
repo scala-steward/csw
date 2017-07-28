@@ -53,7 +53,11 @@ trait DomainMsgNew
 
 ///////////////
 
-sealed trait IdleComponentMsg extends HcdMsgNew with AssemblyMsgNew
+sealed trait ComponentMsg extends HcdMsgNew with AssemblyMsgNew
+
+///////////////
+
+sealed trait IdleComponentMsg extends ComponentMsg
 object IdleComponentMsg {
   case object Initialize extends IdleComponentMsg
   case object Start      extends IdleComponentMsg
@@ -61,7 +65,7 @@ object IdleComponentMsg {
 
 ///////////////
 
-sealed trait InitialComponentMsg extends HcdMsgNew with AssemblyMsgNew
+sealed trait InitialComponentMsg extends ComponentMsg
 object InitialComponentMsg {
   case object Run extends InitialComponentMsg
 }
@@ -71,7 +75,7 @@ object InitialComponentMsg {
 sealed trait RunningComponentMsg extends RunningHcdMsgNew with RunningAssemblyMsgNew
 object RunningComponentMsg {
   case class Lifecycle(message: ToComponentLifecycleMessageNew) extends RunningComponentMsg
-  case class DomainHcdMsg[T <: DomainMsgNew](msg: T)            extends RunningComponentMsg
+  case class DomainComponentMsg[T <: DomainMsgNew](message: T)  extends RunningComponentMsg
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
