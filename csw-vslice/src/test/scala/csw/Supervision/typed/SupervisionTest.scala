@@ -1,4 +1,4 @@
-package csw.Supervision
+package csw.Supervision.typed
 
 import akka.typed.ActorSystem
 import akka.typed.scaladsl.Actor
@@ -19,12 +19,18 @@ class SupervisionTest extends FunSuite with Matchers {
   test("abc") {
     val testProbe = TestProbe[FromActorMsg]
 
-    val parent = Await.result(system.systemActorOf(Parent.behavior(), "Parent"), 5.seconds)
+    val parent = Await.result(system.systemActorOf(Supervisor.behavior(), "Parent"), 5.seconds)
 
     parent ! Spawn(testProbe.ref)
     val spawnedActor = testProbe.expectMsgType[Spawned]
 
-    spawnedActor.ref ! Cry
-    testProbe.expectMsgType[Stopped]
+    spawnedActor.ref ! UpdateState(100)
+    spawnedActor.ref ! GetState(testProbe.ref)
+
+    val currentState = testProbe.expectMsgType[CurrentState]
+    println(currentState.x)
+
+    spawnedActor.ref ! Stop(new RuntimeException("You need to stop"))
+    spawnedActor.ref ! GetState(testProbe.ref)
   }
 }

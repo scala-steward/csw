@@ -1,4 +1,4 @@
-package csw.Supervision
+package csw.Supervision.typed
 
 import akka.NotUsed
 import akka.actor.Scheduler
@@ -16,16 +16,12 @@ object SupervisionApp extends App {
     implicit val scheduler: Scheduler = ctx.system.scheduler
     implicit val ec                   = ctx.executionContext
 
-    val parent = ctx.spawn(Parent.behavior(), "parent")
+    val parent = ctx.spawn(Supervisor.behavior(), "parent")
 
     val child = (parent ? Spawn).map(x ⇒ x.ref)
 
-//    child.map(x ⇒ parent ! StopChild(x))
+    child.map(x ⇒ x ! Stop(new RuntimeException("You need to stop")))
 
-    child.map(x ⇒ x ! Stop)
-    child.map(x ⇒ x ! Stop)
-
-    child.map(x ⇒ x ! Cry)
     Actor.empty
   }
 
