@@ -15,9 +15,9 @@ import scala.reflect.ClassTag
 class NewAssemblyBehavior[Msg <: DomainMsgNew: ClassTag](ctx: ActorContext[AssemblyMsgNew],
                                                          supervisor: ActorRef[ComponentResponseMode],
                                                          assemblyHandlers: NewAssemblyHandlers[Msg])
-    extends ComponentBehavior[Msg, AssemblyMsgNew](ctx, supervisor, assemblyHandlers) {
+    extends ComponentBehavior[Msg, AssemblyMsgNew, AssemblyRunMsg](ctx, supervisor, assemblyHandlers) {
 
-  override def onRunningCompCommandMsg(x: AssemblyMsgNew with RunMsg): Unit = x match {
+  override def onRunningCompCommandMsg(x: AssemblyRunMsg): Unit = x match {
     case Submit(command, replyTo) ⇒ onSubmit(command, replyTo)
     case Oneway(command, replyTo) ⇒ onOneWay(command, replyTo)
   }

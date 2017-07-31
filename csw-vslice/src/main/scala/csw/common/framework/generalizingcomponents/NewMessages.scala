@@ -82,16 +82,19 @@ object RunningComponentMsg {
 sealed trait RunMsg
 
 sealed trait HcdMsgNew
+sealed trait HcdRunMsg extends HcdMsgNew with RunMsg
 object HcdMsgNew {
-  case class Submit(command: Setup) extends HcdMsgNew with RunMsg
+  case class Submit(command: Setup) extends HcdRunMsg
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 sealed trait AssemblyMsgNew
+
+sealed trait AssemblyRunMsg extends AssemblyMsgNew with RunMsg
 object AssemblyMsgNew {
-  case class Submit(command: ControlCommand, replyTo: ActorRef[CommandResponse]) extends AssemblyMsgNew with RunMsg
-  case class Oneway(command: ControlCommand, replyTo: ActorRef[CommandResponse]) extends AssemblyMsgNew with RunMsg
+  case class Submit(command: ControlCommand, replyTo: ActorRef[CommandResponse]) extends AssemblyRunMsg
+  case class Oneway(command: ControlCommand, replyTo: ActorRef[CommandResponse]) extends AssemblyRunMsg
 }
 
 ///////////////////////

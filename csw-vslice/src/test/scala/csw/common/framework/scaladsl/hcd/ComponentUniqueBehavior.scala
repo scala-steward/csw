@@ -5,14 +5,17 @@ import akka.typed.scaladsl.{Actor, ActorContext}
 import akka.typed.testkit.TestKitSettings
 import akka.typed.testkit.scaladsl.TestProbe
 import akka.util.Timeout
+import csw.common.components.assembly.AssemblyDomainMessages
 import csw.common.components.hcd.{AxisStatistics, HcdDomainMessage}
-import csw.common.framework.models.{HcdMsg, HcdResponseMode}
+import csw.common.framework.models.Component.AssemblyInfo
 import csw.common.framework.models.HcdResponseMode.{Initialized, Running}
 import csw.common.framework.models.InitialHcdMsg.Run
 import csw.common.framework.models.RunningHcdMsg.DomainHcdMsg
+import csw.common.framework.models.{AssemblyMsg, HcdMsg, HcdResponseMode}
+import csw.common.framework.scaladsl.assembly.{AssemblyHandlers, AssemblyHandlersFactory}
 import org.mockito.Mockito.{verify, when}
-import org.scalatest.{BeforeAndAfterAll, FunSuite, Matchers}
 import org.scalatest.mockito.MockitoSugar
+import org.scalatest.{BeforeAndAfterAll, FunSuite, Matchers}
 
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{Await, Future}
@@ -32,7 +35,12 @@ class ComponentUniqueBehavior extends FunSuite with Matchers with BeforeAndAfter
       override def make(ctx: ActorContext[HcdMsg]): HcdHandlers[HcdDomainMessage] = hcdHandlers
     }
 
-  test("hcd component should send initialize and running message to supervisor") {
+  def getSampleAssemblyFactory(assemblyHandlers: AssemblyHandlers[AssemblyDomainMessages]): AssemblyHandlersFactory[AssemblyDomainMessages] =
+    new AssemblyHandlersFactory[AssemblyDomainMessages] {
+      override def make(ctx: ActorContext[AssemblyMsg], assemblyInfo: AssemblyInfo): AssemblyHandlers[AssemblyDomainMessages] = assemblyHandlers
+    }
+
+  test("hcd component should be able to handle Domain specific messages") {
     val sampleHcdHandler = mock[HcdHandlers[HcdDomainMessage]]
 
     when(sampleHcdHandler.initialize()).thenReturn(Future.unit)

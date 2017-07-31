@@ -1,15 +1,11 @@
 package csw.common.framework.generalizingcomponents
 
-import akka.typed.scaladsl.ActorContext
 import csw.common.framework.models._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 import scala.reflect.ClassTag
 
-abstract class LifecycleHandlers[Msg <: DomainMsgNew: ClassTag, CompMsg >: ComponentMsg](ctx: ActorContext[CompMsg]) {
-
-  implicit val ec: ExecutionContext = ctx.executionContext
-
+abstract class LifecycleHandlers[Msg <: DomainMsgNew: ClassTag] {
   var isOnline: Boolean = false
 
   def initialize(): Future[Unit]

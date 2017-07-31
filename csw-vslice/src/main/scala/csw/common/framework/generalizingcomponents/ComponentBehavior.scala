@@ -7,16 +7,25 @@ import csw.common.framework.generalizingcomponents.FromComponentLifecycleMessage
 import csw.common.framework.generalizingcomponents.IdleComponentMsg.{Initialize, Start}
 import csw.common.framework.generalizingcomponents.InitialComponentMsg.Run
 import csw.common.framework.generalizingcomponents.RunningComponentMsg.{DomainComponentMsg, Lifecycle}
-import csw.common.framework.generalizingcomponents.ToComponentLifecycleMessageNew.{GoOffline, GoOnline, LifecycleFailureInfo, Restart, Shutdown}
+import csw.common.framework.generalizingcomponents.ToComponentLifecycleMessageNew.{
+  GoOffline,
+  GoOnline,
+  LifecycleFailureInfo,
+  Restart,
+  Shutdown
+}
 
 import scala.async.Async.{async, await}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
 
-abstract class ComponentBehavior[Msg <: DomainMsgNew : ClassTag, CompMsg >: ComponentMsg](ctx: ActorContext[CompMsg],
-                                                                                          supervisor: ActorRef[ComponentResponseMode],
-                                                                                          lifecycleHandlers: LifecycleHandlers[Msg, CompMsg])
-  extends Actor.MutableBehavior[CompMsg] {
+abstract class ComponentBehavior[Msg <: DomainMsgNew: ClassTag,
+                                 CompMsg >: ComponentMsg: ClassTag,
+                                 RunCompMsg <: CompMsg with RunMsg: ClassTag](
+    ctx: ActorContext[CompMsg],
+    supervisor: ActorRef[ComponentResponseMode],
+    lifecycleHandlers: LifecycleHandlers[Msg]
+) extends Actor.MutableBehavior[CompMsg] {
 
   implicit val ec: ExecutionContext = ctx.executionContext
 
@@ -24,19 +33,19 @@ abstract class ComponentBehavior[Msg <: DomainMsgNew : ClassTag, CompMsg >: Comp
   ctx.self ! Initialize
 
   def onRun(x: RunningComponentMsg): Unit = x match {
-    case Lifecycle(message) => onLifecycle(message)
+    case Lifecycle(message)               => onLifecycle(message)
     case DomainComponentMsg(message: Msg) => lifecycleHandlers.onDomainMsg(message)
   }
 
-  def onRunningCompCommandMsg(x: CompMsg with RunMsg): Unit
+  def onRunningCompCommandMsg(x: RunCompMsg): Unit
 
   def onMessage(msg: CompMsg): Behavior[CompMsg] = {
     (mode, msg) match {
-      case (Idle, x: IdleComponentMsg) ⇒ onIdle(x)
+      case (Idle, x: IdleComponentMsg)              ⇒ onIdle(x)
       case (_: Initialized, x: InitialComponentMsg) ⇒ onInitial(x)
-      case (_: Running, x: RunningComponentMsg) ⇒ onRun(x)
-      case (_: Running, x: CompMsg with RunMsg) ⇒ onRunningCompCommandMsg(x)
-      case _ ⇒ println(s"current context=$mode does not handle message=$msg")
+      case (_: Running, x: RunningComponentMsg)     ⇒ onRun(x)
+      case (_: Running, x: RunCompMsg)              ⇒ onRunningCompCommandMsg(x)
+      case _                                        ⇒ println(s"current context=$mode does not handle message=$msg")
     }
     this
   }

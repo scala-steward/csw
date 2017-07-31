@@ -30,7 +30,7 @@ class NewAssemblyBehaviorTest extends FunSuite with Matchers with BeforeAndAfter
     system.terminate()
   }
 
-  def getSampleHcdFactory(
+  def getSampleAssemblyFactory(
                            assemblyHandlers: NewAssemblyHandlers[AssemblyDomainMessagesNew]
                          ): AssemblyFactory[AssemblyDomainMessagesNew] =
     new AssemblyFactory[AssemblyDomainMessagesNew] {
@@ -55,7 +55,7 @@ class NewAssemblyBehaviorTest extends FunSuite with Matchers with BeforeAndAfter
     val assemblyRef =
       Await.result(
         system.systemActorOf[Nothing](
-          getSampleHcdFactory(sampleAssemblyHandler).behaviour(assemblyInfo, supervisorProbe.ref),
+          getSampleAssemblyFactory(sampleAssemblyHandler).behaviour(assemblyInfo, supervisorProbe.ref),
           "assembly"
         ),
         5.seconds

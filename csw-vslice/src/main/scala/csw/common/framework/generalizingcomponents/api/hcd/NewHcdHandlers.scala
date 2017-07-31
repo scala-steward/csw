@@ -8,8 +8,7 @@ import csw.param.Parameters.Setup
 
 import scala.reflect.ClassTag
 
-abstract class NewHcdHandlers[Msg <: DomainMsgNew: ClassTag](ctx: ActorContext[HcdMsgNew])
-    extends LifecycleHandlers[Msg, HcdMsgNew](ctx) {
+abstract class NewHcdHandlers[Msg <: DomainMsgNew: ClassTag](ctx: ActorContext[HcdMsgNew]) extends LifecycleHandlers[Msg] {
   val domainAdapter: ActorRef[Msg] = ctx.spawnAdapter(DomainComponentMsg.apply)
 
   def onSetup(sc: Setup): Unit
