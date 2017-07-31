@@ -39,7 +39,6 @@ class ComponentUniqueBehavior extends FunSuite with Matchers with BeforeAndAfter
 
     val supervisorProbe: TestProbe[HcdResponseMode] = TestProbe[HcdResponseMode]
 
-    val hcdRef =
       Await.result(
         system.systemActorOf[Nothing](getSampleHcdFactory(sampleHcdHandler).behaviour(supervisorProbe.ref),
           "sampleHcd"),
