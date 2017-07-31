@@ -35,9 +35,12 @@ class ComponentUniqueBehavior extends FunSuite with Matchers with BeforeAndAfter
       override def make(ctx: ActorContext[HcdMsg]): HcdHandlers[HcdDomainMessage] = hcdHandlers
     }
 
-  def getSampleAssemblyFactory(assemblyHandlers: AssemblyHandlers[AssemblyDomainMessages]): AssemblyHandlersFactory[AssemblyDomainMessages] =
+  def getSampleAssemblyFactory(
+      assemblyHandlers: AssemblyHandlers[AssemblyDomainMessages]
+  ): AssemblyHandlersFactory[AssemblyDomainMessages] =
     new AssemblyHandlersFactory[AssemblyDomainMessages] {
-      override def make(ctx: ActorContext[AssemblyMsg], assemblyInfo: AssemblyInfo): AssemblyHandlers[AssemblyDomainMessages] = assemblyHandlers
+      override def make(ctx: ActorContext[AssemblyMsg],
+                        assemblyInfo: AssemblyInfo): AssemblyHandlers[AssemblyDomainMessages] = assemblyHandlers
     }
 
   test("hcd component should be able to handle Domain specific messages") {
@@ -47,19 +50,19 @@ class ComponentUniqueBehavior extends FunSuite with Matchers with BeforeAndAfter
 
     val supervisorProbe: TestProbe[HcdResponseMode] = TestProbe[HcdResponseMode]
 
-      Await.result(
-        system.systemActorOf[Nothing](getSampleHcdFactory(sampleHcdHandler).behaviour(supervisorProbe.ref),
-          "sampleHcd"),
-        5.seconds
-      )
+    Await.result(
+      system.systemActorOf[Nothing](getSampleHcdFactory(sampleHcdHandler).behaviour(supervisorProbe.ref), "sampleHcd"),
+      5.seconds
+    )
 
     val initialized = supervisorProbe.expectMsgType[Initialized]
     initialized.hcdRef ! Run
 
-    val running = supervisorProbe.expectMsgType[Running]
+    val running        = supervisorProbe.expectMsgType[Running]
     val axisStatistics = AxisStatistics(1)
     running.hcdRef ! DomainHcdMsg(axisStatistics)
 
+    Thread.sleep(1000)
     verify(sampleHcdHandler).onDomainMsg(AxisStatistics(1))
   }
 }

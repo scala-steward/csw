@@ -31,8 +31,8 @@ class NewAssemblyBehaviorTest extends FunSuite with Matchers with BeforeAndAfter
   }
 
   def getSampleAssemblyFactory(
-                           assemblyHandlers: NewAssemblyHandlers[AssemblyDomainMessagesNew]
-                         ): AssemblyFactory[AssemblyDomainMessagesNew] =
+      assemblyHandlers: NewAssemblyHandlers[AssemblyDomainMessagesNew]
+  ): AssemblyFactory[AssemblyDomainMessagesNew] =
     new AssemblyFactory[AssemblyDomainMessagesNew] {
       override def make(ctx: ActorContext[AssemblyMsgNew],
                         assemblyInfo: AssemblyInfo): NewAssemblyHandlers[AssemblyDomainMessagesNew] = assemblyHandlers
@@ -46,11 +46,11 @@ class NewAssemblyBehaviorTest extends FunSuite with Matchers with BeforeAndAfter
     val supervisorProbe = TestProbe[ComponentResponseMode]
 
     val assemblyInfo = AssemblyInfo("trombone",
-      "wfos",
-      "csw.common.components.assembly.SampleAssembly",
-      DoNotRegister,
-      Set(AkkaType),
-      Set.empty)
+                                    "wfos",
+                                    "csw.common.components.assembly.SampleAssembly",
+                                    DoNotRegister,
+                                    Set(AkkaType),
+                                    Set.empty)
 
     val assemblyRef =
       Await.result(
@@ -73,4 +73,3 @@ class NewAssemblyBehaviorTest extends FunSuite with Matchers with BeforeAndAfter
     running.componentRef shouldBe assemblyRef
   }
 }
-

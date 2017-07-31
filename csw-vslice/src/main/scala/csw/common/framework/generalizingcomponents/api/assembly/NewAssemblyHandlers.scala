@@ -10,7 +10,8 @@ import csw.param.Parameters.{Observe, Setup}
 
 import scala.reflect.ClassTag
 
-abstract class NewAssemblyHandlers[Msg <: DomainMsgNew: ClassTag](ctx: ActorContext[AssemblyMsgNew], info: AssemblyInfo) extends LifecycleHandlers[Msg] {
+abstract class NewAssemblyHandlers[Msg <: DomainMsgNew: ClassTag](ctx: ActorContext[AssemblyMsgNew], info: AssemblyInfo)
+    extends LifecycleHandlers[Msg] {
   def setup(s: Setup, commandOriginator: Option[ActorRef[CommandResponse]]): Validation
   def observe(o: Observe, replyTo: Option[ActorRef[CommandResponse]]): Validation
 }
