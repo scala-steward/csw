@@ -6,7 +6,7 @@ import csw.common.framework.models._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
 
-abstract class LifecycleHandlers[Msg <: DomainMsg: ClassTag](ctx: ActorContext[ComponentMsg]) {
+abstract class LifecycleHandlers[Msg <: DomainMsgNew: ClassTag, CompMsg >: ComponentMsg](ctx: ActorContext[CompMsg]) {
 
   implicit val ec: ExecutionContext = ctx.executionContext
 

@@ -72,27 +72,26 @@ object InitialComponentMsg {
 
 ///////////////
 
-sealed trait RunningComponentMsg extends RunningHcdMsgNew with RunningAssemblyMsgNew
+sealed trait RunningComponentMsg extends ComponentMsg
 object RunningComponentMsg {
   case class Lifecycle(message: ToComponentLifecycleMessageNew) extends RunningComponentMsg
   case class DomainComponentMsg[T <: DomainMsgNew](message: T)  extends RunningComponentMsg
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-sealed trait HcdMsgNew
+sealed trait RunMsg
 
-sealed trait RunningHcdMsgNew extends HcdMsgNew
-object RunningHcdMsgNew {
-  case class Submit(command: Setup) extends RunningHcdMsgNew
+sealed trait HcdMsgNew
+object HcdMsgNew {
+  case class Submit(command: Setup) extends HcdMsgNew with RunMsg
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-sealed trait AssemblyMsgNew
 
-sealed trait RunningAssemblyMsgNew extends AssemblyMsgNew
-object RunningAssemblyMsgNew {
-  case class Submit(command: ControlCommand, replyTo: ActorRef[CommandResponse]) extends RunningAssemblyMsgNew
-  case class Oneway(command: ControlCommand, replyTo: ActorRef[CommandResponse]) extends RunningAssemblyMsgNew
+sealed trait AssemblyMsgNew
+object AssemblyMsgNew {
+  case class Submit(command: ControlCommand, replyTo: ActorRef[CommandResponse]) extends AssemblyMsgNew with RunMsg
+  case class Oneway(command: ControlCommand, replyTo: ActorRef[CommandResponse]) extends AssemblyMsgNew with RunMsg
 }
 
 ///////////////////////
