@@ -5,11 +5,12 @@ import akka.typed.scaladsl.{Actor, ActorContext}
 import akka.typed.{ActorRef, Behavior}
 import csw.common.ccs.CommandStatus.{Completed, Error, NoLongerValid}
 import csw.common.ccs.Validation.WrongInternalStateIssue
-import csw.common.framework.models.CommandMsgs
+import csw.common.framework.models.{CommandMsgs, HcdCommandMsg, PubSub}
 import csw.common.framework.models.CommandMsgs.{CommandStart, SetStateResponseE, StopCurrentCommand}
-import csw.common.framework.models.HcdResponseMode.Running
-import csw.common.framework.models.RunningHcdMsg.Submit
+import csw.common.framework.models.ComponentResponseMode.Running
+import csw.common.framework.models.HcdMsg.Submit
 import csw.param.Parameters.Setup
+import csw.param.StateVariable.CurrentState
 import csw.param.UnitsOfMeasure.encoder
 import csw.trombone.assembly._
 import csw.trombone.assembly.actors.TromboneStateActor.{TromboneState, TromboneStateMsg}
@@ -37,6 +38,7 @@ class SetElevationCommand(ctx: ActorContext[CommandMsgs],
   import csw.trombone.assembly.actors.TromboneStateActor._
 
   private val setStateResponseAdapter: ActorRef[StateWasSet] = ctx.spawnAdapter(SetStateResponseE)
+  private var pubSubRef: ActorRef[PubSub[CurrentState]]      = ctx.system.deadLetters
 
   override def onMessage(msg: CommandMsgs): Behavior[CommandMsgs] = msg match {
     case CommandStart(replyTo) =>
@@ -66,9 +68,9 @@ class SetElevationCommand(ctx: ActorContext[CommandMsgs],
                    startState.nss,
                    setStateResponseAdapter)
         )
-        tromboneHCD.hcdRef ! Submit(scOut)
+        tromboneHCD.componentRef.narrow[HcdCommandMsg] ! Submit(scOut)
 
-        Matchers.executeMatch(ctx, stateMatcher, tromboneHCD.pubSubRef, Some(replyTo)) {
+        Matchers.executeMatch(ctx, stateMatcher, pubSubRef, Some(replyTo)) {
           case Completed =>
             stateActor.foreach(
               _ !
@@ -84,7 +86,7 @@ class SetElevationCommand(ctx: ActorContext[CommandMsgs],
       }
       this
     case StopCurrentCommand =>
-      tromboneHCD.hcdRef ! Submit(cancelSC(s.info))
+      tromboneHCD.componentRef.narrow[HcdCommandMsg] ! Submit(cancelSC(s.info))
       this
     case SetStateResponseE(_) ⇒ this
   }

@@ -8,10 +8,11 @@ import akka.typed.{ActorRef, ActorSystem, Behavior}
 import akka.util.Timeout
 import csw.common.ccs.CommandStatus._
 import csw.common.ccs.Validation.{RequiredHCDUnavailableIssue, UnsupportedCommandInStateIssue, WrongInternalStateIssue}
-import csw.common.framework.models.CommandMsgs
+import csw.common.framework.models.{CommandMsgs, HcdCommandMsg, PubSub}
 import csw.common.framework.models.CommandMsgs.StopCurrentCommand
-import csw.common.framework.models.HcdResponseMode.Running
+import csw.common.framework.models.ComponentResponseMode.Running
 import csw.param.Parameters.Setup
+import csw.param.StateVariable.CurrentState
 import csw.trombone.assembly.FollowActorMessages.{SetZenithAngle, StopFollowing}
 import csw.trombone.assembly.TromboneCommandHandlerMsgs._
 import csw.trombone.assembly._
@@ -65,14 +66,15 @@ class TromboneCommandHandler(ctx: ActorContext[TromboneCommandHandlerMsgs],
   private var currentState: TromboneState = defaultTromboneState
 
   private val badHCDReference = ctx.system.deadLetters
-  private val tromboneHCD     = tromboneHCDIn.getOrElse(Running(badHCDReference, badHCDReference))
+  private val tromboneHCD     = tromboneHCDIn.getOrElse(Running(badHCDReference))
 
   private var setElevationItem = naElevation(calculationConfig.defaultInitialElevation)
 
   private var followCommandActor: ActorRef[FollowCommandMessages] = _
   private var currentCommand: ActorRef[CommandMsgs]               = _
 
-  private def isHCDAvailable: Boolean = tromboneHCD.hcdRef != badHCDReference
+  private def isHCDAvailable: Boolean                   = tromboneHCD.componentRef != badHCDReference
+  private var pubSubRef: ActorRef[PubSub[CurrentState]] = ctx.system.deadLetters
 
   override def onMessage(msg: TromboneCommandHandlerMsgs): Behavior[TromboneCommandHandlerMsgs] = {
     (mode, msg) match {
@@ -142,7 +144,11 @@ class TromboneCommandHandler(ctx: ActorContext[TromboneCommandHandlerMsgs],
             val nssItem = s(ac.nssInUseKey)
 
             followCommandActor = ctx.spawnAnonymous(
-              FollowCommand.make(ac, setElevationItem, nssItem, Some(tromboneHCD.hcdRef), allEventPublisher)
+              FollowCommand.make(ac,
+                                 setElevationItem,
+                                 nssItem,
+                                 Some(tromboneHCD.componentRef.narrow[HcdCommandMsg]),
+                                 allEventPublisher)
             )
             mode = Mode.Following
             (tromboneStateActor ? { x: ActorRef[StateWasSet] ⇒
@@ -183,7 +189,7 @@ class TromboneCommandHandler(ctx: ActorContext[TromboneCommandHandlerMsgs],
 
           val zenithAngleItem = s(ac.zenithAngleKey)
           followCommandActor ! SetZenithAngle(zenithAngleItem)
-          Matchers.executeMatch(ctx, Matchers.idleMatcher, tromboneHCD.pubSubRef, Some(replyTo)) {
+          Matchers.executeMatch(ctx, Matchers.idleMatcher, pubSubRef, Some(replyTo)) {
             case Completed =>
               Await.ready(
                 tromboneStateActor ? { x: ActorRef[StateWasSet] ⇒

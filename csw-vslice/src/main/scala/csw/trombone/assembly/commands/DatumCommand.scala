@@ -5,11 +5,12 @@ import akka.typed.scaladsl.{Actor, ActorContext}
 import akka.typed.{ActorRef, Behavior}
 import csw.common.ccs.CommandStatus.{Completed, Error, NoLongerValid}
 import csw.common.ccs.Validation.WrongInternalStateIssue
-import csw.common.framework.models.CommandMsgs
+import csw.common.framework.models.{CommandMsgs, HcdCommandMsg, PubSub}
 import csw.common.framework.models.CommandMsgs.{CommandStart, SetStateResponseE, StopCurrentCommand}
-import csw.common.framework.models.HcdResponseMode.Running
-import csw.common.framework.models.RunningHcdMsg.Submit
+import csw.common.framework.models.ComponentResponseMode.Running
+import csw.common.framework.models.HcdMsg.Submit
 import csw.param.Parameters.Setup
+import csw.param.StateVariable.CurrentState
 import csw.trombone.assembly.Matchers
 import csw.trombone.assembly.actors.TromboneStateActor.{TromboneState, TromboneStateMsg}
 import csw.trombone.hcd.TromboneHcdState
@@ -32,6 +33,7 @@ class DatumCommand(ctx: ActorContext[CommandMsgs],
   import csw.trombone.assembly.actors.TromboneStateActor._
 
   private val setStateResponseAdapter: ActorRef[StateWasSet] = ctx.spawnAdapter(SetStateResponseE)
+  private var pubSubRef: ActorRef[PubSub[CurrentState]]      = ctx.system.deadLetters
 
   override def onMessage(msg: CommandMsgs): Behavior[CommandMsgs] = msg match {
     case CommandStart(replyTo) =>
@@ -47,8 +49,8 @@ class DatumCommand(ctx: ActorContext[CommandMsgs],
                        startState.nss,
                        setStateResponseAdapter)
         )
-        tromboneHCD.hcdRef ! Submit(Setup(s.info, TromboneHcdState.axisDatumCK))
-        Matchers.executeMatch(ctx, Matchers.idleMatcher, tromboneHCD.pubSubRef, Some(replyTo)) {
+        tromboneHCD.componentRef.narrow[HcdCommandMsg] ! Submit(Setup(s.info, TromboneHcdState.axisDatumCK))
+        Matchers.executeMatch(ctx, Matchers.idleMatcher, pubSubRef, Some(replyTo)) {
           case Completed =>
             stateActor.foreach(
               _ ! SetState(cmdReady, moveIndexed, sodiumLayer = false, nss = false, setStateResponseAdapter)
@@ -59,7 +61,7 @@ class DatumCommand(ctx: ActorContext[CommandMsgs],
       }
       this
     case StopCurrentCommand =>
-      tromboneHCD.hcdRef ! Submit(TromboneHcdState.cancelSC(s.info))
+      tromboneHCD.componentRef.narrow[HcdCommandMsg] ! Submit(TromboneHcdState.cancelSC(s.info))
       this
 
     case SetStateResponseE(response: StateWasSet) => // ignore confirmation

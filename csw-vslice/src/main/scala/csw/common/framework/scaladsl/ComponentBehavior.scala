@@ -1,27 +1,28 @@
-package csw.common.framework.generalizingcomponents
+package csw.common.framework.scaladsl
 
 import akka.typed.scaladsl.{Actor, ActorContext}
 import akka.typed.{ActorRef, Behavior}
-import csw.common.framework.generalizingcomponents.ComponentResponseMode.{Idle, Initialized, Running}
-import csw.common.framework.generalizingcomponents.FromComponentLifecycleMessageNew.ShutdownComplete
-import csw.common.framework.generalizingcomponents.IdleComponentMsg.{Initialize, Start}
-import csw.common.framework.generalizingcomponents.InitialComponentMsg.Run
-import csw.common.framework.generalizingcomponents.RunningComponentMsg.{DomainComponentMsg, Lifecycle}
-import csw.common.framework.generalizingcomponents.ToComponentLifecycleMessageNew.{
+import csw.common.framework.models.ComponentResponseMode.{Idle, Initialized, Running}
+import csw.common.framework.models.FromComponentLifecycleMessage.ShutdownComplete
+import csw.common.framework.models.IdleMsg.{Initialize, Start}
+import csw.common.framework.models.InitialMsg.Run
+import csw.common.framework.models.RunningMsg.{DomainComponentMsg, Lifecycle}
+import csw.common.framework.models.ToComponentLifecycleMessage.{
   GoOffline,
   GoOnline,
   LifecycleFailureInfo,
   Restart,
   Shutdown
 }
+import csw.common.framework.models._
 
 import scala.async.Async.{async, await}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
 
-abstract class ComponentBehavior[Msg <: DomainMsgNew: ClassTag,
+abstract class ComponentBehavior[Msg <: DomainMsg: ClassTag,
                                  CompMsg >: ComponentMsg: ClassTag,
-                                 RunCompMsg <: CompMsg with RunMsg: ClassTag](
+                                 RunCompMsg <: CompMsg with CommandMsg: ClassTag](
     ctx: ActorContext[CompMsg],
     supervisor: ActorRef[ComponentResponseMode],
     lifecycleHandlers: LifecycleHandlers[Msg]
@@ -32,7 +33,7 @@ abstract class ComponentBehavior[Msg <: DomainMsgNew: ClassTag,
   var mode: ComponentResponseMode = Idle
   ctx.self ! Initialize
 
-  def onRun(x: RunningComponentMsg): Unit = x match {
+  def onRun(x: RunningMsg): Unit = x match {
     case Lifecycle(message)               => onLifecycle(message)
     case DomainComponentMsg(message: Msg) => lifecycleHandlers.onDomainMsg(message)
   }
@@ -41,11 +42,11 @@ abstract class ComponentBehavior[Msg <: DomainMsgNew: ClassTag,
 
   def onMessage(msg: CompMsg): Behavior[CompMsg] = {
     (mode, msg) match {
-      case (Idle, x: IdleComponentMsg)              ⇒ onIdle(x)
-      case (_: Initialized, x: InitialComponentMsg) ⇒ onInitial(x)
-      case (_: Running, x: RunningComponentMsg)     ⇒ onRun(x)
-      case (_: Running, x: RunCompMsg)              ⇒ onRunningCompCommandMsg(x)
-      case _                                        ⇒ println(s"current context=$mode does not handle message=$msg")
+      case (Idle, x: IdleMsg)              ⇒ onIdle(x)
+      case (_: Initialized, x: InitialMsg) ⇒ onInitial(x)
+      case (_: Running, x: RunningMsg)     ⇒ onRun(x)
+      case (_: Running, x: RunCompMsg)     ⇒ onRunningCompCommandMsg(x)
+      case _                               ⇒ println(s"current context=$mode does not handle message=$msg")
     }
     this
   }
@@ -55,7 +56,7 @@ abstract class ComponentBehavior[Msg <: DomainMsgNew: ClassTag,
     mode = Initialized(ctx.self)
   }
 
-  private def onIdle(x: IdleComponentMsg): Unit = x match {
+  private def onIdle(x: IdleMsg): Unit = x match {
     case Initialize =>
       async {
         await(initialization())
@@ -68,7 +69,7 @@ abstract class ComponentBehavior[Msg <: DomainMsgNew: ClassTag,
       }
   }
 
-  private def onInitial(x: InitialComponentMsg): Unit = x match {
+  private def onInitial(x: InitialMsg): Unit = x match {
     case Run =>
       lifecycleHandlers.onRun()
       val running = Running(ctx.self.upcast)
@@ -77,7 +78,7 @@ abstract class ComponentBehavior[Msg <: DomainMsgNew: ClassTag,
       supervisor ! running
   }
 
-  private def onLifecycle(message: ToComponentLifecycleMessageNew): Unit = message match {
+  private def onLifecycle(message: ToComponentLifecycleMessage): Unit = message match {
     case Shutdown =>
       lifecycleHandlers.onShutdown()
       supervisor ! ShutdownComplete

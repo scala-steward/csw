@@ -7,17 +7,18 @@ import akka.typed.testkit.scaladsl.TestProbe
 import akka.util.Timeout
 import csw.common.components.assembly.AssemblyDomainMessages
 import csw.common.components.hcd.{AxisStatistics, HcdDomainMessage}
-import csw.common.framework.models.Component.AssemblyInfo
+import csw.common.framework.models.Component.{AssemblyInfo, DoNotRegister, HcdInfo}
 import csw.common.framework.models.HcdResponseMode.{Initialized, Running}
 import csw.common.framework.models.InitialHcdMsg.Run
 import csw.common.framework.models.RunningHcdMsg.DomainHcdMsg
 import csw.common.framework.models.{AssemblyMsg, HcdMsg, HcdResponseMode}
 import csw.common.framework.scaladsl.assembly.{AssemblyHandlers, AssemblyHandlersFactory}
+import csw.services.location.models.ConnectionType.AkkaType
 import org.mockito.Mockito.{verify, when}
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterAll, FunSuite, Matchers}
 
-import scala.concurrent.duration.DurationInt
+import scala.concurrent.duration.{DurationInt, FiniteDuration}
 import scala.concurrent.{Await, Future}
 
 class ComponentUniqueBehavior extends FunSuite with Matchers with BeforeAndAfterAll with MockitoSugar {
@@ -32,7 +33,7 @@ class ComponentUniqueBehavior extends FunSuite with Matchers with BeforeAndAfter
 
   def getSampleHcdFactory(hcdHandlers: HcdHandlers[HcdDomainMessage]): HcdHandlersFactory[HcdDomainMessage] =
     new HcdHandlersFactory[HcdDomainMessage] {
-      override def make(ctx: ActorContext[HcdMsg]): HcdHandlers[HcdDomainMessage] = hcdHandlers
+      override def make(ctx: ActorContext[HcdMsg], hcdInfo: HcdInfo): HcdHandlers[HcdDomainMessage] = hcdHandlers
     }
 
   def getSampleAssemblyFactory(
@@ -50,8 +51,17 @@ class ComponentUniqueBehavior extends FunSuite with Matchers with BeforeAndAfter
 
     val supervisorProbe: TestProbe[HcdResponseMode] = TestProbe[HcdResponseMode]
 
+    val hcdInfo =
+      HcdInfo("SampleHcd",
+              "wfos",
+              "csw.common.components.assembly.SampleAssembly",
+              DoNotRegister,
+              Set(AkkaType),
+              FiniteDuration(5, "seconds"))
+
     Await.result(
-      system.systemActorOf[Nothing](getSampleHcdFactory(sampleHcdHandler).behaviour(supervisorProbe.ref), "sampleHcd"),
+      system.systemActorOf[Nothing](getSampleHcdFactory(sampleHcdHandler).behaviour(hcdInfo, supervisorProbe.ref),
+                                    "sampleHcd"),
       5.seconds
     )
 

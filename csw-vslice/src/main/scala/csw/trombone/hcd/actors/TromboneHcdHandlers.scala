@@ -16,7 +16,7 @@ import csw.trombone.hcd.TromboneEngineering.{GetAxisConfig, GetAxisStats, GetAxi
 import csw.trombone.hcd._
 
 import scala.async.Async._
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.concurrent.duration.DurationLong
 
 class TromboneHcdHandlersFactory extends HcdHandlersFactory[TromboneMsg] {
@@ -26,8 +26,9 @@ class TromboneHcdHandlersFactory extends HcdHandlersFactory[TromboneMsg] {
 
 class TromboneHcdHandlers(ctx: ActorContext[HcdMsg], hcdInfo: HcdInfo) extends HcdHandlers[TromboneMsg](ctx, hcdInfo) {
 
-  implicit val timeout              = Timeout(2.seconds)
-  implicit val scheduler: Scheduler = ctx.system.scheduler
+  implicit val timeout                      = Timeout(2.seconds)
+  implicit val scheduler: Scheduler         = ctx.system.scheduler
+  implicit val ec: ExecutionContextExecutor = ctx.executionContext
 
   var current: AxisUpdate                 = _
   var stats: AxisStatistics               = _
@@ -92,7 +93,7 @@ class TromboneHcdHandlers(ctx: ActorContext[HcdMsg], hcdInfo: HcdInfo) extends H
         startValueKey  -> axisConfig.startPosition,
         stepDelayMSKey -> axisConfig.stepDelayMS
       )
-      pubSubRef ! PubSub.Publish(axisConfigState)
+//      pubSubRef ! PubSub.Publish(axisConfigState)
   }
 
   private def onAxisResponse(axisResponse: AxisResponse): Unit = axisResponse match {
@@ -107,7 +108,7 @@ class TromboneHcdHandlers(ctx: ActorContext[HcdMsg], hcdInfo: HcdInfo) extends H
         inHighLimitKey -> inHighLimit,
         inHomeKey      -> inHomed
       )
-      pubSubRef ! PubSub.Publish(tromboneAxisState)
+//      pubSubRef ! PubSub.Publish(tromboneAxisState)
       current = au
     case AxisFailure(reason) =>
     case as: AxisStatistics =>
@@ -121,7 +122,7 @@ class TromboneHcdHandlers(ctx: ActorContext[HcdMsg], hcdInfo: HcdInfo) extends H
         failureCountKey -> as.failureCount,
         cancelCountKey  -> as.cancelCount
       )
-      pubSubRef ! PubSub.Publish(tromboneStats)
+//      pubSubRef ! PubSub.Publish(tromboneStats)
       stats = as
   }
 

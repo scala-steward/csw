@@ -16,7 +16,7 @@ import csw.trombone.assembly.TromboneCommandHandlerMsgs.NotFollowingMsgs
 import csw.trombone.assembly._
 
 import scala.async.Async.{async, await}
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContextExecutor, Future}
 
 class TromboneAssemblyHandlersFactory extends AssemblyHandlersFactory[DiagPublisherMessages] {
   override def make(ctx: ActorContext[AssemblyMsg],
@@ -26,6 +26,9 @@ class TromboneAssemblyHandlersFactory extends AssemblyHandlersFactory[DiagPublis
 
 class TromboneAssemblyHandlers(ctx: ActorContext[AssemblyMsg], info: AssemblyInfo)
     extends AssemblyHandlers[DiagPublisherMessages](ctx, info) {
+
+  implicit val ec: ExecutionContextExecutor             = ctx.executionContext
+  val runningHcd: Option[ComponentResponseMode.Running] = None
 
   private var diagPublsher: ActorRef[DiagPublisherMessages] = _
 
@@ -55,7 +58,7 @@ class TromboneAssemblyHandlers(ctx: ActorContext[AssemblyMsg], info: AssemblyInf
   override def onGoOnline(): Unit = {
     println("Received doshutdown")
     runningHcd.foreach(
-      _.hcdRef ! RunningHcdMsg
+      _.componentRef ! RunningMsg
         .Lifecycle(ToComponentLifecycleMessage.Shutdown)
     )
   }
