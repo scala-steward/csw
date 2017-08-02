@@ -7,8 +7,6 @@ import akka.typed.scaladsl.Actor.MutableBehavior
 import akka.typed.scaladsl.{Actor, ActorContext}
 import akka.typed.{ActorRef, Behavior}
 import csw.common.framework.models.ComponentResponseMode.Running
-import csw.common.framework.models.PubSub
-import csw.common.framework.models.RunningMsg.DomainComponentMsg
 import csw.param.StateVariable.CurrentState
 import csw.trombone.assembly.DiagPublisherMessages._
 import csw.trombone.assembly.TrombonePublisherMsg.{AxisStateUpdate, AxisStatsUpdate}
@@ -95,7 +93,7 @@ class DiagPublisher(ctx: ActorContext[DiagPublisherMessages],
       publishStatsUpdate(cs)
 
     case TimeForAxisStats(periodInSeconds) =>
-      running.foreach(_.componentRef ! DomainComponentMsg(GetAxisStats))
+      running.foreach(_.componentRef ! GetAxisStats)
       val canceltoken: Cancellable =
         ctx.schedule(Instant.now().plusSeconds(periodInSeconds).toEpochMilli.millis,
                      ctx.self,

@@ -5,10 +5,10 @@ import akka.typed.scaladsl.{Actor, ActorContext}
 import akka.typed.{ActorRef, Behavior}
 import csw.common.ccs.CommandStatus.{Completed, Error, NoLongerValid}
 import csw.common.ccs.Validation.WrongInternalStateIssue
-import csw.common.framework.models.{CommandMsgs, HcdCommandMsg, PubSub}
 import csw.common.framework.models.CommandMsgs.{CommandStart, SetStateResponseE, StopCurrentCommand}
 import csw.common.framework.models.ComponentResponseMode.Running
 import csw.common.framework.models.HcdMsg.Submit
+import csw.common.framework.models.{CommandMsgs, PubSub}
 import csw.param.Parameters.Setup
 import csw.param.StateVariable.CurrentState
 import csw.param.UnitsOfMeasure.encoder
@@ -66,7 +66,7 @@ class PositionCommand(ctx: ActorContext[CommandMsgs],
                    startState.nss,
                    setStateResponseAdapter)
         )
-        tromboneHCD.componentRef.narrow[HcdCommandMsg] ! Submit(scOut)
+        tromboneHCD.componentRef ! Submit(scOut)
 
         Matchers.executeMatch(ctx, stateMatcher, pubSubRef, Some(replyTo)) {
           case Completed =>
@@ -84,7 +84,7 @@ class PositionCommand(ctx: ActorContext[CommandMsgs],
       }
       this
     case StopCurrentCommand =>
-      tromboneHCD.componentRef.narrow[HcdCommandMsg] ! Submit(TromboneHcdState.cancelSC(s.info))
+      tromboneHCD.componentRef ! Submit(TromboneHcdState.cancelSC(s.info))
       this
     case SetStateResponseE(_) ⇒ this
   }

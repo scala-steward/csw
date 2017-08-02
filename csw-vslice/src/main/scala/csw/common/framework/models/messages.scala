@@ -150,15 +150,6 @@ object ToComponentLifecycleMessage {
 
 ///////////////
 
-sealed trait ComponentResponseMode
-object ComponentResponseMode {
-  case object Idle                                           extends ComponentResponseMode
-  case class Initialized(componentRef: ActorRef[InitialMsg]) extends ComponentResponseMode
-  case class Running(componentRef: ActorRef[RunningMsg])     extends ComponentResponseMode
-}
-
-///////////////
-
 sealed trait FromComponentLifecycleMessage extends ComponentResponseMode
 object FromComponentLifecycleMessage {
   case class InitializeFailure(reason: String) extends FromComponentLifecycleMessage
@@ -188,11 +179,16 @@ object CommandMsgs {
 
 ///////////////
 
-trait DomainMsg
+sealed trait ComponentResponseMode
+object ComponentResponseMode {
+  case object Idle                                           extends ComponentResponseMode
+  case class Initialized(componentRef: ActorRef[InitialMsg]) extends ComponentResponseMode
+  case class Running(componentRef: ActorRef[RunningMsg])     extends ComponentResponseMode
+}
 
 ///////////////
 
-sealed trait ComponentMsg extends HcdMsg with AssemblyMsg
+sealed trait ComponentMsg
 
 ///////////////
 
@@ -214,26 +210,24 @@ object InitialMsg {
 sealed trait RunningMsg extends ComponentMsg
 object RunningMsg {
   case class Lifecycle(message: ToComponentLifecycleMessage) extends RunningMsg
-  case class DomainComponentMsg[T <: DomainMsg](message: T)  extends RunningMsg
+  trait DomainMsg                                            extends RunningMsg
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-sealed trait CommandMsg
+sealed trait CompSpecificMsg extends RunningMsg
 
-sealed trait HcdMsg
-sealed trait HcdCommandMsg extends HcdMsg with CommandMsg
+sealed trait HcdMsg extends CompSpecificMsg
 object HcdMsg {
-  case class Submit(command: Setup) extends HcdCommandMsg
+  case class Submit(command: Setup) extends HcdMsg
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-sealed trait AssemblyMsg
+sealed trait AssemblyMsg extends CompSpecificMsg
 
-sealed trait AssemblyCommandMsg extends AssemblyMsg with CommandMsg
 object AssemblyMsg {
-  case class Submit(command: ControlCommand, replyTo: ActorRef[CommandResponse]) extends AssemblyCommandMsg
-  case class Oneway(command: ControlCommand, replyTo: ActorRef[CommandResponse]) extends AssemblyCommandMsg
+  case class Submit(command: ControlCommand, replyTo: ActorRef[CommandResponse]) extends AssemblyMsg
+  case class Oneway(command: ControlCommand, replyTo: ActorRef[CommandResponse]) extends AssemblyMsg
 }
 
 ///////////////////////

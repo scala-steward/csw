@@ -3,7 +3,8 @@ package csw.common.framework.scaladsl.hcd
 import akka.typed.scaladsl.{Actor, ActorContext}
 import akka.typed.{ActorRef, Behavior}
 import csw.common.framework.models.Component.HcdInfo
-import csw.common.framework.models.{ComponentResponseMode, DomainMsg, HcdMsg}
+import csw.common.framework.models.RunningMsg.DomainMsg
+import csw.common.framework.models.{ComponentMsg, ComponentResponseMode}
 
 import scala.reflect.ClassTag
 
@@ -16,8 +17,8 @@ import scala.reflect.ClassTag
 
 abstract class HcdHandlersFactory[Msg <: DomainMsg: ClassTag] {
 
-  def make(ctx: ActorContext[HcdMsg], hcdInfo: HcdInfo): HcdHandlers[Msg]
+  def make(ctx: ActorContext[ComponentMsg], hcdInfo: HcdInfo): HcdHandlers[Msg]
 
   def behaviour(supervisor: ActorRef[ComponentResponseMode], hcdInfo: HcdInfo): Behavior[Nothing] =
-    Actor.mutable[HcdMsg](ctx ⇒ new HcdBehavior[Msg](ctx, supervisor, make(ctx, hcdInfo))).narrow
+    Actor.mutable[ComponentMsg](ctx ⇒ new HcdBehavior[Msg](ctx, supervisor, make(ctx, hcdInfo))).narrow
 }

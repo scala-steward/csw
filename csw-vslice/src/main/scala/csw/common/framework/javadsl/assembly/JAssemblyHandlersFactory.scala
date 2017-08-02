@@ -4,17 +4,18 @@ import akka.typed.javadsl.ActorContext
 import akka.typed.scaladsl.Actor
 import akka.typed.{ActorRef, Behavior}
 import csw.common.framework.models.Component.AssemblyInfo
-import csw.common.framework.models.{AssemblyMsg, ComponentResponseMode, DomainMsg}
+import csw.common.framework.models.RunningMsg.DomainMsg
+import csw.common.framework.models.{ComponentMsg, ComponentResponseMode}
 import csw.common.framework.scaladsl.assembly.AssemblyBehavior
 
 import scala.reflect.ClassTag
 
 abstract class JAssemblyHandlersFactory[Msg <: DomainMsg](klass: Class[Msg]) {
-  def make(ctx: ActorContext[AssemblyMsg], assemblyInfo: AssemblyInfo): JAssemblyHandlers[Msg]
+  def make(ctx: ActorContext[ComponentMsg], assemblyInfo: AssemblyInfo): JAssemblyHandlers[Msg]
 
   def behaviour(assemblyInfo: AssemblyInfo, supervisor: ActorRef[ComponentResponseMode]): Behavior[Nothing] = {
     Actor
-      .mutable[AssemblyMsg](
+      .mutable[ComponentMsg](
         ctx ⇒ new AssemblyBehavior[Msg](ctx, supervisor, make(ctx.asJava, assemblyInfo))(ClassTag(klass))
       )
       .narrow

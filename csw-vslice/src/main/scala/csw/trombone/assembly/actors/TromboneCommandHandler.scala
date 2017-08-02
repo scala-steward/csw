@@ -8,9 +8,9 @@ import akka.typed.{ActorRef, ActorSystem, Behavior}
 import akka.util.Timeout
 import csw.common.ccs.CommandStatus._
 import csw.common.ccs.Validation.{RequiredHCDUnavailableIssue, UnsupportedCommandInStateIssue, WrongInternalStateIssue}
-import csw.common.framework.models.{CommandMsgs, HcdCommandMsg, PubSub}
 import csw.common.framework.models.CommandMsgs.StopCurrentCommand
 import csw.common.framework.models.ComponentResponseMode.Running
+import csw.common.framework.models.{CommandMsgs, PubSub}
 import csw.param.Parameters.Setup
 import csw.param.StateVariable.CurrentState
 import csw.trombone.assembly.FollowActorMessages.{SetZenithAngle, StopFollowing}
@@ -144,11 +144,7 @@ class TromboneCommandHandler(ctx: ActorContext[TromboneCommandHandlerMsgs],
             val nssItem = s(ac.nssInUseKey)
 
             followCommandActor = ctx.spawnAnonymous(
-              FollowCommand.make(ac,
-                                 setElevationItem,
-                                 nssItem,
-                                 Some(tromboneHCD.componentRef.narrow[HcdCommandMsg]),
-                                 allEventPublisher)
+              FollowCommand.make(ac, setElevationItem, nssItem, Some(tromboneHCD.componentRef), allEventPublisher)
             )
             mode = Mode.Following
             (tromboneStateActor ? { x: ActorRef[StateWasSet] ⇒

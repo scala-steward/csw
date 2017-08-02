@@ -19,12 +19,12 @@ import scala.async.Async.{async, await}
 import scala.concurrent.{ExecutionContextExecutor, Future}
 
 class TromboneAssemblyHandlersFactory extends AssemblyHandlersFactory[DiagPublisherMessages] {
-  override def make(ctx: ActorContext[AssemblyMsg],
+  override def make(ctx: ActorContext[ComponentMsg],
                     assemblyInfo: AssemblyInfo): AssemblyHandlers[DiagPublisherMessages] =
     new TromboneAssemblyHandlers(ctx, assemblyInfo)
 }
 
-class TromboneAssemblyHandlers(ctx: ActorContext[AssemblyMsg], info: AssemblyInfo)
+class TromboneAssemblyHandlers(ctx: ActorContext[ComponentMsg], info: AssemblyInfo)
     extends AssemblyHandlers[DiagPublisherMessages](ctx, info) {
 
   implicit val ec: ExecutionContextExecutor             = ctx.executionContext

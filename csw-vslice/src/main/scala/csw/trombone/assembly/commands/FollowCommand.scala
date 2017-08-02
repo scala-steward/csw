@@ -3,8 +3,8 @@ package csw.trombone.assembly.commands
 import akka.typed.scaladsl.Actor.MutableBehavior
 import akka.typed.scaladsl.{Actor, ActorContext}
 import akka.typed.{ActorRef, Behavior}
-import csw.common.framework.models.HcdCommandMsg
 import csw.common.framework.models.HcdMsg.Submit
+import csw.common.framework.models.RunningMsg
 import csw.param.Events.EventTime
 import csw.param.parameters.GParam
 import csw.param.parameters.primitives.DoubleParameter
@@ -18,7 +18,7 @@ object FollowCommand {
   def make(assemblyContext: AssemblyContext,
            initialElevation: DoubleParameter,
            nssInUse: GParam[Boolean],
-           tromboneHCD: Option[ActorRef[HcdCommandMsg]],
+           tromboneHCD: Option[ActorRef[RunningMsg]],
            eventPublisher: Option[ActorRef[TrombonePublisherMsg]]): Behavior[FollowCommandMessages] =
     Actor.mutable(
       ctx ⇒ new FollowCommand(assemblyContext, initialElevation, nssInUse, tromboneHCD, eventPublisher, ctx)

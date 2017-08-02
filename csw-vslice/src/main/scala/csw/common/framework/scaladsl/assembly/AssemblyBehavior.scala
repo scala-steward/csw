@@ -5,6 +5,7 @@ import akka.typed.scaladsl.ActorContext
 import csw.common.ccs.CommandStatus
 import csw.common.ccs.CommandStatus.CommandResponse
 import csw.common.framework.models.AssemblyMsg.{Oneway, Submit}
+import csw.common.framework.models.RunningMsg.DomainMsg
 import csw.common.framework.models._
 import csw.common.framework.scaladsl.ComponentBehavior
 import csw.param.Parameters
@@ -118,12 +119,12 @@ import scala.reflect.ClassTag
 //  }
 //}
 
-class AssemblyBehavior[Msg <: DomainMsg: ClassTag](ctx: ActorContext[AssemblyMsg],
+class AssemblyBehavior[Msg <: DomainMsg: ClassTag](ctx: ActorContext[ComponentMsg],
                                                    supervisor: ActorRef[ComponentResponseMode],
                                                    assemblyHandlers: AssemblyHandlers[Msg])
-    extends ComponentBehavior[Msg, AssemblyMsg, AssemblyCommandMsg](ctx, supervisor, assemblyHandlers) {
+    extends ComponentBehavior[Msg, AssemblyMsg](ctx, supervisor, assemblyHandlers) {
 
-  override def onRunningCompCommandMsg(x: AssemblyCommandMsg): Unit = x match {
+  override def onRunningCompCommandMsg(x: AssemblyMsg): Unit = x match {
     case Submit(command, replyTo) ⇒ onSubmit(command, replyTo)
     case Oneway(command, replyTo) ⇒ onOneWay(command, replyTo)
   }

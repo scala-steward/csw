@@ -20,11 +20,12 @@ import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.concurrent.duration.DurationLong
 
 class TromboneHcdHandlersFactory extends HcdHandlersFactory[TromboneMsg] {
-  override def make(ctx: ActorContext[HcdMsg], hcdInfo: HcdInfo): HcdHandlers[TromboneMsg] =
+  override def make(ctx: ActorContext[ComponentMsg], hcdInfo: HcdInfo): HcdHandlers[TromboneMsg] =
     new TromboneHcdHandlers(ctx, hcdInfo)
 }
 
-class TromboneHcdHandlers(ctx: ActorContext[HcdMsg], hcdInfo: HcdInfo) extends HcdHandlers[TromboneMsg](ctx, hcdInfo) {
+class TromboneHcdHandlers(ctx: ActorContext[ComponentMsg], hcdInfo: HcdInfo)
+    extends HcdHandlers[TromboneMsg](ctx, hcdInfo) {
 
   implicit val timeout                      = Timeout(2.seconds)
   implicit val scheduler: Scheduler         = ctx.system.scheduler
@@ -37,7 +38,7 @@ class TromboneHcdHandlers(ctx: ActorContext[HcdMsg], hcdInfo: HcdInfo) extends H
 
   override def initialize(): Future[Unit] = async {
     axisConfig = await(getAxisConfig)
-    tromboneAxis = ctx.spawnAnonymous(AxisSimulator.behaviour(axisConfig, Some(domainAdapter)))
+    tromboneAxis = ctx.spawnAnonymous(AxisSimulator.behaviour(axisConfig, Some(ctx.self)))
     current = await(tromboneAxis ? InitialState)
     stats = await(tromboneAxis ? GetStatistics)
   }
@@ -79,7 +80,7 @@ class TromboneHcdHandlers(ctx: ActorContext[HcdMsg], hcdInfo: HcdInfo) extends H
   }
 
   private def onEngMsg(tromboneEngineering: TromboneEngineering): Unit = tromboneEngineering match {
-    case GetAxisStats              => tromboneAxis ! GetStatistics(domainAdapter)
+    case GetAxisStats              => tromboneAxis ! GetStatistics(ctx.self)
     case GetAxisUpdate             => tromboneAxis ! PublishAxisUpdate
     case GetAxisUpdateNow(replyTo) => replyTo ! current
     case GetAxisConfig =>

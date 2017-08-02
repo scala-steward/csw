@@ -5,10 +5,10 @@ import akka.typed.scaladsl.{Actor, ActorContext}
 import akka.typed.{ActorRef, Behavior}
 import csw.common.ccs.CommandStatus.{Completed, Error, NoLongerValid}
 import csw.common.ccs.Validation.WrongInternalStateIssue
-import csw.common.framework.models.{CommandMsgs, HcdCommandMsg, PubSub}
 import csw.common.framework.models.CommandMsgs.{CommandStart, SetStateResponseE, StopCurrentCommand}
 import csw.common.framework.models.ComponentResponseMode.Running
 import csw.common.framework.models.HcdMsg.Submit
+import csw.common.framework.models.{CommandMsgs, PubSub}
 import csw.param.Parameters.Setup
 import csw.param.StateVariable.CurrentState
 import csw.trombone.assembly.Matchers
@@ -49,7 +49,7 @@ class DatumCommand(ctx: ActorContext[CommandMsgs],
                        startState.nss,
                        setStateResponseAdapter)
         )
-        tromboneHCD.componentRef.narrow[HcdCommandMsg] ! Submit(Setup(s.info, TromboneHcdState.axisDatumCK))
+        tromboneHCD.componentRef ! Submit(Setup(s.info, TromboneHcdState.axisDatumCK))
         Matchers.executeMatch(ctx, Matchers.idleMatcher, pubSubRef, Some(replyTo)) {
           case Completed =>
             stateActor.foreach(
@@ -61,7 +61,7 @@ class DatumCommand(ctx: ActorContext[CommandMsgs],
       }
       this
     case StopCurrentCommand =>
-      tromboneHCD.componentRef.narrow[HcdCommandMsg] ! Submit(TromboneHcdState.cancelSC(s.info))
+      tromboneHCD.componentRef ! Submit(TromboneHcdState.cancelSC(s.info))
       this
 
     case SetStateResponseE(response: StateWasSet) => // ignore confirmation

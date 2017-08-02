@@ -1,5 +1,6 @@
 package csw.common.framework.scaladsl
 
+import csw.common.framework.models.RunningMsg.DomainMsg
 import csw.common.framework.models._
 
 import scala.concurrent.Future
