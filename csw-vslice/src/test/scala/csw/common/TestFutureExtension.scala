@@ -1,4 +1,4 @@
-package csw.services.location.commons
+package csw.common
 
 import scala.concurrent.duration.DurationLong
 import scala.concurrent.{Await, Future}

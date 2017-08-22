@@ -1,6 +1,7 @@
 package csw.common.framework.internal
 
 import akka.typed.scaladsl.Actor.MutableBehavior
+import akka.typed.scaladsl.adapter.TypedActorRefOps
 import akka.typed.scaladsl.{ActorContext, TimerScheduler}
 import akka.typed.{ActorRef, Behavior, Signal, Terminated}
 import csw.common.framework.internal.SupervisorMode.Idle
@@ -39,6 +40,7 @@ class Supervisor(
 
   import Supervisor._
 
+  println(ctx.self)
   val name: String                                   = componentInfo.name
   val componentId                                    = ComponentId(name, componentInfo.componentType)
   var haltingFlag                                    = false

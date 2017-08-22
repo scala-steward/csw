@@ -55,6 +55,7 @@ class FrameworkIntegrationTest extends FrameworkComponentTestSuite with MockitoS
 
     // it creates supervisor which in turn spawns components TLA and sends Initialize and Run message to TLA
     supervisorRef = Await.result(system.systemActorOf(supervisorBehavior, "hcd-supervisor"), 5.seconds)
+    println(supervisorRef)
     supervisorRef ! ComponentStateSubscription(Subscribe(compStateProbe.ref))
     supervisorRef ! LifecycleStateSubscription(Subscribe(lifecycleStateProbe.ref))
 

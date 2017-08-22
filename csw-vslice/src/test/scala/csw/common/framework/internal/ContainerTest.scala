@@ -2,8 +2,10 @@ package csw.common.framework.internal
 
 import akka.typed.ActorSystem
 import akka.typed.scaladsl.Actor
+import akka.typed.scaladsl.adapter.TypedActorRefOps
 import akka.typed.testkit.scaladsl.TestProbe
-import akka.typed.testkit.{StubbedActorContext, TestKitSettings}
+import akka.typed.testkit.{EffectfulActorContext, StubbedActorContext, TestKitSettings}
+import csw.common.TestFutureExtension.RichFuture
 import csw.common.framework.FrameworkComponentTestInfos._
 import csw.common.framework.models.CommonSupervisorMsg.LifecycleStateSubscription
 import csw.common.framework.models.ContainerMsg.{GetComponents, SupervisorModeChanged}
@@ -11,6 +13,10 @@ import csw.common.framework.models.PubSub.{Subscribe, Unsubscribe}
 import csw.common.framework.models.RunningMsg.Lifecycle
 import csw.common.framework.models.ToComponentLifecycleMessage.{GoOffline, GoOnline, Restart}
 import csw.common.framework.models._
+import csw.services.location.models.{AkkaRegistration, ComponentId}
+import csw.services.location.models.ComponentType.Container
+import csw.services.location.models.Connection.AkkaConnection
+import csw.services.location.scaladsl.{LocationService, LocationServiceFactory}
 import org.scalatest.{FunSuite, Matchers}
 
 //DEOPSCSW-182-Control Life Cycle of Components
@@ -18,9 +24,10 @@ class ContainerTest extends FunSuite with Matchers {
   implicit val system: ActorSystem[Nothing] = ActorSystem(Actor.empty, "container-system")
   implicit val settings: TestKitSettings    = TestKitSettings(system)
 
+  private val locationService: LocationService = LocationServiceFactory.make()
   class RunningContainer() {
     val ctx       = new StubbedActorContext[ContainerMsg]("test-container", 100, system)
-    val container = new Container(ctx, containerInfo)
+    val container = new Container(ctx, containerInfo, locationService)
 
     ctx.children.map(
       child ⇒ container.onMessage(SupervisorModeChanged(LifecycleStateChanged(SupervisorMode.Running, child.upcast)))
@@ -33,14 +40,15 @@ class ContainerTest extends FunSuite with Matchers {
 
   test("should start in initialize mode and should not accept any outside messages") {
     val ctx       = new StubbedActorContext[ContainerMsg]("test-container", 100, system)
-    val container = new Container(ctx, containerInfo)
+    val container = new Container(ctx, containerInfo, locationService)
 
     container.mode shouldBe ContainerMode.Idle
   }
 
   test("should change its mode to running after all components move to running mode") {
-    val ctx       = new StubbedActorContext[ContainerMsg]("test-container", 100, system)
-    val container = new Container(ctx, containerInfo)
+    val ctx = new StubbedActorContext[ContainerMsg]("test-container", 100, system)
+
+    val container = new Container(ctx, containerInfo, locationService)
 
     // supervisor per component + lifecycleStateTrackerRef
     ctx.children.size shouldBe (containerInfo.components.size + 1)
@@ -65,6 +73,8 @@ class ContainerTest extends FunSuite with Matchers {
     )
 
     container.mode shouldBe ContainerMode.Running
+    val akkaConnection = AkkaConnection(ComponentId(containerInfo.name, Container))
+    locationService.find(akkaConnection).await.get.connection shouldBe akkaConnection
   }
 
   test("should handle Shutdown message by changing it's mode to Idle and forwarding the message to all components") {
@@ -142,7 +152,7 @@ class ContainerTest extends FunSuite with Matchers {
 
   test("container should be able to handle GetAllComponents message by responding with list of all components") {
     val ctx       = new StubbedActorContext[ContainerMsg]("test-container", 100, system)
-    val container = new Container(ctx, containerInfo)
+    val container = new Container(ctx, containerInfo, locationService)
 
     // Container should handle GetComponents message in Idle mode
     container.mode shouldBe ContainerMode.Idle
