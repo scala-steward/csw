@@ -30,8 +30,8 @@ class DeathwatchActor(locationService: LocationService) extends LocationServiceL
       //find out the ones that are not being watched and watch them
       val unwatchedLocations = akkaLocations diff watchedLocations
       unwatchedLocations.foreach(loc ⇒ {
-        log.debug(s"Started watching actor", Map("actorRef" → loc.actorRef.toString))
-        context.watch(loc.actorRef)
+        log.debug(s"Started watching actor", Map("actorRef" → loc.typedRef.toString))
+        context.watch(loc.typedRef)
       })
       //all akka locations are now watched
       behavior(akkaLocations)
@@ -41,7 +41,7 @@ class DeathwatchActor(locationService: LocationService) extends LocationServiceL
         //stop watching the terminated actor
         ctx.unwatch(deadActorRef)
         //Unregister the dead akka location and remove it from the list of watched locations
-        val maybeLocation = watchedLocations.find(_.actorRef == deadActorRef)
+        val maybeLocation = watchedLocations.find(_.typedRef == deadActorRef)
         maybeLocation match {
           case Some(location) =>
             //if deadActorRef is mapped to a location, unregister it and remove it from watched locations

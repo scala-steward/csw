@@ -151,7 +151,7 @@ public class JLocationServiceExampleClient extends JExampleLoggerActor {
        // example code showing how to get the actorRef for remote component and send it a message
          if (resolveResult.isPresent()) {
             AkkaLocation loc = resolveResult.get();
-                ActorRef actorRef = Adapter.toUntyped(loc.actorRef());
+                ActorRef actorRef = Adapter.toUntyped(loc.typedRef());
                 actorRef.tell(LocationServiceExampleComponent.ClientMessage$.MODULE$, getSelf());
         }
     }

@@ -25,10 +25,10 @@ class LogAdmin(locationService: LocationService, actorRuntime: ActorRuntime) ext
     implicit val timeout = Timeout(5.seconds)
     await(getLocation(componentName)) match {
 
-      case Some(AkkaLocation(connection, _, actorRef)) ⇒
+      case Some(loc @ AkkaLocation(connection, _, _)) ⇒
         log.info("Getting log information from logging system",
-                 Map("componentName" → componentName, "actorRef" → actorRef.toString))
-        await((actorRef.toUntyped ? GetComponentLogMetadata(connection.componentId.name)).mapTo[LogMetadata])
+                 Map("componentName" → componentName, "actorRef" → loc.typedRef.toString))
+        await((loc.typedRef.toUntyped ? GetComponentLogMetadata(connection.componentId.name)).mapTo[LogMetadata])
 
       case _ ⇒ throw UnresolvedAkkaLocationException(componentName)
     }
