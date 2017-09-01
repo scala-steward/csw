@@ -30,7 +30,7 @@ class TestMocks(
     system: ActorSystem[Nothing],
     settings: TestKitSettings
 ) extends MockitoSugar {
-  val akkaRegistration                                              = AkkaRegistration(mock[AkkaConnection], testkit.TestProbe("test-probe").testActor)
+  val akkaRegistration                                              = AkkaRegistration[AnyRef](mock[AkkaConnection], testkit.TestProbe("test-probe").testActor)
   val locationService: LocationService                              = mock[LocationService]
   val registrationResult: RegistrationResult                        = mock[RegistrationResult]
   val registrationFactory: RegistrationFactory                      = mock[RegistrationFactory]
@@ -41,8 +41,9 @@ class TestMocks(
   val eventualRegistrationResult: Future[RegistrationResult] =
     Promise[RegistrationResult].success(registrationResult).future
 
-  when(registrationFactory.akkaTyped(ArgumentMatchers.any[AkkaConnection], ArgumentMatchers.any[ActorRef[_]]))
-    .thenReturn(akkaRegistration)
+  when(
+    registrationFactory.akkaTyped[AnyRef](ArgumentMatchers.any[AkkaConnection], ArgumentMatchers.any[ActorRef[AnyRef]])
+  ).thenReturn(akkaRegistration)
   when(locationService.register(akkaRegistration)).thenReturn(eventualRegistrationResult)
   when(registrationResult.unregister()).thenReturn(eventualDone)
   when(

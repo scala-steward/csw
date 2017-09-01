@@ -38,7 +38,7 @@ class ContainerBehaviorTest extends FunSuite with Matchers with MockitoSugar {
   class IdleContainer() {
     val ctx                                                  = new StubbedActorContext[ContainerMessage]("test-container", 100, typedSystem)
     val supervisorFactory: SupervisorInfoFactory             = mock[SupervisorInfoFactory]
-    val akkaRegistration                                     = AkkaRegistration(mock[AkkaConnection], TestProbe("test-probe").testActor)
+    val akkaRegistration                                     = AkkaRegistration[AnyRef](mock[AkkaConnection], TestProbe("test-probe").testActor)
     val locationService: LocationService                     = mock[LocationService]
     val registrationResult: RegistrationResult               = mock[RegistrationResult]
     private val pubSubBehaviorFactory: PubSubBehaviorFactory = mock[PubSubBehaviorFactory]
@@ -72,8 +72,10 @@ class ContainerBehaviorTest extends FunSuite with Matchers with MockitoSugar {
     ).thenAnswer(answer)
 
     private val registrationFactory: RegistrationFactory = mock[RegistrationFactory]
-    when(registrationFactory.akkaTyped(ArgumentMatchers.any[AkkaConnection], ArgumentMatchers.any[ActorRef[_]]))
-      .thenReturn(akkaRegistration)
+    when(
+      registrationFactory.akkaTyped[AnyRef](ArgumentMatchers.any[AkkaConnection],
+                                            ArgumentMatchers.any[ActorRef[AnyRef]])
+    ).thenReturn(akkaRegistration)
 
     private val eventualRegistrationResult: Future[RegistrationResult] =
       Promise[RegistrationResult].complete(Success(registrationResult)).future

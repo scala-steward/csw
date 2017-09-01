@@ -76,7 +76,7 @@ public class JLocationServiceImplTest implements JLocationServiceLogger {
     @Test
     public void testLocationServiceRegisterWithAkkaHttpTcpAsSequence() throws ExecutionException, InterruptedException {
         int port = 8080;
-        AkkaRegistration akkaRegistration = new AkkaRegistration(akkaHcdConnection, actorRef);
+        AkkaRegistration akkaRegistration = JAkkaRegistration.make(akkaHcdConnection, actorRef);
         HttpRegistration httpRegistration = new HttpRegistration(httpServiceConnection, port, Path);
         TcpRegistration tcpRegistration = new TcpRegistration(tcpServiceConnection, port);
 
@@ -102,7 +102,7 @@ public class JLocationServiceImplTest implements JLocationServiceLogger {
     @Test
     public void testResolveAkkaConnection() throws ExecutionException, InterruptedException {
 
-        AkkaRegistration registration = new AkkaRegistration(akkaHcdConnection, actorRef);
+        AkkaRegistration registration = JAkkaRegistration.make(akkaHcdConnection, actorRef);
         locationService.register(registration).get();
         Assert.assertEquals(registration.location(new Networks().hostname()), locationService.find(akkaHcdConnection).get().get());
     }
@@ -136,7 +136,7 @@ public class JLocationServiceImplTest implements JLocationServiceLogger {
     @Test
     public void testAkkaRegistration() throws ExecutionException, InterruptedException {
 
-        AkkaRegistration registration = new AkkaRegistration(akkaHcdConnection, actorRef);
+        AkkaRegistration registration = JAkkaRegistration.make(akkaHcdConnection, actorRef);
 
         locationService.register(registration).get();
         Assert.assertEquals(registration.location(new Networks().hostname()), locationService.find(akkaHcdConnection).get().get());
@@ -151,7 +151,7 @@ public class JLocationServiceImplTest implements JLocationServiceLogger {
         locationService.register(httpRegistration).get();
 
         //  Register Akka connection
-        AkkaRegistration akkaHcdRegistration = new AkkaRegistration(akkaHcdConnection, actorRef);
+        AkkaRegistration akkaHcdRegistration = JAkkaRegistration.make(akkaHcdConnection, actorRef);
         locationService.register(akkaHcdRegistration).get();
 
         //  Register Tcp service
@@ -172,19 +172,19 @@ public class JLocationServiceImplTest implements JLocationServiceLogger {
         //  Register HCD type component
         ComponentId akkaHcdComponentId = new ComponentId("tromboneHCD", JComponentType.HCD);
         AkkaConnection akkaHcdConnection = new Connection.AkkaConnection(akkaHcdComponentId);
-        AkkaRegistration akkaHcdRegistration = new AkkaRegistration(akkaHcdConnection, actorRef);
+        AkkaRegistration akkaHcdRegistration = JAkkaRegistration.make(akkaHcdConnection, actorRef);
         locationService.register(akkaHcdRegistration).get();
 
         //  Register Assembly type component
         ComponentId akkaAssemblyComponentId = new ComponentId("tromboneAssembly", JComponentType.Assembly);
         AkkaConnection akkaAssemblyConnection = new Connection.AkkaConnection(akkaAssemblyComponentId);
-        AkkaRegistration akkaAssemblyRegistration = new AkkaRegistration(akkaAssemblyConnection, actorRef);
+        AkkaRegistration akkaAssemblyRegistration = JAkkaRegistration.make(akkaHcdConnection, actorRef);
         locationService.register(akkaAssemblyRegistration).get();
 
         //  Register Container type component
         ComponentId akkaContainerComponentId = new ComponentId("tromboneContainer", JComponentType.Container);
         AkkaConnection akkaContainerConnection = new Connection.AkkaConnection(akkaContainerComponentId);
-        AkkaRegistration akkaContainerRegistration = new AkkaRegistration(akkaContainerConnection, actorRef);
+        AkkaRegistration akkaContainerRegistration = JAkkaRegistration.make(akkaHcdConnection, actorRef);
         locationService.register(akkaContainerRegistration).get();
 
         //  Register Tcp and Http Service
@@ -228,7 +228,7 @@ public class JLocationServiceImplTest implements JLocationServiceLogger {
         locationService.register(tcpRegistration).get();
 
         //  Register Akka connection
-        AkkaRegistration akkaRegistration = new AkkaRegistration(akkaHcdConnection, actorRef);
+        AkkaRegistration akkaRegistration = JAkkaRegistration.make(akkaHcdConnection, actorRef);
         locationService.register(akkaRegistration).get();
 
         Set<Location> locations = new HashSet<>();
@@ -250,7 +250,7 @@ public class JLocationServiceImplTest implements JLocationServiceLogger {
         locationService.register(httpRegistration).get();
 
         // Register Akka connection
-        AkkaRegistration akkaRegistration = new AkkaRegistration(akkaHcdConnection, actorRef);
+        AkkaRegistration akkaRegistration = JAkkaRegistration.make(akkaHcdConnection, actorRef);
         locationService.register(akkaRegistration).get();
 
         //  filter by Tcp type
@@ -336,12 +336,12 @@ public class JLocationServiceImplTest implements JLocationServiceLogger {
 
         ActorRef<Object> actorRef = Adapter.toTyped(actorSystem.actorOf(Props.create(AbstractActor.class, TestActor::new),"my-actor-to-die"));
 
-        Assert.assertEquals(connection, locationService.register(new AkkaRegistration(connection, actorRef)).get().location().connection());
+        Assert.assertEquals(connection, locationService.register(JAkkaRegistration.make(akkaHcdConnection, actorRef)).get().location().connection());
 
         Thread.sleep(10);
 
         ArrayList<Location> locations = new ArrayList<>();
-        Location location = new AkkaRegistration(connection, actorRef).location(new Networks().hostname());
+        Location location = JAkkaRegistration.make(akkaHcdConnection, actorRef).location(new Networks().hostname());
         locations.add(location);
         Assert.assertEquals(locations, locationService.list().get());
 

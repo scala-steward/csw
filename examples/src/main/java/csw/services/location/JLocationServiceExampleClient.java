@@ -90,12 +90,12 @@ public class JLocationServiceExampleClient extends JExampleLoggerActor {
                 }),
                 "my-actor-1"
         );
-        AkkaRegistration hcdRegistration = new AkkaRegistration(hcdConnection, Adapter.toTyped(actorRef));
+        AkkaRegistration hcdRegistration = JAkkaRegistration.make(hcdConnection, Adapter.toTyped(actorRef));
         hcdRegResult = locationService.register(hcdRegistration).get();
 
         //. register the client "assembly" created in this example
         AkkaConnection assemblyConnection = new AkkaConnection(new ComponentId("assembly1", JComponentType.Assembly));
-        AkkaRegistration assemblyRegistration = new AkkaRegistration(assemblyConnection, Adapter.toTyped(getSelf()));
+        AkkaRegistration assemblyRegistration = JAkkaRegistration.make(assemblyConnection, Adapter.toTyped(getSelf()));
         assemblyRegResult = locationService.register(assemblyRegistration).get();
         //#Components-Connections-Registrations
     }
@@ -114,7 +114,7 @@ public class JLocationServiceExampleClient extends JExampleLoggerActor {
                 }});
         //#log-info-map
 
-        Optional<AkkaLocation> findResult = locationService.find(exampleConnection).get();
+        Optional<AkkaLocation<?>> findResult = locationService.find(exampleConnection).get();
         if (findResult.isPresent()) {
             //#log-info
             log.info("Find result: " + connectionInfo(findResult.get().connection()));
@@ -138,7 +138,7 @@ public class JLocationServiceExampleClient extends JExampleLoggerActor {
         });
         //#log-info-map-supplier
 
-        Optional<AkkaLocation> resolveResult = locationService.resolve(exampleConnection, waitForResolveLimit).get();
+        Optional<AkkaLocation<?>> resolveResult = locationService.resolve(exampleConnection, waitForResolveLimit).get();
         if (resolveResult.isPresent()) {
             //#log-info-supplier
             log.info(() -> "Resolve result: " + connectionInfo(resolveResult.get().connection()));
@@ -151,7 +151,7 @@ public class JLocationServiceExampleClient extends JExampleLoggerActor {
        // example code showing how to get the actorRef for remote component and send it a message
          if (resolveResult.isPresent()) {
             AkkaLocation loc = resolveResult.get();
-                ActorRef actorRef = Adapter.toUntyped(loc.typedRef());
+                ActorRef actorRef = Adapter.toUntyped(loc.jTypeRef());
                 actorRef.tell(LocationServiceExampleComponent.ClientMessage$.MODULE$, getSelf());
         }
     }

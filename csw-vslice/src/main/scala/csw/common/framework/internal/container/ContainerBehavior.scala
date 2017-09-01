@@ -27,8 +27,9 @@ class ContainerBehavior(
 
   implicit val ec: ExecutionContext = ctx.executionContext
 
-  val componentId                                 = ComponentId(containerInfo.name, ComponentType.Container)
-  val akkaRegistration: AkkaRegistration          = registrationFactory.akkaTyped(AkkaConnection(componentId), ctx.self)
+  val componentId = ComponentId(containerInfo.name, ComponentType.Container)
+  val akkaRegistration: AkkaRegistration[ContainerMessage] =
+    registrationFactory.akkaTyped(AkkaConnection(componentId), ctx.self)
   var supervisors: List[SupervisorInfo]           = List.empty
   var runningComponents: Set[SupervisorInfo]      = Set.empty
   var mode: ContainerMode                         = ContainerMode.Idle

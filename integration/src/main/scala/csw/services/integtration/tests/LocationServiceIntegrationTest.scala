@@ -44,12 +44,9 @@ class LocationServiceIntegrationTest
     val connection  = AkkaConnection(componentId)
     val hcdLocation = locationService.find(connection).await.get
 
-    hcdLocation shouldBe a[AkkaLocation]
     hcdLocation.connection shouldBe connection
 
-    val hcdAkkaLocation = hcdLocation.asInstanceOf[AkkaLocation]
-
-    hcdAkkaLocation.typedRef ! Unregister
+    hcdLocation.typedRef ! Unregister
 
     Thread.sleep(3000)
 

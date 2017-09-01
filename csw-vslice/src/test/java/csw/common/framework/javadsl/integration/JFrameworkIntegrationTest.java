@@ -30,6 +30,7 @@ import csw.param.states.DemandState;
 import csw.services.location.javadsl.JComponentType;
 import csw.services.location.models.AkkaRegistration;
 import csw.services.location.models.Connection;
+import csw.services.location.models.JAkkaRegistration;
 import csw.services.location.models.RegistrationResult;
 import csw.services.location.scaladsl.ActorSystemFactory;
 import csw.services.location.scaladsl.LocationService;
@@ -70,7 +71,7 @@ public class JFrameworkIntegrationTest extends Mockito {
 
     private static akka.actor.ActorSystem untypedSystem = ActorSystemFactory.remote();
 
-    private static AkkaRegistration akkaRegistration = AkkaRegistration.apply(
+    private static AkkaRegistration akkaRegistration = JAkkaRegistration.make(
             mock(Connection.AkkaConnection.class),
             TestProbe.apply(Adapter.toTyped(untypedSystem), settings).ref()
     );
@@ -101,7 +102,7 @@ public class JFrameworkIntegrationTest extends Mockito {
 
     @BeforeClass
     public static void beforeAll() {
-        when(registrationFactory.akkaTyped(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(akkaRegistration);
+        when(registrationFactory.jAkkaTyped(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(akkaRegistration);
 
         Future<RegistrationResult> eventualRegistrationResult = Promise$.MODULE$.successful(registrationResult).future();
         when(locationService.register(akkaRegistration)).thenReturn(eventualRegistrationResult);

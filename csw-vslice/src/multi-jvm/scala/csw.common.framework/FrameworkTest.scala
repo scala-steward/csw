@@ -74,6 +74,7 @@ class FrameworkTest(ignore: Int) extends LSNodeSpec(config = new TwoMembersAndSe
         locationService.resolve(AkkaConnection(ComponentId("WFS_Container", ComponentType.Container)), 2.seconds)
       val wfsContainerLocation = Await.result(wfsContainerLocationF, 5.seconds).get
 
+      println(wfsContainerLocation.tag)
       val efsContainerTypedRef = wfsContainerLocation.typedRef[ContainerMessage]
 
       efsContainerTypedRef ! GetContainerMode(containerModeProbe.ref)

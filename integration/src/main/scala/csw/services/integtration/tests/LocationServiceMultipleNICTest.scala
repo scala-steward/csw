@@ -28,10 +28,7 @@ class LocationServiceMultipleNICTest(cswCluster: CswCluster)
 
     listOfLocations should have size 1
 
-    val assemblyLocation = locationService.find(connection).await.get
-
-    assemblyLocation shouldBe a[AkkaLocation]
-
+    locationService.find(connection).await.isDefined shouldBe true
   }
 
 }

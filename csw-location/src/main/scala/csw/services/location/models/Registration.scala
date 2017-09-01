@@ -10,6 +10,8 @@ import csw.services.location.commons.LocationServiceLogger
 import csw.services.location.exceptions.LocalAkkaActorRegistrationNotAllowed
 import csw.services.location.models.Connection.{AkkaConnection, HttpConnection, TcpConnection}
 
+import scala.reflect.ClassTag
+
 /**
  * Registration holds information about a connection and its live location. This model is used to register a connection with LocationService.
  */
@@ -30,7 +32,7 @@ sealed abstract class Registration {
  * @param actorRef Provide a remote actor that is offering a connection. Local actors cannot be registered since they can't be
  *                 communicated from components across the network
  */
-final case class AkkaRegistration(connection: AkkaConnection, actorRef: ActorRef[_])
+final case class AkkaRegistration[M: ClassTag](connection: AkkaConnection, actorRef: ActorRef[M])
     extends Registration
     with LocationServiceLogger.Simple {
 
@@ -51,7 +53,15 @@ final case class AkkaRegistration(connection: AkkaConnection, actorRef: ActorRef
   /**
    * Create a AkkaLocation that represents the live connection offered by the actor
    */
-  override def location(hostname: String): Location = AkkaLocation(connection, uri, actorRef)
+  override def location(hostname: String): Location = AkkaLocation[M](connection, uri, actorRef)
+}
+
+object JAkkaRegistration {
+  def make[M](akkaConnection: AkkaConnection, actorRef: ActorRef[M], klass: Class[M]): AkkaRegistration[M] =
+    AkkaRegistration(akkaConnection, actorRef)(ClassTag(klass))
+
+  def make(akkaConnection: AkkaConnection, actorRef: ActorRef[AnyRef]): AkkaRegistration[AnyRef] =
+    AkkaRegistration(akkaConnection, actorRef)
 }
 
 /**

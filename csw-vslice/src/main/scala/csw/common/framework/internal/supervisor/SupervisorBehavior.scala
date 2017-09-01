@@ -51,9 +51,10 @@ class SupervisorBehavior(
 
   implicit val ec: ExecutionContext = ctx.executionContext
 
-  val name: String                                       = componentInfo.name
-  val componentId                                        = ComponentId(name, componentInfo.componentType)
-  val akkaRegistration: AkkaRegistration                 = registrationFactory.akkaTyped(AkkaConnection(componentId), ctx.self)
+  val name: String = componentInfo.name
+  val componentId  = ComponentId(name, componentInfo.componentType)
+  val akkaRegistration: AkkaRegistration[SupervisorMessage] =
+    registrationFactory.akkaTyped(AkkaConnection(componentId), ctx.self)
   var haltingFlag                                        = false
   var mode: SupervisorMode                               = Idle
   var runningComponent: Option[ActorRef[RunningMessage]] = None

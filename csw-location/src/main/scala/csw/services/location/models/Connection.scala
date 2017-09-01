@@ -64,7 +64,7 @@ object Connection {
   /**
    * Represents a connection offered by remote Actors
    */
-  case class AkkaConnection(componentId: ComponentId) extends TypedConnection[AkkaLocation](AkkaType)
+  case class AkkaConnection(componentId: ComponentId) extends TypedConnection[AkkaLocation[_]](AkkaType)
 
   /**
    * Represents a http connection provided by the component
