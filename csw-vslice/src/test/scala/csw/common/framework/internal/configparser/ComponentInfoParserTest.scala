@@ -1,11 +1,11 @@
 package csw.common.framework.internal.configparser
 
 import com.typesafe.config.ConfigFactory
-import csw.common.framework.models.LocationServiceUsage.{DoNotRegister, RegisterOnly}
-import csw.common.framework.models.{ComponentInfo, ContainerInfo}
+import csw.common.framework.models.{ComponentInfo, ContainerInfo, DoNotRegister, RegisterOnly}
 import csw.services.location.models.ComponentType.{Assembly, HCD}
 import csw.services.location.models.Connection
 import org.scalatest.{FunSuite, Matchers}
+import pureconfig.error.ConfigReaderException
 
 // DEOPSCSW-283: Parsing HOCON conf file
 // DEOPSCSW-170: Starting component using a file format
@@ -38,7 +38,7 @@ class ComponentInfoParserTest extends FunSuite with Matchers {
   test("should able to throw error when 'name' is missing") {
     val config = ConfigFactory.parseResources(getClass, "/conf/container/missing_componentname.conf")
 
-    intercept[java.lang.RuntimeException] {
+    intercept[ConfigReaderException[_]] {
       ComponentInfoParser.parseContainer(config)
     }
   }
@@ -46,7 +46,7 @@ class ComponentInfoParserTest extends FunSuite with Matchers {
   test("should able to throw error when 'locationServiceUsage' is missing") {
     val config = ConfigFactory.parseResources(getClass, "/conf/container/missing_location_seervice_usage.conf")
 
-    intercept[java.lang.RuntimeException] {
+    intercept[ConfigReaderException[_]] {
       ComponentInfoParser.parseContainer(config)
     }
   }
@@ -54,7 +54,7 @@ class ComponentInfoParserTest extends FunSuite with Matchers {
   test("should able to throw error when 'components' is missing") {
     val config = ConfigFactory.parseResources(getClass, "/conf/container/missing_components.conf")
 
-    intercept[java.lang.RuntimeException] {
+    intercept[ConfigReaderException[_]] {
       ComponentInfoParser.parseContainer(config)
     }
   }
@@ -62,7 +62,7 @@ class ComponentInfoParserTest extends FunSuite with Matchers {
   test("should able to throw error when 'components' is not a config object") {
     val config = ConfigFactory.parseResources(getClass, "/conf/container/invalid_components.conf")
 
-    intercept[java.lang.RuntimeException] {
+    intercept[ConfigReaderException[_]] {
       ComponentInfoParser.parseContainer(config)
     }
   }
@@ -78,7 +78,7 @@ class ComponentInfoParserTest extends FunSuite with Matchers {
   test("should able to throw error when 'prefix' is missing for assembly") {
     val config = ConfigFactory.parseResources(getClass, "/conf/assembly/missing_prefix.conf")
 
-    intercept[java.lang.RuntimeException] {
+    intercept[ConfigReaderException[_]] {
       ComponentInfoParser.parseComponent(config)
     }
   }
@@ -86,7 +86,7 @@ class ComponentInfoParserTest extends FunSuite with Matchers {
   test("should able to throw error when 'locationServiceUsage' is missing for assembly") {
     val config = ConfigFactory.parseResources(getClass, "/conf/assembly/missing_location_service_usage.conf")
 
-    intercept[java.lang.RuntimeException] {
+    intercept[ConfigReaderException[_]] {
       ComponentInfoParser.parseComponent(config)
     }
   }
@@ -94,7 +94,7 @@ class ComponentInfoParserTest extends FunSuite with Matchers {
   test("should able to throw error when 'connections' are missing for assembly") {
     val config = ConfigFactory.parseResources(getClass, "/conf/assembly/missing_connections.conf")
 
-    intercept[java.lang.RuntimeException] {
+    intercept[ConfigReaderException[_]] {
       ComponentInfoParser.parseComponent(config)
     }
   }
@@ -102,7 +102,7 @@ class ComponentInfoParserTest extends FunSuite with Matchers {
   test("should able to throw error when 'connections' is not an array for assembly") {
     val config = ConfigFactory.parseResources(getClass, "/conf/assembly/invalid_connections.conf")
 
-    intercept[java.lang.RuntimeException] {
+    intercept[ConfigReaderException[_]] {
       ComponentInfoParser.parseComponent(config)
     }
   }
@@ -110,7 +110,7 @@ class ComponentInfoParserTest extends FunSuite with Matchers {
   test("should able to throw error when 'connectionType' is missing for 'connections' in assembly") {
     val config = ConfigFactory.parseResources(getClass, "/conf/assembly/connection_entry_typo.conf")
 
-    intercept[java.lang.RuntimeException] {
+    intercept[ConfigReaderException[_]] {
       ComponentInfoParser.parseComponent(config)
     }
   }
@@ -118,7 +118,7 @@ class ComponentInfoParserTest extends FunSuite with Matchers {
   test("should able to throw error when 'componentType' is missing for assembly") {
     val config = ConfigFactory.parseResources(getClass, "/conf/assembly/missing_componenttype.conf")
 
-    intercept[java.lang.RuntimeException] {
+    intercept[ConfigReaderException[_]] {
       ComponentInfoParser.parseComponent(config)
     }
   }
@@ -126,7 +126,7 @@ class ComponentInfoParserTest extends FunSuite with Matchers {
   test("should able to throw error when 'className' is missing for hcd") {
     val config = ConfigFactory.parseResources(getClass, "/conf/hcd/missing_classname.conf")
 
-    intercept[java.lang.RuntimeException] {
+    intercept[ConfigReaderException[_]] {
       ComponentInfoParser.parseComponent(config)
     }
   }
@@ -134,7 +134,7 @@ class ComponentInfoParserTest extends FunSuite with Matchers {
   test("should able to throw error when 'prefix' is missing for hcd") {
     val config = ConfigFactory.parseResources(getClass, "/conf/hcd/missing_prefix.conf")
 
-    intercept[java.lang.RuntimeException] {
+    intercept[ConfigReaderException[_]] {
       ComponentInfoParser.parseStandalone(config)
     }
   }
@@ -142,7 +142,7 @@ class ComponentInfoParserTest extends FunSuite with Matchers {
   test("should able to throw error when 'locationServiceUsage' is missing for hcd") {
     val config = ConfigFactory.parseResources(getClass, "/conf/hcd/missing_location_service_usage.conf")
 
-    intercept[java.lang.RuntimeException] {
+    intercept[ConfigReaderException[_]] {
       ComponentInfoParser.parseStandalone(config)
     }
   }
@@ -150,7 +150,7 @@ class ComponentInfoParserTest extends FunSuite with Matchers {
   test("should able to throw error when 'componentType' is missing for hcd") {
     val config = ConfigFactory.parseResources(getClass, "/conf/hcd/missing_componenttype.conf")
 
-    intercept[java.lang.RuntimeException] {
+    intercept[ConfigReaderException[_]] {
       ComponentInfoParser.parseStandalone(config)
     }
   }
@@ -159,7 +159,7 @@ class ComponentInfoParserTest extends FunSuite with Matchers {
     val path   = "/conf/standalone/invalid_standalone.conf"
     val config = ConfigFactory.parseResources(getClass, path)
 
-    intercept[java.lang.RuntimeException] {
+    intercept[ConfigReaderException[_]] {
       ComponentInfoParser.parseStandalone(config)
     }
   }

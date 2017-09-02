@@ -1,23 +1,38 @@
 package csw.common.framework.models
 
-import enumeratum.{Enum, EnumEntry, PlayJsonEnum}
-
-import scala.collection.immutable
+import enumeratum.{Enum, EnumEntry}
+import pureconfig.ConfigConvert.catchReadError
+import pureconfig.ConfigReader
 
 /**
  * Describes how a component uses the location service
  */
-sealed abstract class LocationServiceUsage extends EnumEntry
+sealed abstract class LocationServiceUsage(override val entryName: String) extends EnumEntry {
+  def name: String = entryName
+}
 
-object LocationServiceUsage extends Enum[LocationServiceUsage] with PlayJsonEnum[LocationServiceUsage] {
+case object DoNotRegister            extends LocationServiceUsage("DoNotRegister")
+case object RegisterOnly             extends LocationServiceUsage("RegisterOnly")
+case object RegisterAndTrackServices extends LocationServiceUsage("RegisterAndTrackServices")
 
-  override def values: immutable.IndexedSeq[LocationServiceUsage] = findValues
+object LocationServiceUsage extends Enum[LocationServiceUsage] {
 
-  case object DoNotRegister            extends LocationServiceUsage
-  case object RegisterOnly             extends LocationServiceUsage
-  case object RegisterAndTrackServices extends LocationServiceUsage
+  override def values = findValues
 
   val JDoNotRegister: LocationServiceUsage            = DoNotRegister
   val JRegisterOnly: LocationServiceUsage             = RegisterOnly
   val JRegisterAndTrackServices: LocationServiceUsage = RegisterAndTrackServices
+
+  implicit val reader: ConfigReader[LocationServiceUsage] =
+    ConfigReader.fromString[LocationServiceUsage](catchReadError(s ⇒ from(s)))
+
+  def from(s: String): LocationServiceUsage = s match {
+    case DoNotRegister.entryName            ⇒ DoNotRegister
+    case RegisterOnly.entryName             ⇒ RegisterOnly
+    case RegisterAndTrackServices.entryName ⇒ RegisterAndTrackServices
+    case _ ⇒
+      throw new NoSuchElementException(
+        s"$s is not a member of allowed values ($DoNotRegister, $RegisterOnly, $RegisterAndTrackServices)"
+      )
+  }
 }

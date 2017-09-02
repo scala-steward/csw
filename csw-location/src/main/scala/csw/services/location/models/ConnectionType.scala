@@ -1,6 +1,8 @@
 package csw.services.location.models
 
 import enumeratum._
+import pureconfig.ConfigConvert._
+import pureconfig.ConfigReader
 
 import scala.collection.immutable.IndexedSeq
 
@@ -13,7 +15,7 @@ sealed abstract class ConnectionType(override val entryName: String) extends Enu
   def name: String = entryName
 }
 
-object ConnectionType extends Enum[ConnectionType] with PlayJsonEnum[ConnectionType] {
+object ConnectionType extends Enum[ConnectionType] {
 
   override def values: IndexedSeq[ConnectionType] = findValues
 
@@ -32,4 +34,6 @@ object ConnectionType extends Enum[ConnectionType] with PlayJsonEnum[ConnectionT
    */
   case object AkkaType extends ConnectionType("akka")
 
+  implicit val reader: ConfigReader[ConnectionType] =
+    ConfigReader.fromString[ConnectionType](catchReadError(s => ConnectionType.withName(s)))
 }

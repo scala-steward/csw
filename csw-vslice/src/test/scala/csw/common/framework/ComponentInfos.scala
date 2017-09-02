@@ -1,7 +1,6 @@
 package csw.common.framework
 
-import csw.common.framework.models.LocationServiceUsage.{DoNotRegister, RegisterOnly}
-import csw.common.framework.models.{ComponentInfo, ContainerInfo}
+import csw.common.framework.models.{ComponentInfo, ContainerInfo, DoNotRegister, RegisterOnly}
 import csw.services.location.models.ComponentType.{Assembly, HCD}
 
 object ComponentInfos {

@@ -3,7 +3,8 @@ package csw.services.location.models
 import acyclic.skipped
 import csw.services.location.internal.ConnectionInfo
 import csw.services.location.models.ConnectionType.{AkkaType, HttpType, TcpType}
-import play.api.libs.json._
+import pureconfig.ConfigConvert._
+import pureconfig._
 
 /**
  * Represents a connection based on a componentId and the type of connection offered by the component
@@ -49,8 +50,13 @@ object Connection {
     case HttpType ⇒ HttpConnection(componentId)
   }
 
-  implicit val connectionReads: Reads[Connection]   = ConnectionInfo.connectionInfoFormat.map(Connection.from)
-  implicit val connectionWrites: Writes[Connection] = Writes[Connection](c ⇒ Json.toJson(c.connectionInfo))
+  implicit def hint[T] = ProductHint[T](ConfigFieldMapping(CamelCase, CamelCase))
+
+  implicit val identifiableCoproductHint = new FieldCoproductHint[Connection]("type") {
+    override protected def fieldValue(name: String): String = "CommandInfo"
+  }
+
+  implicit val reader: ConfigReader[Connection] = ConfigReader[ConnectionInfo].map(x ⇒ Connection.from(x))
 
   /**
    * Represents a connection offered by remote Actors

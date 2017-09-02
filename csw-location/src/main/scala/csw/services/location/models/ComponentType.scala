@@ -1,7 +1,9 @@
 package csw.services.location.models
 
 import enumeratum.EnumEntry.Lowercase
-import enumeratum.{Enum, EnumEntry, PlayJsonEnum}
+import enumeratum.{Enum, EnumEntry}
+import pureconfig.ConfigConvert._
+import pureconfig.ConfigReader
 
 import scala.collection.immutable.IndexedSeq
 
@@ -17,7 +19,7 @@ sealed abstract class ComponentType extends EnumEntry with Lowercase with TmtSer
   def name: String = entryName
 }
 
-object ComponentType extends Enum[ComponentType] with PlayJsonEnum[ComponentType] {
+object ComponentType extends Enum[ComponentType] {
 
   def values: IndexedSeq[ComponentType] = findValues
 
@@ -40,5 +42,8 @@ object ComponentType extends Enum[ComponentType] with PlayJsonEnum[ComponentType
    * Represents a general purpose service component e.g. actor and/or web service application
    */
   case object Service extends ComponentType
+
+  implicit val reader =
+    ConfigReader.fromString[ComponentType](catchReadError(s => ComponentType.withName(s)))
 
 }

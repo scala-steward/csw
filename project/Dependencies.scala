@@ -48,10 +48,8 @@ object Dependencies {
     Libs.`scala-async`,
     Enumeratum.`enumeratum`,
     Libs.`akka-management-cluster-http`,
-    Libs.`play-json`,
-    Libs.`play-json-extensions`,
-    Enumeratum.`enumeratum-play`,
     Chill.`chill-akka`,
+    Libs.`pureconfig`,
     AkkaHttp.`akka-http`,
     Libs.`scalatest`               % Test,
     Libs.`junit`                   % Test,
@@ -110,8 +108,7 @@ object Dependencies {
 
   val Vslice = Seq(
     Libs.`scala-async`,
-    Libs.`play-json`,
-    Enumeratum.`enumeratum-play`,
+    Libs.`pureconfig`,
     Akka.`akka-typed`,
     Akka.`akka-typed-testkit` % Test,
     Libs.`scalatest`          % Test,

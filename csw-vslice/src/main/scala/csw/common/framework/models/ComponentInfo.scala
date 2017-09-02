@@ -1,8 +1,6 @@
 package csw.common.framework.models
 
-import ai.x.play.json.Jsonx
 import csw.services.location.models.{ComponentType, Connection}
-import play.api.libs.json._
 
 import scala.collection.JavaConverters._
 
@@ -22,8 +20,4 @@ final case class ComponentInfo(
    * Java API to get the list of connections for the assembly
    */
   def getConnections: java.util.List[Connection] = connections.toList.asJava
-}
-
-case object ComponentInfo {
-  implicit val componentInfoFormat: OFormat[ComponentInfo] = Jsonx.formatCaseClassUseDefaults[ComponentInfo]
 }
