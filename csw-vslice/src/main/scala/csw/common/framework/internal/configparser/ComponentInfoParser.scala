@@ -7,19 +7,16 @@ import pureconfig.{CamelCase, ConfigConvert, ConfigFieldMapping, ProductHint}
 
 object ComponentInfoParser {
 
-  implicit def hint[T] = ProductHint[T](ConfigFieldMapping(CamelCase, CamelCase))
-  def parseContainer(config: Config): ContainerInfo = {
-    ConfigConvert[ContainerInfo].from(config.root()) match {
-      case Left(errors) ⇒ throw new ConfigReaderException[ContainerInfo](errors)
-      case Right(info)  ⇒ info
-    }
-  }
+  implicit def hint[T]: ProductHint[T] = ProductHint[T](ConfigFieldMapping(CamelCase, CamelCase))
 
-  def parseComponent(config: Config): ComponentInfo = {
-    ConfigConvert[ComponentInfo].from(config.root()) match {
+  def parseContainer(config: Config): ContainerInfo  = parse[ContainerInfo](config)
+  def parseComponent(config: Config): ComponentInfo  = parse[ComponentInfo](config)
+  def parseStandalone(config: Config): ComponentInfo = parseComponent(config)
+
+  private def parse[T](config: Config)(implicit converter: ConfigConvert[T]): T = {
+    implicitly[ConfigConvert[T]].from(config.root()) match {
       case Left(errors) ⇒ throw new ConfigReaderException[ComponentInfo](errors)
       case Right(info)  ⇒ info
     }
   }
-  def parseStandalone(config: Config): ComponentInfo = parseComponent(config)
 }
