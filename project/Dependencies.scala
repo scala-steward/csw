@@ -5,7 +5,7 @@ object Dependencies {
   val Params = Seq(
     Libs.`spray-json`,
     Libs.`scala-java8-compat`,
-    Enumeratum.`enumeratum`,
+    Libs.`enumeratum`,
     Chill.`chill-bijection`,
     Akka.`akka-actor`      % Test,
     Chill.`chill-akka`     % Test,
@@ -18,7 +18,7 @@ object Dependencies {
     Libs.`logback-classic`,
     Libs.`persist-json`,
     Libs.`joda-time`,
-    Enumeratum.`enumeratum`,
+    Libs.`enumeratum`,
     Akka.`akka-actor`,
     Akka.`akka-slf4j`,
     Akka.`akka-remote`,
@@ -46,7 +46,7 @@ object Dependencies {
     Akka.`akka-cluster-tools`,
     Libs.`scala-java8-compat`,
     Libs.`scala-async`,
-    Enumeratum.`enumeratum`,
+    Libs.`enumeratum`,
     Libs.`akka-management-cluster-http`,
     Chill.`chill-akka`,
     Libs.`pureconfig`,
@@ -78,7 +78,7 @@ object Dependencies {
   )
 
   val ConfigApi = Seq(
-    Enumeratum.`enumeratum`,
+    Libs.`enumeratum`,
     Akka.`akka-stream`,
     AkkaHttp.`akka-http-spray-json`,
     Libs.`spray-json`,
