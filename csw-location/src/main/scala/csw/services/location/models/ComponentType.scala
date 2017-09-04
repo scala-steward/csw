@@ -43,7 +43,7 @@ object ComponentType extends Enum[ComponentType] {
    */
   case object Service extends ComponentType
 
-  implicit val reader =
+  implicit val reader: ConfigReader[ComponentType] =
     ConfigReader.fromString[ComponentType](catchReadError(s => ComponentType.withName(s)))
 
 }

@@ -12,5 +12,5 @@ private[location] case class ConnectionInfo(
 }
 
 private[location] object ConnectionInfo {
-  implicit def hint[T] = ProductHint[T](ConfigFieldMapping(CamelCase, CamelCase))
+  implicit def hint[T]: ProductHint[T] = ProductHint[T](ConfigFieldMapping(CamelCase, CamelCase))
 }

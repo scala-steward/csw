@@ -50,9 +50,9 @@ object Connection {
     case HttpType ⇒ HttpConnection(componentId)
   }
 
-  implicit def hint[T] = ProductHint[T](ConfigFieldMapping(CamelCase, CamelCase))
+  implicit def caseHint[T]: ProductHint[T] = ProductHint[T](ConfigFieldMapping(CamelCase, CamelCase))
 
-  implicit val identifiableCoproductHint = new FieldCoproductHint[Connection]("type") {
+  implicit val productHint: FieldCoproductHint[Connection] = new FieldCoproductHint[Connection]("type") {
     override protected def fieldValue(name: String): String = "CommandInfo"
   }
 

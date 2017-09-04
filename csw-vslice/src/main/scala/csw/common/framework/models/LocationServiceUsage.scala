@@ -4,6 +4,8 @@ import enumeratum.{Enum, EnumEntry}
 import pureconfig.ConfigConvert.catchReadError
 import pureconfig.ConfigReader
 
+import scala.collection.immutable.IndexedSeq
+
 /**
  * Describes how a component uses the location service
  */
@@ -17,7 +19,7 @@ case object RegisterAndTrackServices extends LocationServiceUsage("RegisterAndTr
 
 object LocationServiceUsage extends Enum[LocationServiceUsage] {
 
-  override def values = findValues
+  override def values: IndexedSeq[LocationServiceUsage] = findValues
 
   val JDoNotRegister: LocationServiceUsage            = DoNotRegister
   val JRegisterOnly: LocationServiceUsage             = RegisterOnly
