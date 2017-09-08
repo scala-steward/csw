@@ -1,8 +1,6 @@
 package csw.common.framework.models
 
-import ai.x.play.json.Jsonx
 import csw.services.location.models.{ComponentType, Connection}
-import play.api.libs.json._
 
 import scala.collection.JavaConverters._
 
@@ -24,6 +22,10 @@ final case class ComponentInfo(
   def getConnections: java.util.List[Connection] = connections.toList.asJava
 }
 
-case object ComponentInfo {
-  implicit val componentInfoFormat: OFormat[ComponentInfo] = Jsonx.formatCaseClassUseDefaults[ComponentInfo]
+object ComponentInfo {
+  import io.circe.generic.semiauto._
+  import io.circe.{Decoder, ObjectEncoder}
+
+  implicit val barDecoder: Decoder[ComponentInfo]       = deriveDecoder[ComponentInfo]
+  implicit val barEncoder: ObjectEncoder[ComponentInfo] = deriveEncoder[ComponentInfo]
 }

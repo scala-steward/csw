@@ -1,6 +1,6 @@
 package csw.common.framework.models
 
-import enumeratum.{Enum, EnumEntry, PlayJsonEnum}
+import enumeratum.{CirceEnum, Enum, EnumEntry}
 
 import scala.collection.immutable
 
@@ -9,7 +9,7 @@ import scala.collection.immutable
  */
 sealed abstract class LocationServiceUsage extends EnumEntry
 
-object LocationServiceUsage extends Enum[LocationServiceUsage] with PlayJsonEnum[LocationServiceUsage] {
+object LocationServiceUsage extends Enum[LocationServiceUsage] with CirceEnum[LocationServiceUsage] {
 
   override def values: immutable.IndexedSeq[LocationServiceUsage] = findValues
 

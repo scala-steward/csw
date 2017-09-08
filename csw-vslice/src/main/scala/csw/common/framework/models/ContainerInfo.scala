@@ -1,7 +1,5 @@
 package csw.common.framework.models
 
-import play.api.libs.json._
-
 final case class ContainerInfo(
     name: String,
     locationServiceUsage: LocationServiceUsage,
@@ -10,6 +8,11 @@ final case class ContainerInfo(
   require(!components.isEmpty, "components can not be empty.")
 }
 
-case object ContainerInfo {
-  implicit val format: OFormat[ContainerInfo] = Json.format[ContainerInfo]
+object ContainerInfo {
+
+  import io.circe.{Decoder, ObjectEncoder}
+  import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+
+  implicit val barDecoder: Decoder[ContainerInfo]       = deriveDecoder[ContainerInfo]
+  implicit val barEncoder: ObjectEncoder[ContainerInfo] = deriveEncoder[ContainerInfo]
 }

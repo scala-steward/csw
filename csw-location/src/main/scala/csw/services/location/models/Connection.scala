@@ -3,7 +3,6 @@ package csw.services.location.models
 import acyclic.skipped
 import csw.services.location.internal.ConnectionInfo
 import csw.services.location.models.ConnectionType.{AkkaType, HttpType, TcpType}
-import play.api.libs.json._
 
 /**
  * Represents a connection based on a componentId and the type of connection offered by the component
@@ -49,9 +48,6 @@ object Connection {
     case HttpType ⇒ HttpConnection(componentId)
   }
 
-  implicit val connectionReads: Reads[Connection]   = ConnectionInfo.connectionInfoFormat.map(Connection.from)
-  implicit val connectionWrites: Writes[Connection] = Writes[Connection](c ⇒ Json.toJson(c.connectionInfo))
-
   /**
    * Represents a connection offered by remote Actors
    */
@@ -66,4 +62,10 @@ object Connection {
    * represents a tcp connection provided by the component
    */
   case class TcpConnection(componentId: ComponentId) extends TypedConnection[TcpLocation](TcpType)
+
+  import io.circe._
+  import io.circe.syntax.EncoderOps
+
+  implicit val connectionDecoder: Decoder[Connection] = ConnectionInfo.infoDecoder.map(Connection.from(_))
+  implicit val connectionEncpder: Encoder[Connection] = (a: Connection) => a.connectionInfo.asJson
 }

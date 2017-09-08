@@ -1,6 +1,6 @@
 package csw.services.location.models
 
-import play.api.libs.json.{Format, Json}
+import io.circe.Decoder
 
 /**
  * Represents a component based on its name and type.
@@ -19,5 +19,6 @@ case class ComponentId(name: String, componentType: ComponentType) extends TmtSe
 }
 
 object ComponentId {
-  implicit val format: Format[ComponentId] = Json.format
+  import io.circe.generic.semiauto._
+  implicit def decoder: Decoder[ComponentId] = deriveDecoder[ComponentId]
 }

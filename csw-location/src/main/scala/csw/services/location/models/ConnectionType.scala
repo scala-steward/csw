@@ -13,7 +13,7 @@ sealed abstract class ConnectionType(override val entryName: String) extends Enu
   def name: String = entryName
 }
 
-object ConnectionType extends Enum[ConnectionType] with PlayJsonEnum[ConnectionType] {
+object ConnectionType extends Enum[ConnectionType] with CirceEnum[ConnectionType] {
 
   override def values: IndexedSeq[ConnectionType] = findValues
 
