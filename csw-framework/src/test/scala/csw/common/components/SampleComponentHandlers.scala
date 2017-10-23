@@ -110,10 +110,10 @@ class SampleComponentHandlers(
 
   private def validateCommand(command: ControlCommand) = {
     command match {
-      case Setup(_, dd, _) ⇒
-        pubSubRef ! Publish(CurrentState(dd, Set(choiceKey.set(setupConfigChoice), command.paramSet.head)))
-      case Observe(_, dd, _) ⇒
-        pubSubRef ! Publish(CurrentState(dd, Set(choiceKey.set(observeConfigChoice), command.paramSet.head)))
+      case Setup(_, somePrefix, _) ⇒
+        pubSubRef ! Publish(CurrentState(somePrefix, Set(choiceKey.set(setupConfigChoice), command.paramSet.head)))
+      case Observe(_, somePrefix, _) ⇒
+        pubSubRef ! Publish(CurrentState(somePrefix, Set(choiceKey.set(observeConfigChoice), command.paramSet.head)))
       case _ ⇒
     }
 
