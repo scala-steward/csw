@@ -154,5 +154,5 @@ case class TromboneHcdHandlers(ctx: ActorContext[ComponentMessage],
 
   private def getAxisConfig: Future[AxisConfig] = ???
 
-  override def onLocationTrackingEvent(trackingEvent: TrackingEvent): Unit = ???
+  override def onLocationTrackingEvent(trackingEvent: TrackingEvent): ComponentHandlers[TromboneMessage] = ???
 }

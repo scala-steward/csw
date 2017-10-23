@@ -29,7 +29,7 @@ class GalilComponentHandlers(
   implicit val ec: ExecutionContextExecutor                          = ctx.executionContext
   override def initialize(): Future[ComponentHandlers[StartLogging]] = Future(this)
 
-  override def onLocationTrackingEvent(trackingEvent: TrackingEvent): Unit = ()
+  override def onLocationTrackingEvent(trackingEvent: TrackingEvent): ComponentHandlers[StartLogging] = this
 
   override def onDomainMsg(msg: StartLogging): Unit = {
     log.trace("Level is trace")

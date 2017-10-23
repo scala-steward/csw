@@ -63,6 +63,7 @@ class SampleComponentHandlers(
     with ComponentLogger.Simple {
 
   import SampleComponentState._
+
   implicit val ec: ExecutionContextExecutor = ctx.executionContext
 
   override def initialize(): Future[ComponentHandlers[ComponentDomainMessage]] = {
@@ -121,10 +122,13 @@ class SampleComponentHandlers(
 
   override protected def componentName(): String = componentInfo.name
 
-  override def onLocationTrackingEvent(trackingEvent: TrackingEvent): Unit = trackingEvent match {
-    case LocationUpdated(_) ⇒
-      pubSubRef ! Publish(CurrentState(prefix, Set(choiceKey.set(locationUpdatedChoice))))
-    case LocationRemoved(_) ⇒
-      pubSubRef ! Publish(CurrentState(prefix, Set(choiceKey.set(locationRemovedChoice))))
+  override def onLocationTrackingEvent(trackingEvent: TrackingEvent): ComponentHandlers[ComponentDomainMessage] = {
+    trackingEvent match {
+      case LocationUpdated(_) ⇒
+        pubSubRef ! Publish(CurrentState(prefix, Set(choiceKey.set(locationUpdatedChoice))))
+      case LocationRemoved(_) ⇒
+        pubSubRef ! Publish(CurrentState(prefix, Set(choiceKey.set(locationRemovedChoice))))
+    }
+    this
   }
 }

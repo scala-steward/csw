@@ -30,21 +30,21 @@ class TromboneAssemblyBehaviorFactory extends ComponentBehaviorFactory[DiagPubli
       pubSubRef: ActorRef[PublisherMessage[CurrentState]],
       locationService: LocationService
   ): ComponentHandlers[DiagPublisherMessages] =
-    TromboneAssemblyHandlers(ctx, componentInfo, pubSubRef, locationService, None, None)
+    TromboneAssemblyHandlers(ctx, componentInfo, pubSubRef, locationService, None, None, Map.empty)
 }
 
-case class TromboneAssemblyHandlers(ctx: ActorContext[ComponentMessage],
-                                    componentInfo: ComponentInfo,
-                                    pubSubRef: ActorRef[PublisherMessage[CurrentState]],
-                                    locationService: LocationService,
-                                    diagPublisher: Option[ActorRef[DiagPublisherMessages]],
-                                    commandHandler: Option[ActorRef[AssemblyCommandHandlerMsgs]])
-    extends ComponentHandlers[DiagPublisherMessages](ctx, componentInfo, pubSubRef, locationService) {
+case class TromboneAssemblyHandlers(
+    ctx: ActorContext[ComponentMessage],
+    componentInfo: ComponentInfo,
+    pubSubRef: ActorRef[PublisherMessage[CurrentState]],
+    locationService: LocationService,
+    diagPublisher: Option[ActorRef[DiagPublisherMessages]],
+    commandHandler: Option[ActorRef[AssemblyCommandHandlerMsgs]],
+    runningHcds: Map[Connection, Option[ActorRef[SupervisorExternalMessage]]]
+) extends ComponentHandlers[DiagPublisherMessages](ctx, componentInfo, pubSubRef, locationService) {
 
   implicit var ac: AssemblyContext  = _
   implicit val ec: ExecutionContext = ctx.executionContext
-
-  private var runningHcds: Map[Connection, Option[ActorRef[SupervisorExternalMessage]]] = Map.empty
 
   def onRun(): Future[Unit] = Future.unit
 
@@ -58,7 +58,8 @@ case class TromboneAssemblyHandlers(ctx: ActorContext[ComponentMessage],
       diagPublisher = Some(ctx.spawnAnonymous(DiagPublisher.make(ac, runningHcds.head._2, Some(eventPublisher)))),
       commandHandler = Some(
         ctx.spawnAnonymous(new TromboneAssemblyCommandBehaviorFactory().make(ac, runningHcds, Some(eventPublisher)))
-      )
+      ),
+      runningHcds = Map.empty
     )
   }
 
@@ -90,15 +91,16 @@ case class TromboneAssemblyHandlers(ctx: ActorContext[ComponentMessage],
 
   private def getAssemblyConfigs: Future[(TromboneCalculationConfig, TromboneControlConfig)] = ???
 
-  override def onLocationTrackingEvent(trackingEvent: TrackingEvent): Unit = {
-    trackingEvent match {
+  override def onLocationTrackingEvent(trackingEvent: TrackingEvent): ComponentHandlers[DiagPublisherMessages] = {
+    val updatedRunningHcds = trackingEvent match {
       case LocationUpdated(location) =>
-        runningHcds = runningHcds + (location.connection → Some(
+        runningHcds + (location.connection → Some(
           location.asInstanceOf[AkkaLocation].typedRef[SupervisorExternalMessage]
         ))
       case LocationRemoved(connection) =>
-        runningHcds = runningHcds + (connection → None)
+        runningHcds + (connection → None)
     }
-    commandHandler.foreach(_ ! UpdateHcdLocations(runningHcds))
+    commandHandler.foreach(_ ! UpdateHcdLocations(updatedRunningHcds))
+    this.copy(runningHcds = updatedRunningHcds)
   }
 }

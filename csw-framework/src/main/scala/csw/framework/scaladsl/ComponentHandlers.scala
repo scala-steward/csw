@@ -24,7 +24,7 @@ abstract class ComponentHandlers[Msg <: DomainMessage: ClassTag](
   var isOnline: Boolean = false
 
   def initialize(): Future[ComponentHandlers[Msg]]
-  def onLocationTrackingEvent(trackingEvent: TrackingEvent): Unit
+  def onLocationTrackingEvent(trackingEvent: TrackingEvent): ComponentHandlers[Msg]
   def onDomainMsg(msg: Msg): Unit
   def onSubmit(controlCommand: ControlCommand, replyTo: ActorRef[CommandResponse]): Validation
   def onOneway(controlCommand: ControlCommand): Validation

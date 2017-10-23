@@ -58,8 +58,8 @@ public class JSampleComponentHandlers extends JComponentHandlers<JComponentDomai
     }
 
     @Override
-    public void onLocationTrackingEvent(TrackingEvent trackingEvent) {
-
+    public ComponentHandlers<JComponentDomainMessage> onLocationTrackingEvent(TrackingEvent trackingEvent) {
+        return this;
     }
 
     @Override
