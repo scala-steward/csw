@@ -74,7 +74,6 @@ class SampleComponentHandlers(
     with ComponentLogger.Simple {
 
   import SampleComponentState._
-
   implicit val ec: ExecutionContextExecutor = ctx.executionContext
 
   override def initialize(): Future[ComponentHandlers[ComponentDomainMessage]] = {
