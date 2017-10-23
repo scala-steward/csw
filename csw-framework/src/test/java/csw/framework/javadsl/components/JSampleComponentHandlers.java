@@ -20,6 +20,7 @@ import csw.messages.params.states.CurrentState;
 import csw.services.location.javadsl.ILocationService;
 import csw.services.logging.javadsl.ILogger;
 import csw.services.logging.javadsl.JCommonComponentLogger;
+import scala.Tuple2;
 import scala.runtime.BoxedUnit;
 
 import java.util.concurrent.CompletableFuture;
@@ -72,23 +73,23 @@ public class JSampleComponentHandlers extends JComponentHandlers<JComponentDomai
     }
 
     @Override
-    public Validation onSubmit(ControlCommand controlCommand, ActorRef<CommandResponse> actorRef) {
+    public Tuple2<ComponentHandlers<JComponentDomainMessage>, Validation> onSubmit(ControlCommand controlCommand, ActorRef<CommandResponse> actorRef) {
         // Adding item from CommandMessage paramset to ensure things are working
         CurrentState submitState = currentState.add(SampleComponentState.choiceKey().set(SampleComponentState.submitCommandChoice()));
         PubSub.Publish<CurrentState> publish = new PubSub.Publish<>(submitState);
         pubSubRef.tell(publish);
 
-        return validateCommand(controlCommand);
+        return Tuple2.apply(this, validateCommand(controlCommand));
     }
 
     @Override
-    public Validation onOneway(ControlCommand controlCommand) {
+    public Tuple2<ComponentHandlers<JComponentDomainMessage>, Validation> onOneway(ControlCommand controlCommand) {
         // Adding item from CommandMessage paramset to ensure things are working
         CurrentState onewayState = currentState.add(SampleComponentState.choiceKey().set(SampleComponentState.oneWayCommandChoice()));
         PubSub.Publish<CurrentState> publish = new PubSub.Publish<>(onewayState);
         pubSubRef.tell(publish);
 
-        return validateCommand(controlCommand);
+        return Tuple2.apply(this, validateCommand(controlCommand));
     }
 
     private Validation validateCommand(ControlCommand controlCommand) {

@@ -89,20 +89,23 @@ class SampleComponentHandlers(
     this
   }
 
-  override def onSubmit(controlCommand: ControlCommand, replyTo: ActorRef[CommandResponse]): Validation = {
+  override def onSubmit(
+      controlCommand: ControlCommand,
+      replyTo: ActorRef[CommandResponse]
+  ): (ComponentHandlers[ComponentDomainMessage], Validation) = {
     // Adding passed in parameter to see if data is transferred properly
     pubSubRef ! Publish(
       CurrentState(prefix, Set(choiceKey.set(submitCommandChoice)))
     )
-    validateCommand(controlCommand)
+    (this, validateCommand(controlCommand))
   }
 
-  override def onOneway(controlCommand: ControlCommand): Validation = {
+  override def onOneway(controlCommand: ControlCommand): (ComponentHandlers[ComponentDomainMessage], Validation) = {
     // Adding passed in parameter to see if data is transferred properly
     pubSubRef ! Publish(
       CurrentState(prefix, Set(choiceKey.set(oneWayCommandChoice)))
     )
-    validateCommand(controlCommand)
+    (this, validateCommand(controlCommand))
   }
 
   private def validateCommand(command: ControlCommand) = {

@@ -115,7 +115,7 @@ class ComponentLifecycleTest extends FrameworkTestSuite with MockitoSugar {
     val sc1 = Setup("Obs001", Prefix("wfos.prog.cloudcover")).add(KeyType.IntKey.make("encoder").set(22))
 
     when(sampleHcdHandler.onSubmit(ArgumentMatchers.any[Setup](), ArgumentMatchers.any[ActorRef[CommandResponse]]()))
-      .thenReturn(Validations.Valid)
+      .thenReturn((sampleHcdHandler, Validations.Valid))
 
     runningComponentBehavior.onMessage(Submit(sc1, commandResponseProbe.ref))
 
@@ -131,7 +131,7 @@ class ComponentLifecycleTest extends FrameworkTestSuite with MockitoSugar {
 
     val sc1 = Observe("Obs001", Prefix("wfos.prog.cloudcover")).add(KeyType.IntKey.make("encoder").set(22))
 
-    when(sampleHcdHandler.onOneway(ArgumentMatchers.any[Setup]())).thenReturn(Validations.Valid)
+    when(sampleHcdHandler.onOneway(ArgumentMatchers.any[Setup]())).thenReturn((sampleHcdHandler, Validations.Valid))
 
     runningComponentBehavior.onMessage(Oneway(sc1, commandResponseProbe.ref))
 

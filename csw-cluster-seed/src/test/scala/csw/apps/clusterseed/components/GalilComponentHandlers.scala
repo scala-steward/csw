@@ -41,8 +41,10 @@ class GalilComponentHandlers(
     this
   }
 
-  override def onSubmit(controlCommand: ControlCommand, replyTo: ActorRef[CommandResponse]): Validation = Valid
-  override def onOneway(controlCommand: ControlCommand): Validation                                     = Valid
+  override def onSubmit(controlCommand: ControlCommand,
+                        replyTo: ActorRef[CommandResponse]): (ComponentHandlers[StartLogging], Validation) =
+    (this, Valid)
+  override def onOneway(controlCommand: ControlCommand): (ComponentHandlers[StartLogging], Validation) = (this, Valid)
 
   override def onShutdown(): Future[Unit] = Future.successful(())
 

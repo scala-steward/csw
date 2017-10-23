@@ -85,7 +85,10 @@ case class TromboneAssemblyHandlers(
     this
   }
 
-  override def onSubmit(controlCommand: ControlCommand, replyTo: ActorRef[CommandResponse]): Validation = {
+  override def onSubmit(
+      controlCommand: ControlCommand,
+      replyTo: ActorRef[CommandResponse]
+  ): (ComponentHandlers[DiagPublisherMessages], Validation) = {
     val validation = controlCommand match {
       case Setup(info, prefix, paramSet)   => validateOneSetup(controlCommand.asInstanceOf[Setup])
       case Observe(info, prefix, paramSet) => Valid
@@ -93,10 +96,11 @@ case class TromboneAssemblyHandlers(
     if (validation == Valid) {
       commandHandler.foreach(_ ! CommandMessageE(Submit(controlCommand, replyTo)))
     }
-    validation
+    (this, validation)
   }
 
-  override def onOneway(controlCommand: ControlCommand): Validation = Validations.Valid
+  override def onOneway(controlCommand: ControlCommand): (ComponentHandlers[DiagPublisherMessages], Validation) =
+    (this, Validations.Valid)
 
   private def getAssemblyConfigs: Future[(TromboneCalculationConfig, TromboneControlConfig)] = ???
 

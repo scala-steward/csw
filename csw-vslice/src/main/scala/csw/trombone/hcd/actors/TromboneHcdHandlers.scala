@@ -91,16 +91,18 @@ case class TromboneHcdHandlers(ctx: ActorContext[ComponentMessage],
     }
   }
 
-  override def onSubmit(controlCommand: ControlCommand, replyTo: ActorRef[CommandResponse]): Validation = {
+  override def onSubmit(controlCommand: ControlCommand,
+                        replyTo: ActorRef[CommandResponse]): (ComponentHandlers[TromboneMessage], Validation) = {
     val validation = controlCommand match {
       case setup: Setup     => ParamValidation.validateSetup(setup)
       case observe: Observe => ParamValidation.validateObserve(observe)
     }
     if (validation == Valid)
       onSetup(controlCommand.asInstanceOf[Setup])
-    validation
+    (this, validation)
   }
-  override def onOneway(controlCommand: ControlCommand): Validation = Validations.Valid
+  override def onOneway(controlCommand: ControlCommand): (ComponentHandlers[TromboneMessage], Validation) =
+    (this, Validations.Valid)
 
   def onDomainMsg(tromboneMsg: TromboneMessage): ComponentHandlers[TromboneMessage] = tromboneMsg match {
     case x: TromboneEngineering => onEngMsg(x)

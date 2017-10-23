@@ -170,7 +170,7 @@ class ComponentBehavior[Msg <: DomainMessage: ClassTag](
         lifecycleHandlers.onSubmit(commandMessage.command, commandMessage.replyTo)
     }
 
-    val validationCommandResult = CommandValidationResponse.validationAsCommandStatus(validation)
+    val validationCommandResult = CommandValidationResponse.validationAsCommandStatus(validation._2)
     commandMessage.replyTo ! validationCommandResult
   }
 }
