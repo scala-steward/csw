@@ -122,19 +122,21 @@ public class JSampleComponentHandlers extends JComponentHandlers<JComponentDomai
     }
 
     @Override
-    public void onGoOffline() {
+    public ComponentHandlers<JComponentDomainMessage> onGoOffline() {
         CurrentState offlineState = currentState.add(SampleComponentState.choiceKey().set(SampleComponentState.offlineChoice()));
         PubSub.Publish<CurrentState> publish = new PubSub.Publish<>(offlineState);
 
         pubSubRef.tell(publish);
+        return this;
     }
 
     @Override
-    public void onGoOnline() {
+    public ComponentHandlers<JComponentDomainMessage> onGoOnline() {
         CurrentState onlineState = currentState.add(SampleComponentState.choiceKey().set(SampleComponentState.onlineChoice()));
         PubSub.Publish<CurrentState> publish = new PubSub.Publish<>(onlineState);
 
         pubSubRef.tell(publish);
+        return this;
     }
 
     @Override

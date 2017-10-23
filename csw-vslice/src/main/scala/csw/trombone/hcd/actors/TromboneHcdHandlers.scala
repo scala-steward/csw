@@ -63,9 +63,15 @@ case class TromboneHcdHandlers(ctx: ActorContext[ComponentMessage],
     Future.successful(println("shutdown complete during Running context"))
   }
 
-  override def onGoOffline(): Unit = println("Received running offline")
+  override def onGoOffline(): ComponentHandlers[TromboneMessage] = {
+    println("Received running offline")
+    this
+  }
 
-  override def onGoOnline(): Unit = println("Received running offline")
+  override def onGoOnline(): ComponentHandlers[TromboneMessage] = {
+    println("Received running offline")
+    this
+  }
 
   private def onSetup(sc: Setup): Unit = {
     import csw.trombone.hcd.TromboneHcdState._

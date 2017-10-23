@@ -46,9 +46,9 @@ class GalilComponentHandlers(
 
   override def onShutdown(): Future[Unit] = Future.successful(())
 
-  override def onGoOffline(): Unit = ()
+  override def onGoOffline(): ComponentHandlers[StartLogging] = this
 
-  override def onGoOnline(): Unit = ()
+  override def onGoOnline(): ComponentHandlers[StartLogging] = this
 
   override protected def componentName(): String = componentInfo.name
 }

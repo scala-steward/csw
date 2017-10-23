@@ -29,6 +29,6 @@ abstract class ComponentHandlers[Msg <: DomainMessage: ClassTag](
   def onSubmit(controlCommand: ControlCommand, replyTo: ActorRef[CommandResponse]): Validation
   def onOneway(controlCommand: ControlCommand): Validation
   def onShutdown(): Future[Unit]
-  def onGoOffline(): Unit
-  def onGoOnline(): Unit
+  def onGoOffline(): ComponentHandlers[Msg]
+  def onGoOnline(): ComponentHandlers[Msg]
 }

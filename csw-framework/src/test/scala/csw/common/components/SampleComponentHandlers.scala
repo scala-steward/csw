@@ -74,9 +74,15 @@ class SampleComponentHandlers(
     Future(this)
   }
 
-  override def onGoOffline(): Unit = pubSubRef ! Publish(CurrentState(prefix, Set(choiceKey.set(offlineChoice))))
+  override def onGoOffline(): ComponentHandlers[ComponentDomainMessage] = {
+    pubSubRef ! Publish(CurrentState(prefix, Set(choiceKey.set(offlineChoice))))
+    this
+  }
 
-  override def onGoOnline(): Unit = pubSubRef ! Publish(CurrentState(prefix, Set(choiceKey.set(onlineChoice))))
+  override def onGoOnline(): ComponentHandlers[ComponentDomainMessage] = {
+    pubSubRef ! Publish(CurrentState(prefix, Set(choiceKey.set(onlineChoice))))
+    this
+  }
 
   override def onDomainMsg(msg: ComponentDomainMessage): ComponentHandlers[ComponentDomainMessage] = {
     pubSubRef ! Publish(CurrentState(prefix, Set(choiceKey.set(domainChoice))))
