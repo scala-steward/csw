@@ -17,7 +17,7 @@ import csw.messages.params.states.CurrentState
 import csw.services.location.scaladsl.LocationService
 import csw.services.logging.scaladsl.ComponentLogger
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContextExecutor, Future}
 
 object SampleComponentState {
   val restartChoice         = Choice("Restart")
@@ -63,13 +63,14 @@ class SampleComponentHandlers(
     with ComponentLogger.Simple {
 
   import SampleComponentState._
+  implicit val ec: ExecutionContextExecutor = ctx.executionContext
 
-  override def initialize(): Future[Unit] = {
+  override def initialize(): Future[ComponentHandlers[ComponentDomainMessage]] = {
     // DEOPSCSW-153: Accessibility of logging service to other CSW components
     log.info("Initializing Component TLA")
     Thread.sleep(100)
     pubSubRef ! Publish(CurrentState(prefix, Set(choiceKey.set(initChoice))))
-    Future.unit
+    Future(this)
   }
 
   override def onGoOffline(): Unit = pubSubRef ! Publish(CurrentState(prefix, Set(choiceKey.set(offlineChoice))))
@@ -98,10 +99,10 @@ class SampleComponentHandlers(
 
   private def validateCommand(command: ControlCommand) = {
     command match {
-      case Setup(_, _, _) ⇒
-        pubSubRef ! Publish(CurrentState(prefix, Set(choiceKey.set(setupConfigChoice), command.paramSet.head)))
-      case Observe(_, _, _) ⇒
-        pubSubRef ! Publish(CurrentState(prefix, Set(choiceKey.set(observeConfigChoice), command.paramSet.head)))
+      case Setup(_, dd, _) ⇒
+        pubSubRef ! Publish(CurrentState(dd, Set(choiceKey.set(setupConfigChoice), command.paramSet.head)))
+      case Observe(_, dd, _) ⇒
+        pubSubRef ! Publish(CurrentState(dd, Set(choiceKey.set(observeConfigChoice), command.paramSet.head)))
       case _ ⇒
     }
 

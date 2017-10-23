@@ -32,32 +32,33 @@ class TromboneHcdBehaviorFactory extends ComponentBehaviorFactory[TromboneMessag
       pubSubRef: ActorRef[PublisherMessage[CurrentState]],
       locationService: LocationService
   ): ComponentHandlers[TromboneMessage] =
-    new TromboneHcdHandlers(ctx, componentInfo, pubSubRef, locationService)
+    TromboneHcdHandlers(ctx, componentInfo, pubSubRef, locationService, None, None, None, None)
 }
 
-class TromboneHcdHandlers(
-    ctx: ActorContext[ComponentMessage],
-    componentInfo: ComponentInfo,
-    pubSubRef: ActorRef[PublisherMessage[CurrentState]],
-    locationService: LocationService
-) extends ComponentHandlers[TromboneMessage](ctx, componentInfo, pubSubRef, locationService) {
+case class TromboneHcdHandlers(ctx: ActorContext[ComponentMessage],
+                               componentInfo: ComponentInfo,
+                               pubSubRef: ActorRef[PublisherMessage[CurrentState]],
+                               locationService: LocationService,
+                               axisConfig: Option[AxisConfig],
+                               tromboneAxis: Option[ActorRef[AxisRequest]],
+                               current: Option[AxisUpdate],
+                               stats: Option[AxisStatistics])
+    extends ComponentHandlers[TromboneMessage](ctx, componentInfo, pubSubRef, locationService) {
 
   implicit val timeout: Timeout             = Timeout(2.seconds)
   implicit val scheduler: Scheduler         = ctx.system.scheduler
   implicit val ec: ExecutionContextExecutor = ctx.executionContext
 
-  var current: AxisUpdate                 = _
-  var stats: AxisStatistics               = _
-  var tromboneAxis: ActorRef[AxisRequest] = _
-  var axisConfig: AxisConfig              = _
-
-  override def initialize(): Future[Unit] = async {
-    axisConfig = await(getAxisConfig)
-    tromboneAxis = ctx.spawnAnonymous(AxisSimulator.behavior(axisConfig, Some(ctx.self)))
-    current = await(tromboneAxis ? InitialState)
-    stats = await(tromboneAxis ? GetStatistics)
+  override def initialize(): Future[ComponentHandlers[TromboneMessage]] = async {
+    val axisConfig   = await(getAxisConfig)
+    val tromboneAxis = ctx.spawnAnonymous(AxisSimulator.behavior(axisConfig, Some(ctx.self)))
+    val current      = await(tromboneAxis ? InitialState)
+    val stats        = await(tromboneAxis ? GetStatistics)
+    this.copy(axisConfig = Some(axisConfig),
+              tromboneAxis = Some(tromboneAxis),
+              current = Some(current),
+              stats = Some(stats))
   }
-
   override def onShutdown(): Future[Unit] = {
     Future.successful(println("shutdown complete during Running context"))
   }
@@ -72,14 +73,14 @@ class TromboneHcdHandlers(
 
     sc.prefix match {
       case `axisMoveCK` =>
-        tromboneAxis ! Move(sc(positionKey).head, diagFlag = true)
+        tromboneAxis.foreach(_ ! Move(sc(positionKey).head, diagFlag = true))
       case `axisDatumCK` =>
         println("Received Datum")
-        tromboneAxis ! Datum
+        tromboneAxis.foreach(_ ! Datum)
       case `axisHomeCK` =>
-        tromboneAxis ! Home
+        tromboneAxis.foreach(_ ! Home)
       case `axisCancelCK` =>
-        tromboneAxis ! CancelMove
+        tromboneAxis.foreach(_ ! CancelMove)
       case x => println(s"Unknown config key $x")
     }
   }
@@ -101,21 +102,24 @@ class TromboneHcdHandlers(
   }
 
   private def onEngMsg(tromboneEngineering: TromboneEngineering): Unit = tromboneEngineering match {
-    case GetAxisStats              => tromboneAxis ! GetStatistics(ctx.self)
-    case GetAxisUpdate             => tromboneAxis ! PublishAxisUpdate
-    case GetAxisUpdateNow(replyTo) => replyTo ! current
+    case GetAxisStats              => tromboneAxis.foreach(_ ! GetStatistics(ctx.self))
+    case GetAxisUpdate             => tromboneAxis.foreach(_ ! PublishAxisUpdate)
+    case GetAxisUpdateNow(replyTo) => current.foreach(replyTo ! _)
     case GetAxisConfig =>
       import csw.trombone.hcd.TromboneHcdState._
-      val axisConfigState = defaultConfigState.madd(
-        lowLimitKey    -> axisConfig.lowLimit,
-        lowUserKey     -> axisConfig.lowUser,
-        highUserKey    -> axisConfig.highUser,
-        highLimitKey   -> axisConfig.highLimit,
-        homeValueKey   -> axisConfig.home,
-        startValueKey  -> axisConfig.startPosition,
-        stepDelayMSKey -> axisConfig.stepDelayMS
+      val axisConfigState: Option[CurrentState] = axisConfig.map(
+        ac ⇒
+          defaultConfigState.madd(
+            lowLimitKey    -> ac.lowLimit,
+            lowUserKey     -> ac.lowUser,
+            highUserKey    -> ac.highUser,
+            highLimitKey   -> ac.highLimit,
+            homeValueKey   -> ac.home,
+            startValueKey  -> ac.startPosition,
+            stepDelayMSKey -> ac.stepDelayMS
+        )
       )
-      pubSubRef ! PubSub.Publish(axisConfigState)
+      axisConfigState.foreach(state ⇒ pubSubRef ! PubSub.Publish(state))
   }
 
   private def onAxisResponse(axisResponse: AxisResponse): Unit = axisResponse match {
@@ -131,7 +135,7 @@ class TromboneHcdHandlers(
         inHomeKey      -> inHomed
       )
       pubSubRef ! PubSub.Publish(tromboneAxisState)
-      current = au
+      this.copy(current = Some(au))
     case AxisFailure(reason) =>
     case as: AxisStatistics =>
       import csw.trombone.hcd.TromboneHcdState._
@@ -145,7 +149,7 @@ class TromboneHcdHandlers(
         cancelCountKey  -> as.cancelCount
       )
       pubSubRef ! PubSub.Publish(tromboneStats)
-      stats = as
+      this.copy(stats = Some(as))
   }
 
   private def getAxisConfig: Future[AxisConfig] = ???

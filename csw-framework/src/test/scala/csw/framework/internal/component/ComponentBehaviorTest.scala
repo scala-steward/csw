@@ -12,7 +12,7 @@ import csw.services.logging.scaladsl.{ComponentLogger, Logger}
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContextExecutor, Future}
 
 // DEOPSCSW-165-CSW Assembly Creation
 // DEOPSCSW-166-CSW HCD Creation
@@ -23,11 +23,12 @@ class ComponentBehaviorTest extends FrameworkTestSuite with MockitoSugar {
   }
 
   class TestData(supervisorProbe: TestProbe[FromComponentLifecycleMessage]) {
+    val ctx                                   = new StubbedActorContext[ComponentMessage]("test-component", 100, system)
+    implicit val ec: ExecutionContextExecutor = ctx.executionContext
     val sampleComponentHandler: ComponentHandlers[ComponentDomainMessage] =
       mock[ComponentHandlers[ComponentDomainMessage]]
-    when(sampleComponentHandler.initialize()).thenReturn(Future.unit)
+    when(sampleComponentHandler.initialize()).thenReturn(Future(sampleComponentHandler))
     val locationService: LocationService = mock[LocationService]
-    val ctx                              = new StubbedActorContext[ComponentMessage]("test-component", 100, system)
     val componentBehavior =
       new ComponentBehavior[ComponentDomainMessage](
         ctx,
@@ -36,7 +37,6 @@ class ComponentBehaviorTest extends FrameworkTestSuite with MockitoSugar {
         sampleComponentHandler,
         locationService
       ) with MutableActorMock[ComponentMessage]
-    when(sampleComponentHandler.initialize()).thenReturn(Future.unit)
   }
 
   test("component should start in idle lifecycle state") {

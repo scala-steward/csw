@@ -27,6 +27,7 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import org.mockito.stubbing.Answer
 import org.scalatest.BeforeAndAfterEach
+import org.scalatest.mockito.MockitoSugar
 
 import scala.collection.mutable
 import scala.concurrent.Future
@@ -36,7 +37,7 @@ class SupervisorLifecycleFailureTest extends FrameworkTestSuite with BeforeAndAf
 
   val supervisorLifecycleStateProbe: TestProbe[SupervisorLifecycleState] = TestProbe[SupervisorLifecycleState]
   var supervisorRef: ActorRef[SupervisorExternalMessage]                 = _
-  var initializeAnswer: Answer[Future[Unit]]                             = _
+  var initializeAnswer: Answer[Future[SampleComponentHandlers]]          = _
   var shutdownAnswer: Answer[Future[Unit]]                               = _
   var runAnswer: Answer[Future[Unit]]                                    = _
 
@@ -176,7 +177,7 @@ class SupervisorLifecycleFailureTest extends FrameworkTestSuite with BeforeAndAf
     supervisorRef = untypedSystem.spawnAnonymous(supervisorBehavior)
   }
 
-  private def createComponentHandlers(testMocks: FrameworkTestMocks) = {
+  private def createComponentHandlers(testMocks: FrameworkTestMocks): SampleComponentHandlers = {
     import testMocks._
 
     createAnswers(compStateProbe)
@@ -189,9 +190,15 @@ class SupervisorLifecycleFailureTest extends FrameworkTestSuite with BeforeAndAf
 
   private def createAnswers(compStateProbe: TestProbe[PubSub[CurrentState]]): Unit = {
     initializeAnswer = (_) ⇒
-      Future.successful(compStateProbe.ref ! Publish(CurrentState(prefix, Set(choiceKey.set(initChoice)))))
+      Future.successful {
+        compStateProbe.ref ! Publish(CurrentState(prefix, Set(choiceKey.set(initChoice))))
+        MockitoSugar.mock[SampleComponentHandlers]
+    }
 
     shutdownAnswer = (_) ⇒
-      Future.successful(compStateProbe.ref ! Publish(CurrentState(prefix, Set(choiceKey.set(shutdownChoice)))))
+      Future.successful {
+        compStateProbe.ref ! Publish(CurrentState(prefix, Set(choiceKey.set(shutdownChoice))))
+        this
+    }
   }
 }

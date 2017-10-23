@@ -5,7 +5,7 @@ import akka.typed.ActorRef;
 import akka.typed.javadsl.ActorContext;
 import csw.common.components.SampleComponentState;
 import csw.framework.javadsl.JComponentHandlers;
-import csw.messages.CommandMessage;
+import csw.framework.scaladsl.ComponentHandlers;
 import csw.messages.CommandResponse;
 import csw.messages.ComponentMessage;
 import csw.messages.PubSub;
@@ -43,7 +43,7 @@ public class JSampleComponentHandlers extends JComponentHandlers<JComponentDomai
     }
 
     @Override
-    public CompletableFuture<BoxedUnit> jInitialize() {
+    public CompletableFuture<ComponentHandlers<JComponentDomainMessage>> jInitialize() {
         log.debug("Initializing Sample component");
         try {
             Thread.sleep(100);
@@ -53,7 +53,7 @@ public class JSampleComponentHandlers extends JComponentHandlers<JComponentDomai
             PubSub.Publish<CurrentState> publish = new PubSub.Publish<>(initState);
 
             pubSubRef.tell(publish);
-            return BoxedUnit.UNIT;
+            return this;
         });
     }
 

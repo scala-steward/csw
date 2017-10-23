@@ -30,19 +30,16 @@ class TromboneAssemblyBehaviorFactory extends ComponentBehaviorFactory[DiagPubli
       pubSubRef: ActorRef[PublisherMessage[CurrentState]],
       locationService: LocationService
   ): ComponentHandlers[DiagPublisherMessages] =
-    new TromboneAssemblyHandlers(ctx, componentInfo, pubSubRef, locationService)
+    TromboneAssemblyHandlers(ctx, componentInfo, pubSubRef, locationService, None, None)
 }
 
-class TromboneAssemblyHandlers(
-    ctx: ActorContext[ComponentMessage],
-    componentInfo: ComponentInfo,
-    pubSubRef: ActorRef[PublisherMessage[CurrentState]],
-    locationService: LocationService
-) extends ComponentHandlers[DiagPublisherMessages](ctx, componentInfo, pubSubRef, locationService) {
-
-  private var diagPublsher: ActorRef[DiagPublisherMessages] = _
-
-  private var commandHandler: ActorRef[AssemblyCommandHandlerMsgs] = _
+case class TromboneAssemblyHandlers(ctx: ActorContext[ComponentMessage],
+                                    componentInfo: ComponentInfo,
+                                    pubSubRef: ActorRef[PublisherMessage[CurrentState]],
+                                    locationService: LocationService,
+                                    diagPublisher: Option[ActorRef[DiagPublisherMessages]],
+                                    commandHandler: Option[ActorRef[AssemblyCommandHandlerMsgs]])
+    extends ComponentHandlers[DiagPublisherMessages](ctx, componentInfo, pubSubRef, locationService) {
 
   implicit var ac: AssemblyContext  = _
   implicit val ec: ExecutionContext = ctx.executionContext
@@ -51,16 +48,18 @@ class TromboneAssemblyHandlers(
 
   def onRun(): Future[Unit] = Future.unit
 
-  def initialize(): Future[Unit] = async {
+  def initialize(): Future[ComponentHandlers[DiagPublisherMessages]] = async {
     val (calculationConfig, controlConfig) = await(getAssemblyConfigs)
     ac = AssemblyContext(componentInfo.asInstanceOf[ComponentInfo], calculationConfig, controlConfig)
 
     val eventPublisher = ctx.spawnAnonymous(TrombonePublisher.make(ac))
 
-    commandHandler =
-      ctx.spawnAnonymous(new TromboneAssemblyCommandBehaviorFactory().make(ac, runningHcds, Some(eventPublisher)))
-
-    diagPublsher = ctx.spawnAnonymous(DiagPublisher.make(ac, runningHcds.head._2, Some(eventPublisher)))
+    this.copy(
+      diagPublisher = Some(ctx.spawnAnonymous(DiagPublisher.make(ac, runningHcds.head._2, Some(eventPublisher)))),
+      commandHandler = Some(
+        ctx.spawnAnonymous(new TromboneAssemblyCommandBehaviorFactory().make(ac, runningHcds, Some(eventPublisher)))
+      )
+    )
   }
 
   override def onShutdown(): Future[Unit] = {
@@ -72,7 +71,7 @@ class TromboneAssemblyHandlers(
   override def onGoOnline(): Unit = println("Received GoOnline")
 
   def onDomainMsg(mode: DiagPublisherMessages): Unit = mode match {
-    case (DiagnosticState | OperationsState) => diagPublsher ! mode
+    case (DiagnosticState | OperationsState) => diagPublisher.foreach(_ ! mode)
     case _                                   ⇒
   }
 
@@ -82,7 +81,7 @@ class TromboneAssemblyHandlers(
       case Observe(info, prefix, paramSet) => Valid
     }
     if (validation == Valid) {
-      commandHandler ! CommandMessageE(Submit(controlCommand, replyTo))
+      commandHandler.foreach(_ ! CommandMessageE(Submit(controlCommand, replyTo)))
     }
     validation
   }
@@ -100,6 +99,6 @@ class TromboneAssemblyHandlers(
       case LocationRemoved(connection) =>
         runningHcds = runningHcds + (connection → None)
     }
-    commandHandler ! UpdateHcdLocations(runningHcds)
+    commandHandler.foreach(_ ! UpdateHcdLocations(runningHcds))
   }
 }

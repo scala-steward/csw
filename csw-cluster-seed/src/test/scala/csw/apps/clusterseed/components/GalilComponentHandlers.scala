@@ -15,7 +15,7 @@ import csw.messages.params.states.CurrentState
 import csw.services.location.scaladsl.LocationService
 import csw.services.logging.scaladsl.ComponentLogger
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContextExecutor, Future}
 
 case class StartLogging() extends DomainMessage
 
@@ -26,8 +26,8 @@ class GalilComponentHandlers(
     locationService: LocationService
 ) extends ComponentHandlers[StartLogging](ctx, componentInfo, pubSubRef, locationService)
     with ComponentLogger.Simple {
-
-  override def initialize(): Future[Unit] = Future.successful(())
+  implicit val ec: ExecutionContextExecutor                          = ctx.executionContext
+  override def initialize(): Future[ComponentHandlers[StartLogging]] = Future(this)
 
   override def onLocationTrackingEvent(trackingEvent: TrackingEvent): Unit = ()
 
