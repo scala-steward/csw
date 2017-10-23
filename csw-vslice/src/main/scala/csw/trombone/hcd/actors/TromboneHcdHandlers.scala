@@ -96,35 +96,43 @@ case class TromboneHcdHandlers(ctx: ActorContext[ComponentMessage],
   }
   override def onOneway(controlCommand: ControlCommand): Validation = Validations.Valid
 
-  def onDomainMsg(tromboneMsg: TromboneMessage): Unit = tromboneMsg match {
+  def onDomainMsg(tromboneMsg: TromboneMessage): ComponentHandlers[TromboneMessage] = tromboneMsg match {
     case x: TromboneEngineering => onEngMsg(x)
     case x: AxisResponse        => onAxisResponse(x)
   }
 
-  private def onEngMsg(tromboneEngineering: TromboneEngineering): Unit = tromboneEngineering match {
-    case GetAxisStats              => tromboneAxis.foreach(_ ! GetStatistics(ctx.self))
-    case GetAxisUpdate             => tromboneAxis.foreach(_ ! PublishAxisUpdate)
-    case GetAxisUpdateNow(replyTo) => current.foreach(replyTo ! _)
-    case GetAxisConfig =>
-      import csw.trombone.hcd.TromboneHcdState._
-      val axisConfigState: Option[CurrentState] = axisConfig.map(
-        ac ⇒
-          defaultConfigState.madd(
-            lowLimitKey    -> ac.lowLimit,
-            lowUserKey     -> ac.lowUser,
-            highUserKey    -> ac.highUser,
-            highLimitKey   -> ac.highLimit,
-            homeValueKey   -> ac.home,
-            startValueKey  -> ac.startPosition,
-            stepDelayMSKey -> ac.stepDelayMS
+  private def onEngMsg(tromboneEngineering: TromboneEngineering): ComponentHandlers[TromboneMessage] =
+    tromboneEngineering match {
+      case GetAxisStats =>
+        tromboneAxis.foreach(_ ! GetStatistics(ctx.self))
+        this
+      case GetAxisUpdate =>
+        tromboneAxis.foreach(_ ! PublishAxisUpdate)
+        this
+      case GetAxisUpdateNow(replyTo) =>
+        current.foreach(replyTo ! _)
+        this
+      case GetAxisConfig =>
+        import csw.trombone.hcd.TromboneHcdState._
+        val axisConfigState: Option[CurrentState] = axisConfig.map(
+          ac ⇒
+            defaultConfigState.madd(
+              lowLimitKey    -> ac.lowLimit,
+              lowUserKey     -> ac.lowUser,
+              highUserKey    -> ac.highUser,
+              highLimitKey   -> ac.highLimit,
+              homeValueKey   -> ac.home,
+              startValueKey  -> ac.startPosition,
+              stepDelayMSKey -> ac.stepDelayMS
+          )
         )
-      )
-      axisConfigState.foreach(state ⇒ pubSubRef ! PubSub.Publish(state))
-  }
+        axisConfigState.foreach(state ⇒ pubSubRef ! PubSub.Publish(state))
+        this
+    }
 
-  private def onAxisResponse(axisResponse: AxisResponse): Unit = axisResponse match {
-    case AxisStarted          =>
-    case AxisFinished(newRef) =>
+  private def onAxisResponse(axisResponse: AxisResponse): ComponentHandlers[TromboneMessage] = axisResponse match {
+    case AxisStarted          => this
+    case AxisFinished(newRef) => this
     case au @ AxisUpdate(axisName, axisState, current1, inLowLimit, inHighLimit, inHomed) =>
       import csw.trombone.hcd.TromboneHcdState._
       val tromboneAxisState = defaultAxisState.madd(
@@ -136,7 +144,7 @@ case class TromboneHcdHandlers(ctx: ActorContext[ComponentMessage],
       )
       pubSubRef ! PubSub.Publish(tromboneAxisState)
       this.copy(current = Some(au))
-    case AxisFailure(reason) =>
+    case AxisFailure(reason) => this
     case as: AxisStatistics =>
       import csw.trombone.hcd.TromboneHcdState._
       val tromboneStats = defaultStatsState.madd(

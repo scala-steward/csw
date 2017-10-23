@@ -31,13 +31,14 @@ class GalilComponentHandlers(
 
   override def onLocationTrackingEvent(trackingEvent: TrackingEvent): ComponentHandlers[StartLogging] = this
 
-  override def onDomainMsg(msg: StartLogging): Unit = {
+  override def onDomainMsg(msg: StartLogging): ComponentHandlers[StartLogging] = {
     log.trace("Level is trace")
     log.debug("Level is debug")
     log.info("Level is info")
     log.warn("Level is warn")
     log.error("Level is error")
     log.fatal("Level is fatal")
+    this
   }
 
   override def onSubmit(controlCommand: ControlCommand, replyTo: ActorRef[CommandResponse]): Validation = Valid

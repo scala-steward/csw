@@ -78,8 +78,9 @@ class SampleComponentHandlers(
 
   override def onGoOnline(): Unit = pubSubRef ! Publish(CurrentState(prefix, Set(choiceKey.set(onlineChoice))))
 
-  override def onDomainMsg(msg: ComponentDomainMessage): Unit = {
+  override def onDomainMsg(msg: ComponentDomainMessage): ComponentHandlers[ComponentDomainMessage] = {
     pubSubRef ! Publish(CurrentState(prefix, Set(choiceKey.set(domainChoice))))
+    this
   }
 
   override def onSubmit(controlCommand: ControlCommand, replyTo: ActorRef[CommandResponse]): Validation = {

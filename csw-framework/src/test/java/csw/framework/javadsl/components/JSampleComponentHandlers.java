@@ -63,11 +63,12 @@ public class JSampleComponentHandlers extends JComponentHandlers<JComponentDomai
     }
 
     @Override
-    public void onDomainMsg(JComponentDomainMessage hcdDomainMsg) {
+    public ComponentHandlers<JComponentDomainMessage> onDomainMsg(JComponentDomainMessage hcdDomainMsg) {
         CurrentState domainState = currentState.add(SampleComponentState.choiceKey().set(SampleComponentState.domainChoice()));
         PubSub.Publish<CurrentState> publish = new PubSub.Publish<>(domainState);
 
         pubSubRef.tell(publish);
+        return this;
     }
 
     @Override

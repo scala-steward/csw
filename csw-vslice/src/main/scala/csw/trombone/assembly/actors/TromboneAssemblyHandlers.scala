@@ -71,9 +71,12 @@ case class TromboneAssemblyHandlers(
 
   override def onGoOnline(): Unit = println("Received GoOnline")
 
-  def onDomainMsg(mode: DiagPublisherMessages): Unit = mode match {
-    case (DiagnosticState | OperationsState) => diagPublisher.foreach(_ ! mode)
-    case _                                   ⇒
+  def onDomainMsg(mode: DiagPublisherMessages): ComponentHandlers[DiagPublisherMessages] = {
+    mode match {
+      case (DiagnosticState | OperationsState) => diagPublisher.foreach(_ ! mode)
+      case _                                   ⇒
+    }
+    this
   }
 
   override def onSubmit(controlCommand: ControlCommand, replyTo: ActorRef[CommandResponse]): Validation = {
