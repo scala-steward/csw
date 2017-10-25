@@ -3,7 +3,7 @@ package csw.apps.clusterseed.components
 import akka.typed.ActorRef
 import akka.typed.scaladsl.ActorContext
 import csw.framework.scaladsl.ComponentHandlers
-import csw.messages.PubSub.PublisherMessage
+import csw.messages.PubSub.{CommandStatePubSub, PublisherMessage}
 import csw.messages.RunningMessage.DomainMessage
 import csw.messages._
 import csw.messages.ccs.Validation
@@ -23,8 +23,9 @@ class GalilComponentHandlers(
     ctx: ActorContext[ComponentMessage],
     componentInfo: ComponentInfo,
     pubSubRef: ActorRef[PublisherMessage[CurrentState]],
+    pubSubCommandstate: ActorRef[CommandStatePubSub],
     locationService: LocationService
-) extends ComponentHandlers[StartLogging](ctx, componentInfo, pubSubRef, locationService)
+) extends ComponentHandlers[StartLogging](ctx, componentInfo, pubSubRef, pubSubCommandstate, locationService)
     with ComponentLogger.Simple {
 
   override def initialize(): Future[Unit] = Future.successful(())

@@ -2,7 +2,7 @@ package csw.messages
 
 import akka.actor.ActorSystem
 import akka.typed.ActorRef
-import csw.messages.PubSub.SubscriberMessage
+import csw.messages.PubSub.{CommandStatePubSub, SubscriberMessage}
 import csw.messages.ccs.commands.{ControlCommand, Result}
 import csw.messages.ccs.{Validation, ValidationIssue, Validations}
 import csw.messages.framework.{ComponentInfo, ContainerLifecycleState, SupervisorLifecycleState}
@@ -88,6 +88,7 @@ object SupervisorCommonMessage {
   case class ComponentStateSubscription(subscriberMessage: SubscriberMessage[CurrentState])
       extends SupervisorCommonMessage
   case class GetSupervisorLifecycleState(replyTo: ActorRef[SupervisorLifecycleState]) extends SupervisorCommonMessage
+  case class GetCommandStatePubSub(replyTo: ActorRef[ActorRef[CommandStatePubSub]])   extends SupervisorCommonMessage
 }
 
 sealed trait SupervisorIdleMessage extends SupervisorMessage

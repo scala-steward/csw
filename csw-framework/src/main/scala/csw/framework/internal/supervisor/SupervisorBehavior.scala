@@ -5,15 +5,17 @@ import akka.actor.CoordinatedShutdown
 import akka.typed.scaladsl.adapter.TypedActorSystemOps
 import akka.typed.scaladsl.{Actor, ActorContext, TimerScheduler}
 import akka.typed.{ActorRef, Behavior, PostStop, Signal, SupervisorStrategy, Terminated}
+import csw.ccs.CommandStatePubSubBehavior
 import csw.exceptions.{FailureRestart, InitializationFailed}
 import csw.framework.internal.pubsub.PubSubBehaviorFactory
 import csw.framework.scaladsl.ComponentBehaviorFactory
 import csw.messages.FromComponentLifecycleMessage.Running
 import csw.messages.FromSupervisorMessage.SupervisorLifecycleStateChanged
-import csw.messages.PubSub.Publish
+import csw.messages.PubSub.{CommandStatePubSub, Publish}
 import csw.messages.RunningMessage.Lifecycle
 import csw.messages.SupervisorCommonMessage.{
   ComponentStateSubscription,
+  GetCommandStatePubSub,
   GetSupervisorLifecycleState,
   LifecycleStateSubscription
 }
@@ -38,6 +40,7 @@ import scala.util.{Failure, Success}
 object SupervisorBehavior {
   val PubSubComponentActor     = "pub-sub-component"
   val PubSubLifecycleActor     = "pub-sub-lifecycle"
+  val PubSubCommandStateActor  = "pub-sub-command-state"
   val InitializeTimerKey       = "initialize-timer"
   val ComponentActorNameSuffix = "component-actor"
 }
@@ -67,6 +70,10 @@ class SupervisorBehavior(
     pubSubBehaviorFactory.make(ctx, PubSubComponentActor, componentName)
   val pubSubLifecycle: ActorRef[PubSub[LifecycleStateChanged]] =
     pubSubBehaviorFactory.make(ctx, PubSubLifecycleActor, componentName)
+  val pubSubCommandState: ActorRef[CommandStatePubSub] = ctx.spawn(
+    Actor.mutable[CommandStatePubSub](ctx ⇒ new CommandStatePubSubBehavior(ctx, componentName)),
+    PubSubCommandStateActor
+  )
 
   var lifecycleState: SupervisorLifecycleState           = Idle
   var runningComponent: Option[ActorRef[RunningMessage]] = None
@@ -113,6 +120,7 @@ class SupervisorBehavior(
     case LifecycleStateSubscription(subscriberMessage) ⇒ pubSubLifecycle ! subscriberMessage
     case ComponentStateSubscription(subscriberMessage) ⇒ pubSubComponent ! subscriberMessage
     case GetSupervisorLifecycleState(replyTo)          ⇒ replyTo ! lifecycleState
+    case GetCommandStatePubSub(replyTo)                ⇒ replyTo ! pubSubCommandState
     case Restart                                       ⇒ onRestart()
     case Shutdown ⇒
       log.debug(
@@ -241,7 +249,9 @@ class SupervisorBehavior(
     component = Some(
       ctx.spawn[Nothing](
         Actor
-          .supervise[Nothing](componentBehaviorFactory.make(componentInfo, ctx.self, pubSubComponent, locationService))
+          .supervise[Nothing](
+            componentBehaviorFactory.make(componentInfo, ctx.self, pubSubComponent, pubSubCommandState, locationService)
+          )
           .onFailure[FailureRestart](SupervisorStrategy.restartWithLimit(3, Duration.Zero).withLoggingEnabled(true)),
         componentActorName
       )

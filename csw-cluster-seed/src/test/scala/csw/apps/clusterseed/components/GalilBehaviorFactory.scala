@@ -3,6 +3,7 @@ package csw.apps.clusterseed.components
 import akka.typed.ActorRef
 import akka.typed.scaladsl.ActorContext
 import csw.framework.scaladsl.{ComponentBehaviorFactory, ComponentHandlers}
+import csw.messages.PubSub.CommandStatePubSub
 import csw.messages.framework.ComponentInfo
 import csw.messages.params.states.CurrentState
 import csw.messages.{ComponentMessage, PubSub}
@@ -13,7 +14,8 @@ class GalilBehaviorFactory extends ComponentBehaviorFactory[StartLogging] {
       ctx: ActorContext[ComponentMessage],
       componentInfo: ComponentInfo,
       pubSubRef: ActorRef[PubSub.PublisherMessage[CurrentState]],
+      pubSubCommandstate: ActorRef[CommandStatePubSub],
       locationService: LocationService
   ): ComponentHandlers[StartLogging] =
-    new GalilComponentHandlers(ctx, componentInfo, pubSubRef, locationService)
+    new GalilComponentHandlers(ctx, componentInfo, pubSubRef, pubSubCommandstate, locationService)
 }

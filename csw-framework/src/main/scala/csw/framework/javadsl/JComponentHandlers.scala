@@ -6,7 +6,7 @@ import akka.typed.ActorRef
 import akka.typed.javadsl.ActorContext
 import csw.framework.scaladsl.ComponentHandlers
 import csw.messages.ComponentMessage
-import csw.messages.PubSub.PublisherMessage
+import csw.messages.PubSub.{CommandStatePubSub, PublisherMessage}
 import csw.messages.RunningMessage.DomainMessage
 import csw.messages.framework.ComponentInfo
 import csw.messages.params.states.CurrentState
@@ -20,9 +20,12 @@ abstract class JComponentHandlers[Msg <: DomainMessage](
     ctx: ActorContext[ComponentMessage],
     componentInfo: ComponentInfo,
     pubSubRef: ActorRef[PublisherMessage[CurrentState]],
+    pubSubCommandState: ActorRef[CommandStatePubSub],
     locationService: ILocationService,
     klass: Class[Msg]
-) extends ComponentHandlers[Msg](ctx.asScala, componentInfo, pubSubRef, locationService.asScala)(ClassTag(klass)) {
+) extends ComponentHandlers[Msg](ctx.asScala, componentInfo, pubSubRef, pubSubCommandState, locationService.asScala)(
+      ClassTag(klass)
+    ) {
 
   implicit val ec: ExecutionContextExecutor = ctx.getExecutionContext
 

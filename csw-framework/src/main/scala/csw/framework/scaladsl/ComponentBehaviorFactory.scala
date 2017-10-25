@@ -3,7 +3,7 @@ package csw.framework.scaladsl
 import akka.typed.scaladsl.{Actor, ActorContext}
 import akka.typed.{ActorRef, Behavior}
 import csw.framework.internal.component.ComponentBehavior
-import csw.messages.PubSub.PublisherMessage
+import csw.messages.PubSub.{CommandStatePubSub, PublisherMessage}
 import csw.messages.RunningMessage.DomainMessage
 import csw.messages.framework.ComponentInfo
 import csw.messages.params.states.CurrentState
@@ -18,6 +18,7 @@ abstract class ComponentBehaviorFactory[Msg <: DomainMessage: ClassTag] {
       ctx: ActorContext[ComponentMessage],
       componentInfo: ComponentInfo,
       pubSubRef: ActorRef[PublisherMessage[CurrentState]],
+      pubSubCommandState: ActorRef[CommandStatePubSub],
       locationService: LocationService
   ): ComponentHandlers[Msg]
 
@@ -25,6 +26,7 @@ abstract class ComponentBehaviorFactory[Msg <: DomainMessage: ClassTag] {
       compInfo: ComponentInfo,
       supervisor: ActorRef[FromComponentLifecycleMessage],
       pubSubRef: ActorRef[PublisherMessage[CurrentState]],
+      pubSubCommandState: ActorRef[CommandStatePubSub],
       locationService: LocationService
   ): Behavior[Nothing] =
     Actor
@@ -34,7 +36,7 @@ abstract class ComponentBehaviorFactory[Msg <: DomainMessage: ClassTag] {
             ctx,
             compInfo,
             supervisor,
-            handlers(ctx, compInfo, pubSubRef, locationService),
+            handlers(ctx, compInfo, pubSubRef, pubSubCommandState, locationService),
             locationService
         )
       )

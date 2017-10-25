@@ -15,7 +15,7 @@ import csw.framework.ComponentInfos._
 import csw.framework.internal.component.ComponentBehavior
 import csw.framework.scaladsl.{ComponentBehaviorFactory, ComponentHandlers}
 import csw.framework.{FrameworkTestMocks, FrameworkTestSuite}
-import csw.messages.PubSub.{Publish, PublisherMessage}
+import csw.messages.PubSub.{CommandStatePubSub, Publish, PublisherMessage}
 import csw.messages.SupervisorCommonMessage.GetSupervisorLifecycleState
 import csw.messages._
 import csw.messages.framework.{ComponentInfo, SupervisorLifecycleState}
@@ -150,6 +150,7 @@ class SupervisorLifecycleFailureTest extends FrameworkTestSuite with BeforeAndAf
         any[ComponentInfo],
         any[ActorRef[FromComponentLifecycleMessage]],
         any[ActorRef[PublisherMessage[CurrentState]]],
+        any[ActorRef[CommandStatePubSub]],
         any[LocationService]
       )
     ).thenCallRealMethod()
@@ -159,6 +160,7 @@ class SupervisorLifecycleFailureTest extends FrameworkTestSuite with BeforeAndAf
         any[ActorContext[ComponentMessage]],
         any[ComponentInfo],
         any[ActorRef[PublisherMessage[CurrentState]]],
+        any[ActorRef[CommandStatePubSub]],
         any[LocationService]
       )
     ).thenReturn(componentHandlers)

@@ -3,7 +3,7 @@ package csw.common.components
 import akka.typed.ActorRef
 import akka.typed.scaladsl.ActorContext
 import csw.framework.scaladsl.ComponentHandlers
-import csw.messages.PubSub.{Publish, PublisherMessage}
+import csw.messages.PubSub.{CommandStatePubSub, Publish, PublisherMessage}
 import csw.messages._
 import csw.messages.ccs.ValidationIssue.OtherIssue
 import csw.messages.ccs.commands.{ControlCommand, Observe, Setup}
@@ -58,8 +58,15 @@ class SampleComponentHandlers(
     ctx: ActorContext[ComponentMessage],
     componentInfo: ComponentInfo,
     pubSubRef: ActorRef[PublisherMessage[CurrentState]],
+    pubSubCommandState: ActorRef[CommandStatePubSub],
     locationService: LocationService
-) extends ComponentHandlers[ComponentDomainMessage](ctx, componentInfo, pubSubRef, locationService)
+) extends ComponentHandlers[ComponentDomainMessage](
+      ctx,
+      componentInfo,
+      pubSubRef,
+      pubSubCommandState,
+      locationService
+    )
     with ComponentLogger.Simple {
 
   import SampleComponentState._

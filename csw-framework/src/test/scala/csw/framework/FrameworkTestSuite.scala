@@ -8,7 +8,7 @@ import akka.util.Timeout
 import csw.common.components.ComponentDomainMessage
 import csw.framework.scaladsl.{ComponentBehaviorFactory, ComponentHandlers}
 import csw.messages.ComponentMessage
-import csw.messages.PubSub.PublisherMessage
+import csw.messages.PubSub.{CommandStatePubSub, PublisherMessage}
 import csw.messages.framework.ComponentInfo
 import csw.messages.params.states.CurrentState
 import csw.services.location.scaladsl.{ActorSystemFactory, LocationService}
@@ -38,6 +38,7 @@ abstract class FrameworkTestSuite extends FunSuite with Matchers with BeforeAndA
           ctx: ActorContext[ComponentMessage],
           componentInfo: ComponentInfo,
           pubSubRef: ActorRef[PublisherMessage[CurrentState]],
+          pubSubCommandState: ActorRef[CommandStatePubSub],
           locationService: LocationService
       ): ComponentHandlers[ComponentDomainMessage] =
         componentHandlers
@@ -51,6 +52,7 @@ abstract class FrameworkTestSuite extends FunSuite with Matchers with BeforeAndA
           ctx: ActorContext[ComponentMessage],
           componentInfo: ComponentInfo,
           pubSubRef: ActorRef[PublisherMessage[CurrentState]],
+          pubSubCommandState: ActorRef[CommandStatePubSub],
           locationService: LocationService
       ): ComponentHandlers[ComponentDomainMessage] =
         assemblyHandlers

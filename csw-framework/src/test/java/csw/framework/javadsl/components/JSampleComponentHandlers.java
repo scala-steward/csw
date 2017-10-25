@@ -35,8 +35,8 @@ public class JSampleComponentHandlers extends JComponentHandlers<JComponentDomai
     private CurrentState currentState = new CurrentState(SampleComponentState.prefix().prefix());
 
     JSampleComponentHandlers(ActorContext<ComponentMessage> ctx, ComponentInfo componentInfo, ActorRef<PubSub.PublisherMessage<CurrentState>>
-            pubSubRef, ILocationService locationService, Class<JComponentDomainMessage> klass) {
-        super(ctx, componentInfo, pubSubRef, locationService, klass);
+            pubSubRef, ActorRef<PubSub.CommandStatePubSub> pubSubCommandState, ILocationService locationService, Class<JComponentDomainMessage> klass) {
+        super(ctx, componentInfo, pubSubRef, pubSubCommandState, locationService, klass);
         this.pubSubRef = pubSubRef;
         this.componentName = componentInfo.name();
         this.log = getLogger();

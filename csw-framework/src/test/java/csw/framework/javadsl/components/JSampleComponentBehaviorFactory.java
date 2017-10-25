@@ -20,7 +20,8 @@ public class JSampleComponentBehaviorFactory extends JComponentBehaviorFactory<J
             ActorContext<ComponentMessage> ctx,
             ComponentInfo componentInfo,
             ActorRef<PubSub.PublisherMessage<CurrentState>> pubSubRef,
+            ActorRef<PubSub.CommandStatePubSub> pubSubCommandState,
             ILocationService locationService) {
-        return new JSampleComponentHandlers(ctx, componentInfo, pubSubRef, locationService, JComponentDomainMessage.class);
+        return new JSampleComponentHandlers(ctx, componentInfo, pubSubRef, pubSubCommandState, locationService, JComponentDomainMessage.class);
     }
 }

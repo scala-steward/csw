@@ -2,7 +2,7 @@ package csw.framework.scaladsl
 
 import akka.typed.ActorRef
 import akka.typed.scaladsl.ActorContext
-import csw.messages.PubSub.PublisherMessage
+import csw.messages.PubSub.{CommandStatePubSub, PublisherMessage}
 import csw.messages.RunningMessage.DomainMessage
 import csw.messages.ccs.Validation
 import csw.messages.ccs.commands.ControlCommand
@@ -19,6 +19,7 @@ abstract class ComponentHandlers[Msg <: DomainMessage: ClassTag](
     ctx: ActorContext[ComponentMessage],
     componentInfo: ComponentInfo,
     pubSubRef: ActorRef[PublisherMessage[CurrentState]],
+    pubSubCommandState: ActorRef[CommandStatePubSub],
     locationService: LocationService
 ) {
   var isOnline: Boolean = false

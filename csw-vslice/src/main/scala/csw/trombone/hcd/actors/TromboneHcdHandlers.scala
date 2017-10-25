@@ -6,7 +6,7 @@ import akka.typed.scaladsl.ActorContext
 import akka.typed.scaladsl.AskPattern.Askable
 import akka.util.Timeout
 import csw.framework.scaladsl.{ComponentBehaviorFactory, ComponentHandlers}
-import csw.messages.PubSub.PublisherMessage
+import csw.messages.PubSub.{CommandStatePubSub, PublisherMessage}
 import csw.messages._
 import csw.messages.ccs.{Validation, Validations}
 import csw.messages.ccs.Validations.Valid
@@ -30,17 +30,19 @@ class TromboneHcdBehaviorFactory extends ComponentBehaviorFactory[TromboneMessag
       ctx: ActorContext[ComponentMessage],
       componentInfo: ComponentInfo,
       pubSubRef: ActorRef[PublisherMessage[CurrentState]],
+      pubSubCommandstate: ActorRef[CommandStatePubSub],
       locationService: LocationService
   ): ComponentHandlers[TromboneMessage] =
-    new TromboneHcdHandlers(ctx, componentInfo, pubSubRef, locationService)
+    new TromboneHcdHandlers(ctx, componentInfo, pubSubRef, pubSubCommandstate, locationService)
 }
 
 class TromboneHcdHandlers(
     ctx: ActorContext[ComponentMessage],
     componentInfo: ComponentInfo,
     pubSubRef: ActorRef[PublisherMessage[CurrentState]],
+    pubSubCommandstate: ActorRef[CommandStatePubSub],
     locationService: LocationService
-) extends ComponentHandlers[TromboneMessage](ctx, componentInfo, pubSubRef, locationService) {
+) extends ComponentHandlers[TromboneMessage](ctx, componentInfo, pubSubRef, pubSubCommandstate, locationService) {
 
   implicit val timeout: Timeout             = Timeout(2.seconds)
   implicit val scheduler: Scheduler         = ctx.system.scheduler

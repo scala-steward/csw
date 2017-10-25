@@ -3,6 +3,7 @@ package csw.framework.javadsl
 import akka.typed.javadsl.ActorContext
 import akka.typed.{scaladsl, ActorRef}
 import csw.framework.scaladsl.{ComponentBehaviorFactory, ComponentHandlers}
+import csw.messages.PubSub.CommandStatePubSub
 import csw.messages.RunningMessage.DomainMessage
 import csw.messages.framework.ComponentInfo
 import csw.messages.params.states.CurrentState
@@ -20,14 +21,16 @@ abstract class JComponentBehaviorFactory[Msg <: DomainMessage](
       ctx: scaladsl.ActorContext[ComponentMessage],
       componentInfo: ComponentInfo,
       pubSubRef: ActorRef[PubSub.PublisherMessage[CurrentState]],
+      pubSubCommandstate: ActorRef[CommandStatePubSub],
       locationService: LocationService
   ): ComponentHandlers[Msg] =
-    jHandlers(ctx.asJava, componentInfo, pubSubRef, locationService.asJava)
+    jHandlers(ctx.asJava, componentInfo, pubSubRef, pubSubCommandstate, locationService.asJava)
 
   protected[framework] def jHandlers(
       ctx: ActorContext[ComponentMessage],
       componentInfo: ComponentInfo,
       pubSubRef: ActorRef[PubSub.PublisherMessage[CurrentState]],
+      pubSubCommandstate: ActorRef[CommandStatePubSub],
       locationService: ILocationService
   ): JComponentHandlers[Msg]
 }

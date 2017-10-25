@@ -4,7 +4,7 @@ import akka.typed.ActorRef
 import akka.typed.scaladsl.ActorContext
 import csw.framework.scaladsl.{ComponentBehaviorFactory, ComponentHandlers}
 import csw.messages.CommandMessage.Submit
-import csw.messages.PubSub.PublisherMessage
+import csw.messages.PubSub.{CommandStatePubSub, PublisherMessage}
 import csw.messages._
 import csw.messages.ccs.Validations.Valid
 import csw.messages.ccs.commands.{ControlCommand, Observe, Setup}
@@ -28,17 +28,19 @@ class TromboneAssemblyBehaviorFactory extends ComponentBehaviorFactory[DiagPubli
       ctx: ActorContext[ComponentMessage],
       componentInfo: ComponentInfo,
       pubSubRef: ActorRef[PublisherMessage[CurrentState]],
+      pubSubCommandstate: ActorRef[CommandStatePubSub],
       locationService: LocationService
   ): ComponentHandlers[DiagPublisherMessages] =
-    new TromboneAssemblyHandlers(ctx, componentInfo, pubSubRef, locationService)
+    new TromboneAssemblyHandlers(ctx, componentInfo, pubSubRef, pubSubCommandstate, locationService)
 }
 
 class TromboneAssemblyHandlers(
     ctx: ActorContext[ComponentMessage],
     componentInfo: ComponentInfo,
     pubSubRef: ActorRef[PublisherMessage[CurrentState]],
+    pubSubCommandstate: ActorRef[CommandStatePubSub],
     locationService: LocationService
-) extends ComponentHandlers[DiagPublisherMessages](ctx, componentInfo, pubSubRef, locationService) {
+) extends ComponentHandlers[DiagPublisherMessages](ctx, componentInfo, pubSubRef, pubSubCommandstate, locationService) {
 
   private var diagPublsher: ActorRef[DiagPublisherMessages] = _
 
