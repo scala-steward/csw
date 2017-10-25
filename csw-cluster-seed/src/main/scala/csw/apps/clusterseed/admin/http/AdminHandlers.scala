@@ -22,6 +22,9 @@ case object ErrorMessage {
   implicit val errorMessageFormat: RootJsonFormat[ErrorMessage] = jsonFormat2(ErrorMessage.apply)
 }
 
+/**
+ * Maps server side exceptions to Http Status codes
+ */
 class AdminHandlers extends JsonSupport with Directives with ClusterSeedLogger.Simple {
 
   private def httpJsonEntity(statusCode: StatusCode, message: String): HttpEntity.Strict = {
