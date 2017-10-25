@@ -3,13 +3,11 @@ package csw.messages
 import akka.actor.ActorSystem
 import akka.typed.ActorRef
 import csw.messages.PubSub.SubscriberMessage
-import csw.messages.ccs.{Validation, ValidationIssue, Validations}
 import csw.messages.ccs.commands.{ControlCommand, Result}
+import csw.messages.ccs.{Validation, ValidationIssue, Validations}
 import csw.messages.framework.{ComponentInfo, ContainerLifecycleState, SupervisorLifecycleState}
 import csw.messages.location.TrackingEvent
 import csw.messages.params.states.CurrentState
-
-/////////////
 
 sealed trait PubSub[T]
 object PubSub {
@@ -19,6 +17,16 @@ object PubSub {
 
   sealed trait PublisherMessage[T] extends PubSub[T]
   case class Publish[T](data: T)   extends PublisherMessage[T]
+
+  sealed trait CommandStatePubSub
+  object CommandStatePubSub {
+    case class Subscribe(runId: String, replyTo: ActorRef[CommandExecutionResponse])   extends CommandStatePubSub
+    case class UnSubscribe(runId: String, replyTo: ActorRef[CommandExecutionResponse]) extends CommandStatePubSub
+    case class Publish(runId: String, data: CommandExecutionResponse)                  extends CommandStatePubSub
+    case class Query(runId: String, replyTo: ActorRef[CommandExecutionResponse])       extends CommandStatePubSub
+    case class Add(runId: String)                                                      extends CommandStatePubSub
+  }
+
 }
 
 ///////////////
@@ -187,7 +195,8 @@ final case class NoLongerValid(issue: ValidationIssue) extends CommandExecutionR
 /**
  * The command has completed successfully
  */
-case object Completed extends CommandExecutionResponse
+case object Completed  extends CommandExecutionResponse
+case object NotStarted extends CommandExecutionResponse
 
 /**
  * The command is currently executing or has not yet started
@@ -213,3 +222,5 @@ case object Aborted extends CommandExecutionResponse
 case object Cancelled extends CommandExecutionResponse
 
 case class BehaviorChanged[T](ref: ActorRef[T]) extends CommandExecutionResponse
+
+case object CommandNotAvailable extends CommandExecutionResponse
