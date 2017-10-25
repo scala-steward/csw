@@ -2,8 +2,7 @@ package csw.framework.scaladsl
 
 import akka.typed.scaladsl.{Actor, ActorContext}
 import akka.typed.{ActorRef, Behavior}
-import csw.framework.internal.component.ComponentBehaviorImmutable
-import csw.messages.IdleMessage.Initialize
+import csw.framework.internal.component.ComponentBehavior
 import csw.messages.PubSub.PublisherMessage
 import csw.messages.RunningMessage.DomainMessage
 import csw.messages.framework.ComponentInfo
@@ -29,18 +28,15 @@ abstract class ComponentBehaviorFactory[Msg <: DomainMessage: ClassTag] {
       locationService: LocationService
   ): Behavior[Nothing] =
     Actor
-      .deferred[ComponentMessage] { ctx ⇒
-        val beh = ComponentBehaviorImmutable
-          .componentBehaviorImmutable(
+      .mutable[ComponentMessage](
+        ctx ⇒
+          new ComponentBehavior[Msg](
             ctx,
             compInfo,
             supervisor,
             handlers(ctx, compInfo, pubSubRef, locationService),
             locationService
-          )
-        val tla = ctx.spawn(beh, compInfo.name)
-        tla ! Initialize
-        Actor.same
-      }
+        )
+      )
       .narrow
 }
