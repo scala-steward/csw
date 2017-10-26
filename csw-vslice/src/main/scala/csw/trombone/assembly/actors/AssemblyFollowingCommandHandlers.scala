@@ -1,9 +1,9 @@
 package csw.trombone.assembly.actors
 
-import akka.typed.ActorRef
 import csw.messages._
+import csw.messages.ccs.commands.ControlCommand
 
 trait AssemblyFollowingCommandHandlers extends AssemblyCommandHandlers {
-  def onFollowing(commandMessage: CommandMessage): AssemblyCommandState
-  def onFollowingCommandComplete(replyTo: ActorRef[CommandResponse], result: CommandExecutionResponse): Unit
+  def onFollowing(controlCommand: ControlCommand): AssemblyCommandState
+  def onFollowingCommandComplete(result: CommandExecutionResponse): Unit
 }

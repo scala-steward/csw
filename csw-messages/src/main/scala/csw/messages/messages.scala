@@ -57,8 +57,9 @@ sealed trait CommandMessage extends RunningMessage {
   def replyTo: ActorRef[CommandResponse]
 }
 object CommandMessage {
-  case class Submit(command: ControlCommand, replyTo: ActorRef[CommandResponse]) extends CommandMessage
-  case class Oneway(command: ControlCommand, replyTo: ActorRef[CommandResponse]) extends CommandMessage
+  case class Submit(command: ControlCommand, replyTo: ActorRef[CommandResponse])                 extends CommandMessage
+  case class Oneway(command: ControlCommand, replyTo: ActorRef[CommandResponse])                 extends CommandMessage
+  case class Command(runId: String, command: ControlCommand, replyTo: ActorRef[CommandResponse]) extends CommandMessage
 }
 
 sealed trait RunningMessage extends ComponentMessage with SupervisorRunningMessage
@@ -165,7 +166,7 @@ object CommandValidationResponse {
  * The configuration was not valid before starting
  * @param issue an issue that caused the input configuration to be invalid
  */
-final case class Invalid(issue: ValidationIssue) extends CommandValidationResponse
+final case class Invalid(issue: ValidationIssue) extends CommandValidationResponse with CommandExecutionResponse
 
 object Invalid {
   // This is present to support returning a Validation as a CommandStatus

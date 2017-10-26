@@ -1,7 +1,9 @@
 package csw.trombone.assembly.actors
 
-import akka.typed.Behavior
+import akka.typed.{ActorRef, Behavior}
 import akka.typed.scaladsl.ActorContext
+import csw.messages.PubSub.CommandStatePubSub
+import csw.messages.PubSub.CommandStatePubSub.Publish
 import csw.trombone.assembly.AssemblyCommandHandlerMsgs.{CommandComplete, CommandMessageE}
 import csw.trombone.assembly._
 import csw.trombone.assembly.actors.CommandExecutionState.{Executing, Following, NotFollowing}
@@ -9,8 +11,9 @@ import csw.trombone.assembly.actors.CommandExecutionState.{Executing, Following,
 class AssemblyFollowingCommandBehavior(
     ctx: ActorContext[AssemblyCommandHandlerMsgs],
     assemblyContext: AssemblyContext,
+    pubSubCommandState: ActorRef[CommandStatePubSub],
     assemblyCommandHandlers: AssemblyFollowingCommandHandlers
-) extends AssemblyCommandBehavior(ctx, assemblyContext, assemblyCommandHandlers) {
+) extends AssemblyCommandBehavior(ctx, assemblyContext, pubSubCommandState, assemblyCommandHandlers) {
 
   override def onMessage(msg: AssemblyCommandHandlerMsgs): Behavior[AssemblyCommandHandlerMsgs] = {
     (commandExecutionState, msg) match {
@@ -24,12 +27,15 @@ class AssemblyFollowingCommandBehavior(
   }
 
   def onFollowing(msg: FollowingMsgs): Unit = msg match {
-    case CommandMessageE(commandMessage) =>
-      val assemblyCommandState = assemblyCommandHandlers.onFollowing(commandMessage)
+    case CommandMessageE(runId, controlCommand) =>
+      val assemblyCommandState = assemblyCommandHandlers.onFollowing(controlCommand)
+      assemblyCommandState.commandOrResponse match {
+        case Left(commands)           => commands.foreach(executeCommand)
+        case Right(executionResponse) => pubSubCommandState ! Publish(runId, executionResponse)
+      }
+
       commandExecutionState = assemblyCommandState.commandExecutionState
-      assemblyCommandHandlers.currentCommand = assemblyCommandState.mayBeAssemblyCommand
-      assemblyCommandState.mayBeAssemblyCommand.foreach(x ⇒ x.foreach(executeCommand(_, commandMessage.replyTo)))
-    case CommandComplete(replyTo, result) =>
-      assemblyCommandHandlers.onFollowingCommandComplete(replyTo, result)
+    case CommandComplete(result) =>
+      assemblyCommandHandlers.onFollowingCommandComplete(result)
   }
 }

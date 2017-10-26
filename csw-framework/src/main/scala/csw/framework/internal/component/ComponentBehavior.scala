@@ -3,13 +3,14 @@ package csw.framework.internal.component
 import akka.typed.scaladsl.ActorContext
 import akka.typed.{ActorRef, Behavior, PostStop, Signal}
 import csw.framework.scaladsl.ComponentHandlers
-import csw.messages.CommandMessage.{Oneway, Submit}
+import csw.messages.CommandMessage.{Command, Oneway, Submit}
 import csw.messages.CommonMessage.{TrackingEventReceived, UnderlyingHookFailed}
 import csw.messages.FromComponentLifecycleMessage.Running
 import csw.messages.IdleMessage.Initialize
 import csw.messages.RunningMessage.{DomainMessage, Lifecycle}
 import csw.messages.ToComponentLifecycleMessage.{GoOffline, GoOnline}
 import csw.messages._
+import csw.messages.ccs.Validations.Valid
 import csw.messages.framework.ComponentInfo
 import csw.messages.framework.LocationServiceUsage.RegisterAndTrackServices
 import csw.services.location.scaladsl.LocationService
@@ -168,6 +169,13 @@ class ComponentBehavior[Msg <: DomainMessage: ClassTag](
       case _: Submit =>
         log.info(s"Invoking lifecycle handler's onSubmit hook with msg :[$commandMessage]")
         lifecycleHandlers.onSubmit(commandMessage.command, commandMessage.replyTo)
+      case Command(runId, command, replyTo) =>
+        log.info(s"Invoking lifecycle handler's onSubmit hook with msg :[$commandMessage]")
+        val validationResult = lifecycleHandlers.onCommand(runId, command, replyTo)
+        if (validationResult == Valid) {
+          lifecycleHandlers.onValidCommand(runId, command)
+        }
+        validationResult
     }
 
     val validationCommandResult = CommandValidationResponse.validationAsCommandStatus(validation)

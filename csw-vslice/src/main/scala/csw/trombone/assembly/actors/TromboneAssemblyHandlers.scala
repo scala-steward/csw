@@ -3,7 +3,7 @@ package csw.trombone.assembly.actors
 import akka.typed.ActorRef
 import akka.typed.scaladsl.ActorContext
 import csw.framework.scaladsl.{ComponentBehaviorFactory, ComponentHandlers}
-import csw.messages.CommandMessage.Submit
+import csw.messages.PubSub.CommandStatePubSub.Add
 import csw.messages.PubSub.{CommandStatePubSub, PublisherMessage}
 import csw.messages._
 import csw.messages.ccs.Validations.Valid
@@ -59,8 +59,9 @@ class TromboneAssemblyHandlers(
 
     val eventPublisher = ctx.spawnAnonymous(TrombonePublisher.make(ac))
 
-    commandHandler =
-      ctx.spawnAnonymous(new TromboneAssemblyCommandBehaviorFactory().make(ac, runningHcds, Some(eventPublisher)))
+    commandHandler = ctx.spawnAnonymous(
+      new TromboneAssemblyCommandBehaviorFactory().make(ac, pubSubCommandstate, runningHcds, Some(eventPublisher))
+    )
 
     diagPublsher = ctx.spawnAnonymous(DiagPublisher.make(ac, runningHcds.head._2, Some(eventPublisher)))
   }
@@ -84,12 +85,24 @@ class TromboneAssemblyHandlers(
       case Observe(info, prefix, paramSet) => Valid
     }
     if (validation == Valid) {
-      commandHandler ! CommandMessageE(Submit(controlCommand, replyTo))
+      commandHandler ! CommandMessageE("", controlCommand)
     }
     validation
   }
 
   override def onOneway(controlCommand: ControlCommand): Validation = Validations.Valid
+
+  override def onCommand(runId: String, command: ControlCommand, replyTo: ActorRef[CommandResponse]): Validation = {
+    command match {
+      case Setup(info, prefix, paramSet)   => validateOneSetup(command.asInstanceOf[Setup])
+      case Observe(info, prefix, paramSet) => Valid
+    }
+  }
+
+  override def onValidCommand(runId: String, controlCommand: ControlCommand): Unit = {
+    pubSubCommandstate ! Add(runId)
+    commandHandler ! CommandMessageE(runId, controlCommand)
+  }
 
   private def getAssemblyConfigs: Future[(TromboneCalculationConfig, TromboneControlConfig)] = ???
 

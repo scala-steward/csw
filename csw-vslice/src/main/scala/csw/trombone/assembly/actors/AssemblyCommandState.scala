@@ -1,8 +1,9 @@
 package csw.trombone.assembly.actors
 
+import csw.messages.CommandExecutionResponse
 import csw.trombone.assembly.commands.AssemblyCommand
 
 case class AssemblyCommandState(
-    mayBeAssemblyCommand: Option[List[AssemblyCommand]],
+    commandOrResponse: Either[List[AssemblyCommand], CommandExecutionResponse],
     commandExecutionState: CommandExecutionState
 )

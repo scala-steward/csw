@@ -20,7 +20,7 @@ class CommandStatePubSubBehavior(ctx: ActorContext[CommandStatePubSub], componen
       case Add(runId)                  ⇒ add(runId)
       case Publish(runId, data)        ⇒ publish(runId, data)
       case Subscribe(runId, replyTo)   ⇒ subscribe(runId, replyTo)
-      case UnSubscribe(runId, replyTo) ⇒ unsubscribe(runId, replyTo)
+      case UnSubscribe(runId, replyTo) ⇒ unSubscribe(runId, replyTo)
       case Query(runId, replyTo)       ⇒ replyTo ! runIdToCurrentState.getOrElse(runId, CommandNotAvailable)
     }
     this
@@ -36,7 +36,7 @@ class CommandStatePubSubBehavior(ctx: ActorContext[CommandStatePubSub], componen
       .foreach(subscribers ⇒ runIdToSubscribers + (runId → (subscribers + actorRef)))
   }
 
-  private def unsubscribe(runId: String, actorRef: ActorRef[CommandExecutionResponse]): Unit = {
+  private def unSubscribe(runId: String, actorRef: ActorRef[CommandExecutionResponse]): Unit = {
     runIdToSubscribers
       .get(runId)
       .foreach(subscribers ⇒ runIdToSubscribers + (runId → (subscribers - actorRef)))

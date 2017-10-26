@@ -2,6 +2,7 @@ package csw.trombone.assembly.actors
 
 import akka.typed.scaladsl.{Actor, ActorContext}
 import akka.typed.{ActorRef, Behavior}
+import csw.messages.PubSub.CommandStatePubSub
 import csw.messages.SupervisorExternalMessage
 import csw.messages.location.Connection
 import csw.trombone.assembly.{AssemblyCommandHandlerMsgs, AssemblyContext, TrombonePublisherMsg}
@@ -17,6 +18,7 @@ abstract class AssemblyCommandBehaviorFactory {
 
   def make(
       assemblyContext: AssemblyContext,
+      pubSubCommandState: ActorRef[CommandStatePubSub],
       hcds: Map[Connection, Option[ActorRef[SupervisorExternalMessage]]],
       allEventPublisher: Option[ActorRef[TrombonePublisherMsg]]
   ): Behavior[AssemblyCommandHandlerMsgs] =
@@ -26,6 +28,7 @@ abstract class AssemblyCommandBehaviorFactory {
           new AssemblyCommandBehavior(
             ctx,
             assemblyContext,
+            pubSubCommandState,
             assemblyCommandHandlers(ctx, assemblyContext, hcds, allEventPublisher)
         )
       )

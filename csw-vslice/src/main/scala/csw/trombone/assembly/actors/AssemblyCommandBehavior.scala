@@ -3,8 +3,8 @@ package csw.trombone.assembly.actors
 import akka.typed.scaladsl.Actor.MutableBehavior
 import akka.typed.scaladsl.ActorContext
 import akka.typed.{ActorRef, Behavior}
-import csw.messages.PubSub.Subscribe
-import csw.messages._
+import csw.messages.PubSub.CommandStatePubSub.Publish
+import csw.messages.PubSub.{CommandStatePubSub, Subscribe}
 import csw.trombone.assembly.AssemblyCommandHandlerMsgs.{CommandComplete, CommandMessageE}
 import csw.trombone.assembly.CommonMsgs.{AssemblyStateE, UpdateHcdLocations}
 import csw.trombone.assembly._
@@ -16,6 +16,7 @@ import scala.util.{Failure, Success}
 class AssemblyCommandBehavior(
     ctx: ActorContext[AssemblyCommandHandlerMsgs],
     assemblyContext: AssemblyContext,
+    pubSubCommandState: ActorRef[CommandStatePubSub],
     assemblyCommandHandlers: AssemblyFollowingCommandHandlers
 ) extends MutableBehavior[AssemblyCommandHandlerMsgs] {
 
@@ -42,27 +43,31 @@ class AssemblyCommandBehavior(
   }
 
   def onNotFollowing(msg: NotFollowingMsgs): Unit = msg match {
-    case CommandMessageE(commandMessage) =>
-      val assemblyCommandState = assemblyCommandHandlers.onNotFollowing(commandMessage)
-      assemblyCommandHandlers.currentCommand = assemblyCommandState.mayBeAssemblyCommand
+    case CommandMessageE(runId, controlCommand) =>
+      val assemblyCommandState = assemblyCommandHandlers.onNotFollowing(controlCommand)
+      assemblyCommandState.commandOrResponse match {
+        case Left(commands)        => commands.foreach(executeCommand)
+        case Right(executionState) => pubSubCommandState ! Publish(runId, executionState)
+      }
       commandExecutionState = assemblyCommandState.commandExecutionState
-      assemblyCommandState.mayBeAssemblyCommand.foreach(x ⇒ x.foreach(executeCommand(_, commandMessage.replyTo)))
   }
 
   def onExecuting(msg: ExecutingMsgs): Unit = msg match {
-    case CommandMessageE(commandMessage) =>
-      val assemblyCommandState = assemblyCommandHandlers.onExecuting(commandMessage)
+    case CommandMessageE(runId, controlCommand) =>
+      val assemblyCommandState = assemblyCommandHandlers.onExecuting(controlCommand)
+      assemblyCommandState.commandOrResponse match {
+        case Left(commands)        => commands.foreach(executeCommand)
+        case Right(executionState) => pubSubCommandState ! Publish(runId, executionState)
+      }
       commandExecutionState = assemblyCommandState.commandExecutionState
-      assemblyCommandHandlers.currentCommand = assemblyCommandState.mayBeAssemblyCommand
-      assemblyCommandState.mayBeAssemblyCommand.foreach(x ⇒ x.foreach(executeCommand(_, commandMessage.replyTo)))
-    case CommandComplete(replyTo, result) =>
-      assemblyCommandHandlers.onExecutingCommandComplete(replyTo, result)
+    case CommandComplete(result) =>
+      assemblyCommandHandlers.onExecutingCommandComplete(result)
       commandExecutionState = CommandExecutionState.NotFollowing
   }
 
-  protected def executeCommand(assemblyCommand: AssemblyCommand, replyTo: ActorRef[CommandResponse]): Unit = {
+  protected def executeCommand(assemblyCommand: AssemblyCommand): Unit = {
     assemblyCommand.startCommand().onComplete {
-      case Success(result) ⇒ ctx.self ! CommandComplete(replyTo, result)
+      case Success(result) ⇒ ctx.self ! CommandComplete(result)
       case Failure(ex)     ⇒ throw ex // replace with sending a failed message to self
     }
   }

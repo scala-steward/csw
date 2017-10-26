@@ -1,8 +1,9 @@
 package csw.trombone.assembly.actors
 
 import akka.typed.ActorRef
-import csw.messages.location.Connection
 import csw.messages._
+import csw.messages.ccs.commands.ControlCommand
+import csw.messages.location.Connection
 import csw.trombone.assembly.commands.{AssemblyCommand, AssemblyState}
 
 trait AssemblyCommandHandlers {
@@ -11,8 +12,8 @@ trait AssemblyCommandHandlers {
   var currentCommand: Option[List[AssemblyCommand]]
   var tromboneStateActor: ActorRef[PubSub[AssemblyState]]
 
-  def onNotFollowing(commandMessage: CommandMessage): AssemblyCommandState
+  def onNotFollowing(controlCommand: ControlCommand): AssemblyCommandState
 
-  def onExecuting(commandMessage: CommandMessage): AssemblyCommandState
-  def onExecutingCommandComplete(replyTo: ActorRef[CommandResponse], result: CommandExecutionResponse): Unit
+  def onExecuting(controlCommand: ControlCommand): AssemblyCommandState
+  def onExecutingCommandComplete(result: CommandExecutionResponse): Unit
 }
