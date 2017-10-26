@@ -45,6 +45,8 @@ class ComponentBehavior[Msg <: DomainMessage: ClassTag](
 
   var lifecycleState: ComponentLifecycleState = ComponentLifecycleState.Idle
 
+  var componentHandlers: ComponentHandlers[Msg] = lifecycleHandlers
+
   ctx.self ! Initialize
 
   /**
@@ -72,7 +74,7 @@ class ComponentBehavior[Msg <: DomainMessage: ClassTag](
       log.warn("Component TLA is shutting down")
       try {
         log.info("Invoking lifecycle handler's onShutdown hook")
-        Await.result(lifecycleHandlers.onShutdown(), shutdownTimeout)
+        Await.result(componentHandlers.onShutdown(), shutdownTimeout)
       } catch {
         case NonFatal(throwable) ⇒ log.error(throwable.getMessage, ex = throwable)
       }
@@ -88,7 +90,7 @@ class ComponentBehavior[Msg <: DomainMessage: ClassTag](
       log.error(exception.getMessage, ex = exception)
       throw exception
     case TrackingEventReceived(trackingEvent) ⇒
-      lifecycleHandlers.onLocationTrackingEvent(trackingEvent)
+      componentHandlers = componentHandlers.onLocationTrackingEvent(trackingEvent)
   }
 
   /**
@@ -99,7 +101,7 @@ class ComponentBehavior[Msg <: DomainMessage: ClassTag](
     case Initialize ⇒
       async {
         log.info("Invoking lifecycle handler's initialize hook")
-        await(lifecycleHandlers.initialize())
+        componentHandlers = await(componentHandlers.initialize())
         log.debug(
           s"Component TLA is changing lifecycle state from [$lifecycleState] to [${ComponentLifecycleState.Initialized}]"
         )
@@ -113,7 +115,7 @@ class ComponentBehavior[Msg <: DomainMessage: ClassTag](
           )
         }
         lifecycleState = ComponentLifecycleState.Running
-        lifecycleHandlers.isOnline = true
+        componentHandlers.isOnline = true
         supervisor ! Running(ctx.self)
       }.failed.foreach(throwable ⇒ ctx.self ! UnderlyingHookFailed(throwable))
   }
@@ -126,7 +128,7 @@ class ComponentBehavior[Msg <: DomainMessage: ClassTag](
     case Lifecycle(message) ⇒ onLifecycle(message)
     case x: Msg ⇒
       log.info(s"Invoking lifecycle handler's onDomainMsg hook with msg :[$x]")
-      lifecycleHandlers.onDomainMsg(x)
+      componentHandlers = componentHandlers.onDomainMsg(x)
     case x: CommandMessage ⇒ onRunningCompCommandMessage(x)
     case msg               ⇒ log.error(s"Component TLA cannot handle message :[$msg]")
   }
@@ -139,18 +141,18 @@ class ComponentBehavior[Msg <: DomainMessage: ClassTag](
     toComponentLifecycleMessage match {
       case GoOnline ⇒
         // process only if the component is offline currently
-        if (!lifecycleHandlers.isOnline) {
-          lifecycleHandlers.isOnline = true
+        if (!componentHandlers.isOnline) {
           log.info("Invoking lifecycle handler's onGoOnline hook")
-          lifecycleHandlers.onGoOnline()
+          componentHandlers = componentHandlers.onGoOnline()
+          componentHandlers.isOnline = true
           log.debug(s"Component TLA is Online")
         }
       case GoOffline ⇒
         // process only if the component is online currently
-        if (lifecycleHandlers.isOnline) {
-          lifecycleHandlers.isOnline = false
+        if (componentHandlers.isOnline) {
           log.info("Invoking lifecycle handler's onGoOffline hook")
-          lifecycleHandlers.onGoOffline()
+          componentHandlers = componentHandlers.onGoOffline()
+          componentHandlers.isOnline = false
           log.debug(s"Component TLA is Offline")
         }
     }
@@ -164,12 +166,13 @@ class ComponentBehavior[Msg <: DomainMessage: ClassTag](
     val validation = commandMessage match {
       case _: Oneway =>
         log.info(s"Invoking lifecycle handler's onOneway hook with msg :[$commandMessage]")
-        lifecycleHandlers.onOneway(commandMessage.command)
+        componentHandlers.onOneway(commandMessage.command)
       case _: Submit =>
         log.info(s"Invoking lifecycle handler's onSubmit hook with msg :[$commandMessage]")
-        lifecycleHandlers.onSubmit(commandMessage.command, commandMessage.replyTo)
+        componentHandlers.onSubmit(commandMessage.command, commandMessage.replyTo)
     }
 
+    componentHandlers = validation._1
     val validationCommandResult = CommandValidationResponse.validationAsCommandStatus(validation._2)
     commandMessage.replyTo ! validationCommandResult
   }
