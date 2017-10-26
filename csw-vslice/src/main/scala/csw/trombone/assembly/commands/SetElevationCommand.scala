@@ -15,12 +15,13 @@ import scala.concurrent.Future
 import scala.concurrent.duration.DurationDouble
 
 class SetElevationCommand(ctx: ActorContext[AssemblyCommandHandlerMsgs],
+                          runId: String,
                           ac: AssemblyContext,
                           s: Setup,
                           tromboneHCD: Option[ActorRef[SupervisorExternalMessage]],
                           startState: TromboneState,
                           stateActor: ActorRef[PubSub[AssemblyState]])
-    extends AssemblyCommand(ctx, startState, stateActor) {
+    extends AssemblyCommand(ctx, "", startState, stateActor) {
 
   import TromboneHcdState._
   import csw.trombone.assembly.actors.TromboneState._
@@ -29,11 +30,10 @@ class SetElevationCommand(ctx: ActorContext[AssemblyCommandHandlerMsgs],
   def startCommand(): Future[CommandExecutionResponse] = {
     if (startState.cmdChoice == cmdUninitialized || startState.moveChoice != moveIndexed && startState.moveChoice != moveMoving) {
       Future(
-        NoLongerValid(
-          WrongInternalStateIssue(
-            s"Assembly state of ${startState.cmdChoice}/${startState.moveChoice} does not allow datum"
-          )
-        )
+        NoLongerValid(runId,
+                      WrongInternalStateIssue(
+                        s"Assembly state of ${startState.cmdChoice}/${startState.moveChoice} does not allow datum"
+                      ))
       )
     } else {
       val elevationItem   = s(ac.naElevationKey)
@@ -50,13 +50,13 @@ class SetElevationCommand(ctx: ActorContext[AssemblyCommandHandlerMsgs],
       publishState(TromboneState(cmdItem(cmdBusy), moveItem(moveIndexing), startState.sodiumLayer, startState.nss))
       tromboneHCD.foreach(_ ! Submit(scOut, ctx.spawnAnonymous(Actor.ignore)))
       matchCompletion(stateMatcher, tromboneHCD.get, 5.seconds) {
-        case Completed =>
+        case Completed(`runId`) =>
           publishState(TromboneState(cmdItem(cmdReady), moveItem(moveIndexed), sodiumItem(false), nssItem(false)))
-          Completed
-        case Error(message) =>
+          Completed(runId)
+        case Error(`runId`, message) =>
           println(s"Data command match failed with error: $message")
-          Error(message)
-        case _ ⇒ Error("")
+          Error(runId, message)
+        case _ ⇒ Error(runId, "")
       }
     }
   }

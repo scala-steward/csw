@@ -15,12 +15,13 @@ import scala.concurrent.Future
 import scala.concurrent.duration.DurationDouble
 
 class MoveCommand(ctx: ActorContext[AssemblyCommandHandlerMsgs],
+                  runId: String,
                   ac: AssemblyContext,
                   s: Setup,
                   tromboneHCD: Option[ActorRef[SupervisorExternalMessage]],
                   startState: TromboneState,
                   stateActor: ActorRef[PubSub[AssemblyState]])
-    extends AssemblyCommand(ctx, startState, stateActor) {
+    extends AssemblyCommand(ctx, runId, startState, stateActor) {
 
   import csw.trombone.assembly.actors.TromboneState._
   import ctx.executionContext
@@ -32,17 +33,16 @@ class MoveCommand(ctx: ActorContext[AssemblyCommandHandlerMsgs],
 
   def startCommand(): Future[CommandExecutionResponse] = {
     if (tromboneHCD.isEmpty)
-      Future(NoLongerValid(RequiredHCDUnavailableIssue(s"${ac.hcdComponentId} is not available")))
+      Future(NoLongerValid(runId, RequiredHCDUnavailableIssue(s"${ac.hcdComponentId} is not available")))
     else if (!(
                startState.cmdChoice == cmdUninitialized ||
                startState.moveChoice != moveIndexed && startState.moveChoice != moveMoving
              )) {
       Future(
-        NoLongerValid(
-          WrongInternalStateIssue(
-            s"Assembly state of ${startState.cmdChoice}/${startState.moveChoice} does not allow move"
-          )
-        )
+        NoLongerValid(runId,
+                      WrongInternalStateIssue(
+                        s"Assembly state of ${startState.cmdChoice}/${startState.moveChoice} does not allow move"
+                      ))
       )
     } else {
       publishState(TromboneState(cmdItem(cmdBusy), moveItem(moveMoving), startState.sodiumLayer, startState.nss))
@@ -50,13 +50,13 @@ class MoveCommand(ctx: ActorContext[AssemblyCommandHandlerMsgs],
       tromboneHCD.foreach(_ ! Submit(scOut, ctx.spawnAnonymous(Actor.ignore)))
 
       matchCompletion(stateMatcher, tromboneHCD.get, 5.seconds) {
-        case Completed =>
+        case Completed(`runId`) =>
           publishState(TromboneState(cmdItem(cmdReady), moveItem(moveIndexed), sodiumItem(false), startState.nss))
-          Completed
-        case Error(message) =>
+          Completed(runId)
+        case Error(`runId`, message) =>
           println(s"Move command match failed with message: $message")
-          Error(message)
-        case _ ⇒ Error("")
+          Error(runId, message)
+        case _ ⇒ Error(runId, "")
       }
     }
   }

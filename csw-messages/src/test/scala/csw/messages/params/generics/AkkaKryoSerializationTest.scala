@@ -291,21 +291,21 @@ class AkkaKryoSerializationTest extends FunSpec with Matchers with BeforeAndAfte
     it("should serialize CommandValidationResponse messages") {
       serialization.findSerializerFor(Accepted).getClass shouldBe classOf[AkkaSerializer]
       serialization
-        .findSerializerFor(Invalid(ValidationIssue.OtherIssue("test issue")))
+        .findSerializerFor(Invalid("", ValidationIssue.OtherIssue("test issue")))
         .getClass shouldBe classOf[AkkaSerializer]
     }
 
     it("should serialize CommandExecutionResponse messages") {
       val testData = Table(
         "CommandExecutionResponse models",
-        CompletedWithResult(Result(commandInfo, Prefix(prefixStr))),
-        NoLongerValid(ValidationIssue.OtherIssue("test issue")),
-        Completed,
-        InProgress("test"),
-        Error("test"),
-        Aborted,
-        Cancelled,
-        BehaviorChanged(TestProbe[SupervisorExternalMessage].ref)
+        CompletedWithResult("", Result(commandInfo, Prefix(prefixStr))),
+        NoLongerValid("", ValidationIssue.OtherIssue("test issue")),
+        Completed(""),
+        InProgress("", "test"),
+        Error("", "test"),
+        Aborted(""),
+        Cancelled(""),
+        BehaviorChanged("", TestProbe[SupervisorExternalMessage].ref)
       )
 
       forAll(testData) { commandResponse ⇒

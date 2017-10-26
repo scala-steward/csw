@@ -65,7 +65,7 @@ class MultiStateMatcherActor(
         if (newMatchers.isEmpty) {
           timer.cancel()
           currentStateReceiver ! Unsubscribe(currentStateAdapter)
-          replyTo ! Completed
+          replyTo ! Completed("")
           ctx.stop(currentStateAdapter)
         } else {
           matchers = newMatchers
@@ -73,7 +73,7 @@ class MultiStateMatcherActor(
       }
 
     case Stop =>
-      replyTo ! Error("Current state matching timed out")
+      replyTo ! Error("", "Current state matching timed out")
       currentStateReceiver ! Unsubscribe(currentStateAdapter)
       ctx.stop(currentStateAdapter)
   }

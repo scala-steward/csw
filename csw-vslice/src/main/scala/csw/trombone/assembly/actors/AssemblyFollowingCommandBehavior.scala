@@ -30,12 +30,12 @@ class AssemblyFollowingCommandBehavior(
     case CommandMessageE(runId, controlCommand) =>
       val assemblyCommandState = assemblyCommandHandlers.onFollowing(controlCommand)
       assemblyCommandState.commandOrResponse match {
-        case Left(commands)           => commands.foreach(executeCommand)
+        case Left(commands)           => commands.foreach(executeCommand(runId, _))
         case Right(executionResponse) => pubSubCommandState ! Publish(runId, executionResponse)
       }
 
       commandExecutionState = assemblyCommandState.commandExecutionState
-    case CommandComplete(result) =>
-      assemblyCommandHandlers.onFollowingCommandComplete(result)
+    case CommandComplete(runId, result) =>
+      assemblyCommandHandlers.onFollowingCommandComplete(runId, result)
   }
 }

@@ -13,39 +13,40 @@ import csw.trombone.hcd.TromboneHcdState
 import scala.concurrent.Future
 import scala.concurrent.duration.DurationLong
 
-class DatumCommand(ctx: ActorContext[AssemblyCommandHandlerMsgs],
-                   ac: AssemblyContext,
-                   s: Setup,
-                   tromboneHCD: Option[ActorRef[SupervisorExternalMessage]],
-                   startState: TromboneState,
-                   stateActor: ActorRef[PubSub[AssemblyState]])
-    extends AssemblyCommand(ctx, startState, stateActor) {
+class DatumCommand(
+    ctx: ActorContext[AssemblyCommandHandlerMsgs],
+    runId: String,
+    ac: AssemblyContext,
+    s: Setup,
+    tromboneHCD: Option[ActorRef[SupervisorExternalMessage]],
+    startState: TromboneState,
+    stateActor: ActorRef[PubSub[AssemblyState]]
+) extends AssemblyCommand(ctx, runId, startState, stateActor) {
 
   import csw.trombone.assembly.actors.TromboneState._
   import ctx.executionContext
 
   def startCommand(): Future[CommandExecutionResponse] = {
     if (tromboneHCD.isEmpty)
-      Future(NoLongerValid(RequiredHCDUnavailableIssue(s"${ac.hcdComponentId} is not available")))
+      Future(NoLongerValid(runId, RequiredHCDUnavailableIssue(s"${ac.hcdComponentId} is not available")))
     if (startState.cmd.head == cmdUninitialized) {
       Future(
-        NoLongerValid(
-          WrongInternalStateIssue(
-            s"Assembly state of ${startState.cmdChoice}/${startState.moveChoice} does not allow datum"
-          )
-        )
+        NoLongerValid(runId,
+                      WrongInternalStateIssue(
+                        s"Assembly state of ${startState.cmdChoice}/${startState.moveChoice} does not allow datum"
+                      ))
       )
     } else {
       publishState(TromboneState(cmdItem(cmdBusy), moveItem(moveIndexing), startState.sodiumLayer, startState.nss))
       tromboneHCD.foreach(_ ! Submit(Setup(s.info, TromboneHcdState.axisDatumCK), ctx.spawnAnonymous(Actor.ignore)))
       matchCompletion(Matchers.idleMatcher, tromboneHCD.get, 5.seconds) {
-        case Completed =>
+        case Completed(`runId`) =>
           publishState(TromboneState(cmdItem(cmdReady), moveItem(moveIndexed), sodiumItem(false), nssItem(false)))
-          Completed
-        case Error(message) =>
+          Completed(runId)
+        case Error(`runId`, message) =>
           println(s"Data command match failed with error: $message")
-          Error(message)
-        case _ ⇒ Error("")
+          Error(runId, message)
+        case _ ⇒ Error(runId, "")
       }
     }
   }

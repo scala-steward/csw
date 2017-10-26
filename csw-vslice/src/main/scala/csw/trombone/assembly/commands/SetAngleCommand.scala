@@ -12,13 +12,14 @@ import scala.concurrent.Future
 import scala.concurrent.duration.DurationDouble
 
 class SetAngleCommand(ctx: ActorContext[AssemblyCommandHandlerMsgs],
+                      runId: String,
                       ac: AssemblyContext,
                       s: Setup,
                       followCommandActor: ActorRef[FollowCommandMessages],
                       tromboneHCD: Option[ActorRef[SupervisorExternalMessage]],
                       startState: TromboneState,
                       stateActor: ActorRef[PubSub[AssemblyState]])
-    extends AssemblyCommand(ctx, startState, stateActor) {
+    extends AssemblyCommand(ctx, runId, startState, stateActor) {
 
   implicit val timeout: Timeout = Timeout(5.seconds)
 
@@ -30,12 +31,12 @@ class SetAngleCommand(ctx: ActorContext[AssemblyCommandHandlerMsgs],
     followCommandActor ! SetZenithAngle(zenithAngleItem)
 
     matchCompletion(Matchers.idleMatcher, tromboneHCD.get, 5.seconds) {
-      case Completed =>
+      case Completed(`runId`) =>
         publishState(TromboneState(cmdItem(cmdContinuous), startState.move, startState.sodiumLayer, startState.nss))
-        Completed
-      case Error(message) =>
+        Completed(runId)
+      case Error(`runId`, message) =>
         println(s"setElevation command failed with message: $message")
-        Error(message)
+        Error(runId, message)
     }
   }
 

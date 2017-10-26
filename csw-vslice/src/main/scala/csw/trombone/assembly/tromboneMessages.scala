@@ -109,5 +109,5 @@ object AssemblyCommandHandlerMsgs {
       extends NotFollowingMsgs
       with FollowingMsgs
       with ExecutingMsgs
-  case class CommandComplete(result: CommandExecutionResponse) extends ExecutingMsgs with FollowingMsgs
+  case class CommandComplete(runId: String, result: CommandExecutionResponse) extends ExecutingMsgs with FollowingMsgs
 }

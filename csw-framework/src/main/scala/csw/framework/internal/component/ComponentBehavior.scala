@@ -178,7 +178,7 @@ class ComponentBehavior[Msg <: DomainMessage: ClassTag](
         validationResult
     }
 
-    val validationCommandResult = CommandValidationResponse.validationAsCommandStatus(validation)
+    val validationCommandResult = CommandValidationResponse.validationAsCommandStatus("", validation)
     commandMessage.replyTo ! validationCommandResult
   }
 }

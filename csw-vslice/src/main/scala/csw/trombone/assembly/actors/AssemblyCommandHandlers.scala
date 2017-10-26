@@ -15,5 +15,5 @@ trait AssemblyCommandHandlers {
   def onNotFollowing(controlCommand: ControlCommand): AssemblyCommandState
 
   def onExecuting(controlCommand: ControlCommand): AssemblyCommandState
-  def onExecutingCommandComplete(result: CommandExecutionResponse): Unit
+  def onExecutingCommandComplete(runId: String, result: CommandExecutionResponse): Unit
 }

@@ -56,13 +56,19 @@ class TromboneCommandHandler(
     case s: Setup =>
       s.prefix match {
         case ac.initCK =>
-          AssemblyCommandState(Right(Completed), CommandExecutionState.NotFollowing)
+          AssemblyCommandState(Right(Completed("")), CommandExecutionState.NotFollowing)
 
         case ac.datumCK =>
           AssemblyCommandState(
             Left(
               List(
-                new DatumCommand(ctx, ac, s, hcds.head._2, currentState.asInstanceOf[TromboneState], tromboneStateActor)
+                new DatumCommand(ctx,
+                                 "",
+                                 ac,
+                                 s,
+                                 hcds.head._2,
+                                 currentState.asInstanceOf[TromboneState],
+                                 tromboneStateActor)
               )
             ),
             CommandExecutionState.Executing
@@ -71,7 +77,13 @@ class TromboneCommandHandler(
           AssemblyCommandState(
             Left(
               List(
-                new MoveCommand(ctx, ac, s, hcds.head._2, currentState.asInstanceOf[TromboneState], tromboneStateActor)
+                new MoveCommand(ctx,
+                                "",
+                                ac,
+                                s,
+                                hcds.head._2,
+                                currentState.asInstanceOf[TromboneState],
+                                tromboneStateActor)
               )
             ),
             CommandExecutionState.Executing
@@ -81,6 +93,7 @@ class TromboneCommandHandler(
             Left(
               List(
                 new PositionCommand(ctx,
+                                    "",
                                     ac,
                                     s,
                                     hcds.head._2,
@@ -96,6 +109,7 @@ class TromboneCommandHandler(
             Left(
               List(
                 new SetElevationCommand(ctx,
+                                        "",
                                         ac,
                                         s,
                                         hcds.head._2,
@@ -115,6 +129,7 @@ class TromboneCommandHandler(
             Left(
               List(
                 new FollowCommand(ctx,
+                                  "",
                                   ac,
                                   s,
                                   hcds.head._2,
@@ -126,19 +141,18 @@ class TromboneCommandHandler(
           )
 
         case ac.stopCK =>
-          val commandResponse = NoLongerValid(
-            WrongInternalStateIssue("Trombone assembly must be executing a command to use stop")
-          )
+          val commandResponse =
+            NoLongerValid("", WrongInternalStateIssue("Trombone assembly must be executing a command to use stop"))
           AssemblyCommandState(Right(commandResponse), CommandExecutionState.NotFollowing)
 
         case ac.setAngleCK =>
-          val commandResponse = NoLongerValid(
-            WrongInternalStateIssue("Trombone assembly must be following for setAngle")
-          )
+          val commandResponse =
+            NoLongerValid("", WrongInternalStateIssue("Trombone assembly must be following for setAngle"))
           AssemblyCommandState(Right(commandResponse), CommandExecutionState.NotFollowing)
 
         case otherCommand =>
           val commandResponse = NoLongerValid(
+            "",
             UnsupportedCommandInStateIssue(
               s"""Trombone assembly does not support the command \"${otherCommand.prefix}\" in the current state."""
             )
@@ -146,11 +160,9 @@ class TromboneCommandHandler(
           AssemblyCommandState(Right(commandResponse), CommandExecutionState.NotFollowing)
       }
     case _ ⇒
-      val commandResponse = NoLongerValid(
-        UnsupportedCommandIssue(s"Unexpected command :[$controlCommand] received by component")
-      )
+      val commandResponse =
+        NoLongerValid("", UnsupportedCommandIssue(s"Unexpected command :[$controlCommand] received by component"))
       AssemblyCommandState(Right(commandResponse), CommandExecutionState.NotFollowing)
-
   }
 
   override def onFollowing(controlCommand: ControlCommand): AssemblyCommandState = controlCommand match {
@@ -158,6 +170,7 @@ class TromboneCommandHandler(
       s.prefix match {
         case ac.datumCK | ac.moveCK | ac.positionCK | ac.followCK | ac.setElevationCK =>
           val commandResponse = NoLongerValid(
+            "",
             WrongInternalStateIssue(
               "Trombone assembly cannot be following for datum, move, position, setElevation, and follow"
             )
@@ -169,6 +182,7 @@ class TromboneCommandHandler(
             Left(
               List(
                 new SetAngleCommand(ctx,
+                                    "",
                                     ac,
                                     s,
                                     followCommandActor,
@@ -189,33 +203,31 @@ class TromboneCommandHandler(
                           currentState.asInstanceOf[TromboneState].nss)
           )
           ctx.stop(followCommandActor)
-          AssemblyCommandState(Right(Completed), CommandExecutionState.NotFollowing)
+          AssemblyCommandState(Right(Completed("")), CommandExecutionState.NotFollowing)
 
         case other =>
-          val commandResponse = Invalid(WrongPrefixIssue(s"Unknown config key: $controlCommand"))
+          val commandResponse = Invalid("", WrongPrefixIssue(s"Unknown config key: $controlCommand"))
           AssemblyCommandState(Right(commandResponse), CommandExecutionState.Following)
       }
     case _ ⇒
-      val commandResponse = NoLongerValid(
-        UnsupportedCommandIssue(s"Unexpected command :[$controlCommand] received by component")
-      )
+      val commandResponse =
+        NoLongerValid("", UnsupportedCommandIssue(s"Unexpected command :[$controlCommand] received by component"))
       AssemblyCommandState(Right(commandResponse), CommandExecutionState.NotFollowing)
   }
 
   override def onExecuting(controlCommand: ControlCommand): AssemblyCommandState = controlCommand match {
     case Setup(ac.commandInfo, ac.stopCK, _) =>
       currentCommand.foreach(x ⇒ x.foreach(_.stopCommand()))
-      AssemblyCommandState(Right(Cancelled), CommandExecutionState.NotFollowing)
+      AssemblyCommandState(Right(Cancelled("")), CommandExecutionState.NotFollowing)
 
     case x =>
-      val commandResponse = NoLongerValid(
-        UnsupportedCommandIssue(s"Unexpected command :[$controlCommand] received by component")
-      )
+      val commandResponse =
+        NoLongerValid("", UnsupportedCommandIssue(s"Unexpected command :[$controlCommand] received by component"))
       AssemblyCommandState(Right(commandResponse), CommandExecutionState.Executing)
   }
 
-  override def onFollowingCommandComplete(result: CommandExecutionResponse): Unit = {}
+  override def onFollowingCommandComplete(runId: String, result: CommandExecutionResponse): Unit = {}
 
-  override def onExecutingCommandComplete(result: CommandExecutionResponse): Unit = {}
+  override def onExecutingCommandComplete(runId: String, result: CommandExecutionResponse): Unit = {}
 
 }

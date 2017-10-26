@@ -120,7 +120,7 @@ class ComponentLifecycleTest extends FrameworkTestSuite with MockitoSugar {
     runningComponentBehavior.onMessage(Submit(sc1, commandResponseProbe.ref))
 
     verify(sampleHcdHandler).onSubmit(sc1, commandResponseProbe.ref)
-    commandResponseProbe.expectMsg(Accepted)
+    commandResponseProbe.expectMsg(Accepted(""))
   }
 
   test("A running component should handle Oneway command") {
@@ -136,6 +136,6 @@ class ComponentLifecycleTest extends FrameworkTestSuite with MockitoSugar {
     runningComponentBehavior.onMessage(Oneway(sc1, commandResponseProbe.ref))
 
     verify(sampleHcdHandler).onOneway(sc1)
-    commandResponseProbe.expectMsg(Accepted)
+    commandResponseProbe.expectMsg(Accepted(""))
   }
 }

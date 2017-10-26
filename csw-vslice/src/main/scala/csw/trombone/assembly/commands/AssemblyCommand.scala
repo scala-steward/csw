@@ -12,9 +12,12 @@ import csw.trombone.assembly.{AssemblyCommandHandlerMsgs, Matchers}
 
 import scala.concurrent.Future
 
-abstract class AssemblyCommand(ctx: ActorContext[AssemblyCommandHandlerMsgs],
-                               startState: AssemblyState,
-                               stateActor: ActorRef[PubSub[AssemblyState]]) {
+abstract case class AssemblyCommand(
+    ctx: ActorContext[AssemblyCommandHandlerMsgs],
+    runId: String,
+    startState: AssemblyState,
+    stateActor: ActorRef[PubSub[AssemblyState]]
+) {
   import ctx.executionContext
 
   def startCommand(): Future[CommandExecutionResponse]

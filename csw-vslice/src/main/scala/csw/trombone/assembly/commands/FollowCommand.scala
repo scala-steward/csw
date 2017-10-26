@@ -11,12 +11,13 @@ import csw.trombone.assembly.{AssemblyCommandHandlerMsgs, AssemblyContext}
 import scala.concurrent.Future
 
 class FollowCommand(ctx: ActorContext[AssemblyCommandHandlerMsgs],
+                    runId: String,
                     ac: AssemblyContext,
                     s: Setup,
                     tromboneHCD: Option[ActorRef[SupervisorExternalMessage]],
                     startState: TromboneState,
                     stateActor: ActorRef[PubSub[AssemblyState]])
-    extends AssemblyCommand(ctx, startState, stateActor) {
+    extends AssemblyCommand(ctx, runId, startState, stateActor) {
 
   import ctx.executionContext
 
@@ -26,6 +27,7 @@ class FollowCommand(ctx: ActorContext[AssemblyCommandHandlerMsgs],
         || !startState.sodiumLayerValue) {
       Future(
         NoLongerValid(
+          runId,
           WrongInternalStateIssue(
             s"Assembly state of ${startState.cmdChoice}/${startState.moveChoice}/${startState.sodiumLayerValue} does not allow follow"
           )
@@ -38,7 +40,7 @@ class FollowCommand(ctx: ActorContext[AssemblyCommandHandlerMsgs],
                       sodiumItem(startState.sodiumLayerValue),
                       nssItem(s(ac.nssInUseKey).head))
       )
-      Future(Completed)
+      Future(Completed(runId))
     }
   }
 

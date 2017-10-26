@@ -142,7 +142,9 @@ case class SupervisorInfo(system: ActorSystem, component: Component)
 /**
  * Trait for a response message from an assembly to a submit or observe request
  */
-sealed trait CommandResponse extends RunningMessage with TMTSerializable
+sealed trait CommandResponse extends RunningMessage with TMTSerializable {
+  def runId: String
+}
 
 sealed trait CommandExecutionResponse  extends CommandResponse
 sealed trait CommandValidationResponse extends CommandResponse
@@ -154,10 +156,10 @@ object CommandValidationResponse {
    * @param validation the result of a validation either Validation.Valid or Validation.Invalid
    * @return cooresponding CommandStatus as CommandStatus.Valid or CommandStatus.Invalid with the identical issue
    */
-  def validationAsCommandStatus(validation: Validation): CommandValidationResponse = {
+  def validationAsCommandStatus(runId: String, validation: Validation): CommandValidationResponse = {
     validation match {
-      case Validations.Valid        => Accepted
-      case inv: Validations.Invalid => Invalid(inv.issue)
+      case Validations.Valid        => Accepted(runId)
+      case inv: Validations.Invalid => Invalid(runId, inv.issue)
     }
   }
 }
@@ -166,63 +168,65 @@ object CommandValidationResponse {
  * The configuration was not valid before starting
  * @param issue an issue that caused the input configuration to be invalid
  */
-final case class Invalid(issue: ValidationIssue) extends CommandValidationResponse with CommandExecutionResponse
+final case class Invalid(runId: String, issue: ValidationIssue)
+    extends CommandValidationResponse
+    with CommandExecutionResponse
 
 object Invalid {
   // This is present to support returning a Validation as a CommandStatus
-  def apply(in: Validations.Invalid): Invalid = new Invalid(in.issue)
+  def apply(runId: String, in: Validations.Invalid): Invalid = new Invalid(runId, in.issue)
 
   /**
    * Java API: This is present to support returning a Validation as a CommandStatus
    */
-  def createInvalid(in: Validations.Invalid): Invalid = Invalid(in)
+  def createInvalid(runId: String, in: Validations.Invalid): Invalid = Invalid(runId, in)
 }
 
 /**
  * The configuration was valid and started
  */
-case object Accepted extends CommandValidationResponse
+case class Accepted(runId: String) extends CommandValidationResponse
 
 /**
  * Command Completed with a result
  * @param result - Result ParamSet to types in Configuration and use it here
  */
-final case class CompletedWithResult(result: Result) extends CommandExecutionResponse
+final case class CompletedWithResult(runId: String, result: Result) extends CommandExecutionResponse
 
 /**
  * The command was valid when received, but is no longer valid because of itervening activities
  */
-final case class NoLongerValid(issue: ValidationIssue) extends CommandExecutionResponse
+final case class NoLongerValid(runId: String, issue: ValidationIssue) extends CommandExecutionResponse
 
 /**
  * The command has completed successfully
  */
-case object Completed  extends CommandExecutionResponse
-case object NotStarted extends CommandExecutionResponse
+case class Completed(runId: String)  extends CommandExecutionResponse
+case class NotStarted(runId: String) extends CommandExecutionResponse
 
 /**
  * The command is currently executing or has not yet started
  * When used for a specific command, it indicates the command has not yet executed or is currently executing and is providing an update
  */
-final case class InProgress(message: String = "") extends CommandExecutionResponse
+final case class InProgress(runId: String, message: String = "") extends CommandExecutionResponse
 
 /**
  * The command was started, but ended with error with the given message
  */
-final case class Error(message: String) extends CommandExecutionResponse
+final case class Error(runId: String, message: String) extends CommandExecutionResponse
 
 /**
  * The command was aborted
  * Aborted means that the command/actions were stopped immediately.
  */
-case object Aborted extends CommandExecutionResponse
+final case class Aborted(runId: String) extends CommandExecutionResponse
 
 /**
  * The command was cancelled
  * Cancelled means the command/actions were stopped at the next convenient place. This is usually appropriate for
  */
-case object Cancelled extends CommandExecutionResponse
+case class Cancelled(runId: String) extends CommandExecutionResponse
 
-case class BehaviorChanged[T](ref: ActorRef[T]) extends CommandExecutionResponse
+case class BehaviorChanged[T](runId: String, ref: ActorRef[T]) extends CommandExecutionResponse
 
-case object CommandNotAvailable extends CommandExecutionResponse
+case class CommandNotAvailable(runId: String) extends CommandExecutionResponse

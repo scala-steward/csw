@@ -48,9 +48,9 @@ object Matchers {
 
     source
       .runWith(Sink.head)
-      .map(_ ⇒ Completed)
+      .map(_ ⇒ Completed(""))
       .recover {
-        case NonFatal(ex) ⇒ Error("")
+        case NonFatal(ex) ⇒ Error("", ex.getMessage)
       }
   }
 }

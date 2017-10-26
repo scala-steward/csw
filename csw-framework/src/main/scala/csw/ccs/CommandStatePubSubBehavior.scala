@@ -21,7 +21,7 @@ class CommandStatePubSubBehavior(ctx: ActorContext[CommandStatePubSub], componen
       case Publish(runId, data)        ⇒ publish(runId, data)
       case Subscribe(runId, replyTo)   ⇒ subscribe(runId, replyTo)
       case UnSubscribe(runId, replyTo) ⇒ unSubscribe(runId, replyTo)
-      case Query(runId, replyTo)       ⇒ replyTo ! runIdToCurrentState.getOrElse(runId, CommandNotAvailable)
+      case Query(runId, replyTo)       ⇒ replyTo ! runIdToCurrentState.getOrElse(runId, CommandNotAvailable(runId))
     }
     this
   }
