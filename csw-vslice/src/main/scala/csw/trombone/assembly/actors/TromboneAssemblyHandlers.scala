@@ -103,8 +103,8 @@ case class TromboneAssemblyHandlers(
       replyTo: ActorRef[CommandResponse]
   ): (ComponentHandlers[DiagPublisherMessages], Validation) = {
     val validation = controlCommand match {
-      case Setup(info, prefix, paramSet)   => validateOneSetup(controlCommand.asInstanceOf[Setup])(ac)
-      case Observe(info, prefix, paramSet) => Valid
+      case _: Setup   => validateOneSetup(controlCommand.asInstanceOf[Setup])
+      case _: Observe => Valid
     }
     if (validation == Valid) {
       commandHandler.foreach(_ ! CommandMessageE(Submit(controlCommand, replyTo)))
