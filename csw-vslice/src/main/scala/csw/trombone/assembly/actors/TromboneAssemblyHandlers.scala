@@ -103,9 +103,9 @@ case class TromboneAssemblyHandlers(
   ): (ComponentHandlers[DiagPublisherMessages], CommandValidationResponse) = {
     val validation = controlCommand match {
       case _: Setup   => validateOneSetup(controlCommand.asInstanceOf[Setup])
-      case _: Observe => Accepted()
+      case _: Observe => Accepted(controlCommand.runId)
     }
-    if (validation.isInstanceOf[Accepted]) {
+    if (validation == Accepted(controlCommand.runId)) {
       commandHandler.foreach(_ ! CommandMessageE(Submit(controlCommand, replyTo)))
     }
     (this, validation)
@@ -114,7 +114,7 @@ case class TromboneAssemblyHandlers(
   override def onOneway(
       controlCommand: ControlCommand
   ): (ComponentHandlers[DiagPublisherMessages], CommandValidationResponse) =
-    (this, Accepted())
+    (this, Accepted(controlCommand.runId))
 
   private def getAssemblyConfigs: Future[(TromboneCalculationConfig, TromboneControlConfig)] = ???
 

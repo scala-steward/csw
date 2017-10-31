@@ -98,7 +98,7 @@ case class TromboneHcdHandlers(ctx: ActorContext[ComponentMessage],
       case setup: Setup     => ParamValidation.validateSetup(setup)
       case observe: Observe => ParamValidation.validateObserve(observe)
     }
-    if (validation == Accepted())
+    if (validation == Accepted(controlCommand.runId))
       onSetup(controlCommand.asInstanceOf[Setup])
     (this, validation)
   }
@@ -106,7 +106,7 @@ case class TromboneHcdHandlers(ctx: ActorContext[ComponentMessage],
   override def onOneway(
       controlCommand: ControlCommand
   ): (ComponentHandlers[TromboneMessage], CommandValidationResponse) =
-    (this, Accepted())
+    (this, Accepted(controlCommand.runId))
 
   def onDomainMsg(tromboneMsg: TromboneMessage): ComponentHandlers[TromboneMessage] = tromboneMsg match {
     case x: TromboneEngineering => onEngMsg(x)

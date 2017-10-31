@@ -44,9 +44,9 @@ class GalilComponentHandlers(
       controlCommand: ControlCommand,
       replyTo: ActorRef[CommandResponse]
   ): (ComponentHandlers[StartLogging], CommandValidationResponse) =
-    (this, Accepted())
+    (this, Accepted(controlCommand.runId))
   override def onOneway(controlCommand: ControlCommand): (ComponentHandlers[StartLogging], CommandValidationResponse) =
-    (this, Accepted())
+    (this, Accepted(controlCommand.runId))
 
   override def onShutdown(): Future[Unit] = Future.successful(())
 

@@ -119,12 +119,12 @@ class ComponentLifecycleTest extends FrameworkTestSuite with MockitoSugar {
     val sc1          = Setup(obsId, Prefix("wfos.prog.cloudcover")).add(KeyType.IntKey.make("encoder").set(22))
 
     when(sampleHcdHandler.onSubmit(ArgumentMatchers.any[Setup](), ArgumentMatchers.any[ActorRef[CommandResponse]]()))
-      .thenReturn((sampleHcdHandler, Accepted()))
+      .thenReturn((sampleHcdHandler, Accepted(sc1.runId)))
 
     runningComponentBehavior.onMessage(Submit(sc1, commandResponseProbe.ref))
 
     verify(sampleHcdHandler).onSubmit(sc1, commandResponseProbe.ref)
-    commandResponseProbe.expectMsg(Accepted())
+    commandResponseProbe.expectMsg(Accepted(sc1.runId))
   }
 
   test("A running component should handle Oneway command") {
@@ -136,11 +136,11 @@ class ComponentLifecycleTest extends FrameworkTestSuite with MockitoSugar {
     val obsId: ObsId = ObsId("Obs001")
     val sc1          = Observe(obsId, Prefix("wfos.prog.cloudcover")).add(KeyType.IntKey.make("encoder").set(22))
 
-    when(sampleHcdHandler.onOneway(ArgumentMatchers.any[Setup]())).thenReturn((sampleHcdHandler, Accepted()))
+    when(sampleHcdHandler.onOneway(ArgumentMatchers.any[Setup]())).thenReturn((sampleHcdHandler, Accepted(sc1.runId)))
 
     runningComponentBehavior.onMessage(Oneway(sc1, commandResponseProbe.ref))
 
     verify(sampleHcdHandler).onOneway(sc1)
-    commandResponseProbe.expectMsg(Accepted())
+    commandResponseProbe.expectMsg(Accepted(sc1.runId))
   }
 }
