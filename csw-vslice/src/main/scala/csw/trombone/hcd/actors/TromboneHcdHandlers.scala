@@ -6,7 +6,7 @@ import akka.typed.scaladsl.ActorContext
 import akka.typed.scaladsl.AskPattern.Askable
 import akka.util.Timeout
 import csw.framework.scaladsl.{ComponentBehaviorFactory, ComponentHandlers}
-import csw.messages.CommandValidationResponses.Accepted
+import csw.messages.CommandValidationResponse.Accepted
 import csw.messages.PubSub.PublisherMessage
 import csw.messages._
 import csw.messages.ccs.commands.{ControlCommand, Observe, Setup}
@@ -98,14 +98,15 @@ case class TromboneHcdHandlers(ctx: ActorContext[ComponentMessage],
       case setup: Setup     => ParamValidation.validateSetup(setup)
       case observe: Observe => ParamValidation.validateObserve(observe)
     }
-    if (validation == Accepted)
+    if (validation == Accepted())
       onSetup(controlCommand.asInstanceOf[Setup])
     (this, validation)
   }
+
   override def onOneway(
       controlCommand: ControlCommand
   ): (ComponentHandlers[TromboneMessage], CommandValidationResponse) =
-    (this, Accepted)
+    (this, Accepted())
 
   def onDomainMsg(tromboneMsg: TromboneMessage): ComponentHandlers[TromboneMessage] = tromboneMsg match {
     case x: TromboneEngineering => onEngMsg(x)

@@ -3,7 +3,7 @@ package csw.apps.clusterseed.components
 import akka.typed.ActorRef
 import akka.typed.scaladsl.ActorContext
 import csw.framework.scaladsl.ComponentHandlers
-import csw.messages.CommandValidationResponses.Accepted
+import csw.messages.CommandValidationResponse.Accepted
 import csw.messages.PubSub.PublisherMessage
 import csw.messages.RunningMessage.DomainMessage
 import csw.messages._
@@ -44,9 +44,9 @@ class GalilComponentHandlers(
       controlCommand: ControlCommand,
       replyTo: ActorRef[CommandResponse]
   ): (ComponentHandlers[StartLogging], CommandValidationResponse) =
-    (this, Accepted)
+    (this, Accepted())
   override def onOneway(controlCommand: ControlCommand): (ComponentHandlers[StartLogging], CommandValidationResponse) =
-    (this, Accepted)
+    (this, Accepted())
 
   override def onShutdown(): Future[Unit] = Future.successful(())
 
