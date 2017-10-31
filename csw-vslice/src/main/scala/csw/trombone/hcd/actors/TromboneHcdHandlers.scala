@@ -6,10 +6,9 @@ import akka.typed.scaladsl.ActorContext
 import akka.typed.scaladsl.AskPattern.Askable
 import akka.util.Timeout
 import csw.framework.scaladsl.{ComponentBehaviorFactory, ComponentHandlers}
+import csw.messages.CommandValidationResponses.Accepted
 import csw.messages.PubSub.PublisherMessage
 import csw.messages._
-import csw.messages.ccs.{Validation, Validations}
-import csw.messages.ccs.Validations.Valid
 import csw.messages.ccs.commands.{ControlCommand, Observe, Setup}
 import csw.messages.framework.ComponentInfo
 import csw.messages.location.TrackingEvent
@@ -91,18 +90,22 @@ case class TromboneHcdHandlers(ctx: ActorContext[ComponentMessage],
     }
   }
 
-  override def onSubmit(controlCommand: ControlCommand,
-                        replyTo: ActorRef[CommandResponse]): (ComponentHandlers[TromboneMessage], Validation) = {
+  override def onSubmit(
+      controlCommand: ControlCommand,
+      replyTo: ActorRef[CommandResponse]
+  ): (ComponentHandlers[TromboneMessage], CommandValidationResponse) = {
     val validation = controlCommand match {
       case setup: Setup     => ParamValidation.validateSetup(setup)
       case observe: Observe => ParamValidation.validateObserve(observe)
     }
-    if (validation == Valid)
+    if (validation == Accepted)
       onSetup(controlCommand.asInstanceOf[Setup])
     (this, validation)
   }
-  override def onOneway(controlCommand: ControlCommand): (ComponentHandlers[TromboneMessage], Validation) =
-    (this, Validations.Valid)
+  override def onOneway(
+      controlCommand: ControlCommand
+  ): (ComponentHandlers[TromboneMessage], CommandValidationResponse) =
+    (this, Accepted)
 
   def onDomainMsg(tromboneMsg: TromboneMessage): ComponentHandlers[TromboneMessage] = tromboneMsg match {
     case x: TromboneEngineering => onEngMsg(x)

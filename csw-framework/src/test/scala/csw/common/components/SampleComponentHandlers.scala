@@ -3,11 +3,11 @@ package csw.common.components
 import akka.typed.ActorRef
 import akka.typed.scaladsl.ActorContext
 import csw.framework.scaladsl.ComponentHandlers
+import csw.messages.CommandValidationResponses.{Accepted, Invalid}
 import csw.messages.PubSub.{Publish, PublisherMessage}
 import csw.messages._
-import csw.messages.ccs.ValidationIssue.OtherIssue
+import csw.messages.ccs.CommandIssue.OtherIssue
 import csw.messages.ccs.commands.{ControlCommand, Observe, Setup}
-import csw.messages.ccs.{Validation, Validations}
 import csw.messages.framework.ComponentInfo
 import csw.messages.location.Connection.{AkkaConnection, HttpConnection, TcpConnection}
 import csw.messages.location._
@@ -107,7 +107,7 @@ class SampleComponentHandlers(
   override def onSubmit(
       controlCommand: ControlCommand,
       replyTo: ActorRef[CommandResponse]
-  ): (ComponentHandlers[ComponentDomainMessage], Validation) = {
+  ): (ComponentHandlers[ComponentDomainMessage], CommandValidationResponse) = {
     // Adding passed in parameter to see if data is transferred properly
     pubSubRef ! Publish(
       CurrentState(prefix, Set(choiceKey.set(submitCommandChoice)))
@@ -115,7 +115,9 @@ class SampleComponentHandlers(
     (this, validateCommand(controlCommand))
   }
 
-  override def onOneway(controlCommand: ControlCommand): (ComponentHandlers[ComponentDomainMessage], Validation) = {
+  override def onOneway(
+      controlCommand: ControlCommand
+  ): (ComponentHandlers[ComponentDomainMessage], CommandValidationResponse) = {
     // Adding passed in parameter to see if data is transferred properly
     pubSubRef ! Publish(
       CurrentState(prefix, Set(choiceKey.set(oneWayCommandChoice)))
@@ -133,9 +135,9 @@ class SampleComponentHandlers(
     }
 
     if (command.prefix.prefix.contains("success")) {
-      Validations.Valid
+      Accepted
     } else {
-      Validations.Invalid(OtherIssue("Testing: Received failure, will return Invalid."))
+      Invalid(OtherIssue("Testing: Received failure, will return Invalid."))
     }
   }
 

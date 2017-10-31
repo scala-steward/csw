@@ -163,7 +163,7 @@ class ComponentBehavior[Msg <: DomainMessage: ClassTag](
    */
   def onRunningCompCommandMessage(commandMessage: CommandMessage): Unit = {
 
-    val validation = commandMessage match {
+    val validationResponse = commandMessage match {
       case _: Oneway =>
         log.info(s"Invoking lifecycle handler's onOneway hook with msg :[$commandMessage]")
         componentHandlers.onOneway(commandMessage.command)
@@ -171,9 +171,6 @@ class ComponentBehavior[Msg <: DomainMessage: ClassTag](
         log.info(s"Invoking lifecycle handler's onSubmit hook with msg :[$commandMessage]")
         componentHandlers.onSubmit(commandMessage.command, commandMessage.replyTo)
     }
-
-    componentHandlers = validation._1
-    val validationCommandResult = CommandValidationResponse.validationAsCommandStatus(validation._2)
-    commandMessage.replyTo ! validationCommandResult
+    commandMessage.replyTo ! validationResponse._2
   }
 }

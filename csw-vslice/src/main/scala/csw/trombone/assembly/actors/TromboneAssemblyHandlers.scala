@@ -4,11 +4,10 @@ import akka.typed.ActorRef
 import akka.typed.scaladsl.ActorContext
 import csw.framework.scaladsl.{ComponentBehaviorFactory, ComponentHandlers}
 import csw.messages.CommandMessage.Submit
+import csw.messages.CommandValidationResponses.Accepted
 import csw.messages.PubSub.PublisherMessage
 import csw.messages._
-import csw.messages.ccs.Validations.Valid
 import csw.messages.ccs.commands.{ControlCommand, Observe, Setup}
-import csw.messages.ccs.{Validation, Validations}
 import csw.messages.framework.ComponentInfo
 import csw.messages.location._
 import csw.messages.params.states.CurrentState
@@ -101,19 +100,21 @@ case class TromboneAssemblyHandlers(
   override def onSubmit(
       controlCommand: ControlCommand,
       replyTo: ActorRef[CommandResponse]
-  ): (ComponentHandlers[DiagPublisherMessages], Validation) = {
+  ): (ComponentHandlers[DiagPublisherMessages], CommandValidationResponse) = {
     val validation = controlCommand match {
       case _: Setup   => validateOneSetup(controlCommand.asInstanceOf[Setup])
-      case _: Observe => Valid
+      case _: Observe => Accepted
     }
-    if (validation == Valid) {
+    if (validation == Accepted) {
       commandHandler.foreach(_ ! CommandMessageE(Submit(controlCommand, replyTo)))
     }
     (this, validation)
   }
 
-  override def onOneway(controlCommand: ControlCommand): (ComponentHandlers[DiagPublisherMessages], Validation) =
-    (this, Validations.Valid)
+  override def onOneway(
+      controlCommand: ControlCommand
+  ): (ComponentHandlers[DiagPublisherMessages], CommandValidationResponse) =
+    (this, Accepted)
 
   private def getAssemblyConfigs: Future[(TromboneCalculationConfig, TromboneControlConfig)] = ???
 
