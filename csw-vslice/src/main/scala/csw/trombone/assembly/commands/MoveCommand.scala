@@ -25,7 +25,7 @@ class MoveCommand(ctx: ActorContext[AssemblyCommandHandlerMsgs],
   import csw.trombone.assembly.actors.TromboneState._
   import ctx.executionContext
   val stagePosition   = s(ac.stagePositionKey)
-  val encoderPosition = Algorithms.stagePositionToEncoder(ac.controlConfig, stagePosition.head)
+  val encoderPosition = Algorithms.stagePositionToEncoder(ac.controlConfig.get, stagePosition.head)
   val stateMatcher    = Matchers.posMatcher(encoderPosition)
   val scOut = Setup(s.info, TromboneHcdState.axisMoveCK)
     .add(TromboneHcdState.positionKey -> encoderPosition withUnits encoder)

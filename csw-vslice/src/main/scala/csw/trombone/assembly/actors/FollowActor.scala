@@ -38,8 +38,8 @@ class FollowActor(
   import Algorithms._
   import ac._
 
-  val calculationConfig: TromboneCalculationConfig = ac.calculationConfig
-  val controlConfig: TromboneControlConfig         = ac.controlConfig
+  val calculationConfig: TromboneCalculationConfig = ac.calculationConfig.get
+  val controlConfig: TromboneControlConfig         = ac.controlConfig.get
 
   val initialFocusError: Parameter[Double]  = focusErrorKey  -> 0.0 withUnits focusErrorUnits
   val initialZenithAngle: Parameter[Double] = zenithAngleKey -> 0.0 withUnits zenithAngleUnits

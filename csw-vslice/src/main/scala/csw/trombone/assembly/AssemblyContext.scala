@@ -14,8 +14,8 @@ import csw.trombone.assembly.AssemblyContext.{TromboneCalculationConfig, Trombon
  */
 case class AssemblyContext(
     info: ComponentInfo,
-    calculationConfig: TromboneCalculationConfig,
-    controlConfig: TromboneControlConfig
+    calculationConfig: Option[TromboneCalculationConfig],
+    controlConfig: Option[TromboneControlConfig]
 ) {
   // Assembly Info
   // These first three are set from the config file

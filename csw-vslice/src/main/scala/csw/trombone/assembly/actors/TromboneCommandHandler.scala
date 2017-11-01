@@ -38,7 +38,7 @@ class TromboneCommandHandler(ctx: ActorContext[AssemblyCommandHandlerMsgs],
   implicit val system: ActorSystem[Nothing] = ctx.system
   implicit val timeout: Timeout             = Timeout(5.seconds)
 
-  private var setElevationItem                                    = naElevation(calculationConfig.defaultInitialElevation)
+  private var setElevationItem                                    = naElevation(calculationConfig.get.defaultInitialElevation)
   private var followCommandActor: ActorRef[FollowCommandMessages] = _
 
   override var hcds: Map[Connection, Option[ActorRef[SupervisorExternalMessage]]] = tromboneHCDs

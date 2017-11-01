@@ -38,7 +38,7 @@ class SetElevationCommand(ctx: ActorContext[AssemblyCommandHandlerMsgs],
     } else {
       val elevationItem   = s(ac.naElevationKey)
       val stagePosition   = Algorithms.rangeDistanceToStagePosition(elevationItem.head)
-      val encoderPosition = Algorithms.stagePositionToEncoder(ac.controlConfig, stagePosition)
+      val encoderPosition = Algorithms.stagePositionToEncoder(ac.controlConfig.get, stagePosition)
 
       println(
         s"Using elevation as rangeDistance: ${elevationItem.head} to get stagePosition: $stagePosition to encoder: $encoderPosition"

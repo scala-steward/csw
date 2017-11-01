@@ -13,9 +13,9 @@ object TromboneControl {
       msg match {
         case GoToStagePosition(stagePosition) =>
           assert(stagePosition.units == ac.stagePositionUnits)
-          val encoderPosition = Algorithms.stagePositionToEncoder(ac.controlConfig, stagePosition.head)
+          val encoderPosition = Algorithms.stagePositionToEncoder(ac.controlConfig.get, stagePosition.head)
           assert(
-            encoderPosition > ac.controlConfig.minEncoderLimit && encoderPosition < ac.controlConfig.maxEncoderLimit
+            encoderPosition > ac.controlConfig.get.minEncoderLimit && encoderPosition < ac.controlConfig.get.maxEncoderLimit
           )
           tromboneHcd.foreach(
             _ ! Submit(TromboneHcdState.positionSC(ac.commandInfo, encoderPosition), ctx.spawnAnonymous(Actor.ignore))

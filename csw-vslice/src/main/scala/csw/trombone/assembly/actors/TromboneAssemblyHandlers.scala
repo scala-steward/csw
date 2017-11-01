@@ -30,11 +30,21 @@ class TromboneAssemblyBehaviorFactory extends ComponentBehaviorFactory[DiagPubli
       pubSubRef: ActorRef[PublisherMessage[CurrentState]],
       locationService: LocationService
   ): ComponentHandlers[DiagPublisherMessages] =
-    TromboneAssemblyHandlers(ctx, componentInfo, pubSubRef, locationService, None, None, Map.empty)
+    TromboneAssemblyHandlers(
+      ctx,
+      AssemblyContext(componentInfo, None, None),
+      componentInfo,
+      pubSubRef,
+      locationService,
+      None,
+      None,
+      Map.empty
+    )
 }
 
 case class TromboneAssemblyHandlers(
     ctx: ActorContext[ComponentMessage],
+    ac: AssemblyContext,
     componentInfo: ComponentInfo,
     pubSubRef: ActorRef[PublisherMessage[CurrentState]],
     locationService: LocationService,
@@ -43,21 +53,24 @@ case class TromboneAssemblyHandlers(
     runningHcds: Map[Connection, Option[ActorRef[SupervisorExternalMessage]]]
 ) extends ComponentHandlers[DiagPublisherMessages](ctx, componentInfo, pubSubRef, locationService) {
 
-  implicit var ac: AssemblyContext  = _
   implicit val ec: ExecutionContext = ctx.executionContext
 
   def onRun(): Future[Unit] = Future.unit
 
   def initialize(): Future[ComponentHandlers[DiagPublisherMessages]] = async {
     val (calculationConfig, controlConfig) = await(getAssemblyConfigs)
-    ac = AssemblyContext(componentInfo.asInstanceOf[ComponentInfo], calculationConfig, controlConfig)
+    val assemblyContext                    = AssemblyContext(componentInfo, Some(calculationConfig), Some(controlConfig))
 
-    val eventPublisher = ctx.spawnAnonymous(TrombonePublisher.make(ac))
+    val eventPublisher = ctx.spawnAnonymous(TrombonePublisher.make(assemblyContext))
 
     this.copy(
-      diagPublisher = Some(ctx.spawnAnonymous(DiagPublisher.make(ac, runningHcds.head._2, Some(eventPublisher)))),
+      ac = assemblyContext,
+      diagPublisher =
+        Some(ctx.spawnAnonymous(DiagPublisher.make(assemblyContext, runningHcds.head._2, Some(eventPublisher)))),
       commandHandler = Some(
-        ctx.spawnAnonymous(new TromboneAssemblyCommandBehaviorFactory().make(ac, runningHcds, Some(eventPublisher)))
+        ctx.spawnAnonymous(
+          new TromboneAssemblyCommandBehaviorFactory().make(assemblyContext, runningHcds, Some(eventPublisher))
+        )
       ),
       runningHcds = Map.empty
     )
@@ -90,7 +103,7 @@ case class TromboneAssemblyHandlers(
       replyTo: ActorRef[CommandResponse]
   ): (ComponentHandlers[DiagPublisherMessages], Validation) = {
     val validation = controlCommand match {
-      case Setup(info, prefix, paramSet)   => validateOneSetup(controlCommand.asInstanceOf[Setup])
+      case Setup(info, prefix, paramSet)   => validateOneSetup(controlCommand.asInstanceOf[Setup])(ac)
       case Observe(info, prefix, paramSet) => Valid
     }
     if (validation == Valid) {

@@ -39,7 +39,7 @@ class PositionCommand(ctx: ActorContext[AssemblyCommandHandlerMsgs],
     } else {
       val rangeDistance   = s(ac.naRangeDistanceKey)
       val stagePosition   = Algorithms.rangeDistanceToStagePosition(rangeDistance.head)
-      val encoderPosition = Algorithms.stagePositionToEncoder(ac.controlConfig, stagePosition)
+      val encoderPosition = Algorithms.stagePositionToEncoder(ac.controlConfig.get, stagePosition)
 
       println(
         s"Using rangeDistance: ${rangeDistance.head} to get stagePosition: $stagePosition to encoder: $encoderPosition"
