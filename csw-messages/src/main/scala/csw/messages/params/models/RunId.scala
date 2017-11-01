@@ -2,17 +2,16 @@ package csw.messages.params.models
 
 import java.util.UUID
 
-import spray.json.{JsString, JsValue, JsonFormat}
+import play.api.libs.json._
 
 /**
  * Implementation of unique id for each running command (returned from a queue submit).
  */
 object RunId {
-  import spray.json.DefaultJsonProtocol._
 
-  implicit val format: JsonFormat[RunId] = new JsonFormat[RunId] {
-    override def write(obj: RunId): JsValue = JsString(obj.id)
-    override def read(json: JsValue): RunId = RunId(json.convertTo[String])
+  implicit val format: Format[RunId] = new Format[RunId] {
+    override def writes(obj: RunId): JsValue           = JsString(obj.id)
+    override def reads(json: JsValue): JsResult[RunId] = JsSuccess(RunId(Json.stringify(json)))
   }
 
   def apply(): RunId  = new RunId(UUID.randomUUID().toString)
