@@ -10,7 +10,8 @@ import csw.messages.params.models.Units.{encoder, meter, second, NoUnits}
 import csw.messages.params.models._
 import csw.messages.params.states.{CurrentState, DemandState}
 import org.scalatest.{FunSpec, Matchers}
-import spray.json.pimpString
+import play.api.libs.json.Json
+import scala.io.Source
 
 // DEOPSCSW-183: Configure attributes and values
 // DEOPSCSW-188: Efficient Serialization to/from JSON
@@ -35,10 +36,10 @@ class JsonContractTest extends FunSpec with Matchers {
       val raDecParam = raDecKey.set(raDec1, raDec2)
 
       val setup       = Setup(runId, obsId, prefix).add(raDecParam)
-      val setupToJson = JsonSupport.writeSequenceCommand(setup)
+      val setupToJson = Json.prettyPrint(JsonSupport.writeSequenceCommand(setup))
 
-      val expectedSetupJson = scala.io.Source.fromResource("json/setup_command.json").mkString
-      assert(setupToJson.equals(expectedSetupJson.parseJson))
+      val expectedSetupJson = Json.prettyPrint(Json.parse(Source.fromResource("json/setup_command.json").mkString))
+      setupToJson shouldEqual expectedSetupJson
     }
 
     it("should adhere to specified standard Observe json format") {
@@ -48,10 +49,10 @@ class JsonContractTest extends FunSpec with Matchers {
       val i2      = k2.set("11:10")
       val observe = Observe(runId, obsId, prefix).add(i1).add(i2)
 
-      val observeToJson = JsonSupport.writeSequenceCommand(observe)
+      val observeToJson = Json.prettyPrint(JsonSupport.writeSequenceCommand(observe))
 
-      val expectedObserveJson = scala.io.Source.fromResource("json/observe_command.json").mkString
-      assert(observeToJson.equals(expectedObserveJson.parseJson))
+      val expectedObserveJson = Json.prettyPrint(Json.parse(Source.fromResource("json/observe_command.json").mkString))
+      observeToJson shouldEqual expectedObserveJson
     }
 
     it("should adhere to specified standard Wait json format") {
@@ -61,10 +62,10 @@ class JsonContractTest extends FunSpec with Matchers {
       val matrixParam          = k1.set(m1, m2)
 
       val wait       = Wait(runId, obsId, prefix).add(matrixParam)
-      val waitToJson = JsonSupport.writeSequenceCommand(wait)
+      val waitToJson = Json.prettyPrint(JsonSupport.writeSequenceCommand(wait))
 
-      val expectedWaitJson = scala.io.Source.fromResource("json/wait_command.json").mkString
-      assert(waitToJson.equals(expectedWaitJson.parseJson))
+      val expectedWaitJson = Json.prettyPrint(Json.parse(Source.fromResource("json/wait_command.json").mkString))
+      waitToJson shouldEqual expectedWaitJson
     }
   }
 
@@ -77,10 +78,10 @@ class JsonContractTest extends FunSpec with Matchers {
       val i1                = k1.set(22)
       val i2                = k2.set(44)
       val statusEvent       = StatusEvent(eventInfo).madd(i1, i2)
-      val statusEventToJson = JsonSupport.writeEvent(statusEvent)
+      val statusEventToJson = Json.prettyPrint(JsonSupport.writeEvent(statusEvent))
 
-      val expectedStatusEventJson = scala.io.Source.fromResource("json/status_event.json").mkString
-      statusEventToJson shouldEqual expectedStatusEventJson.parseJson
+      val expectedStatusEventJson = Json.prettyPrint(Json.parse(Source.fromResource("json/status_event.json").mkString))
+      statusEventToJson shouldEqual expectedStatusEventJson
     }
 
     it("should adhere to specified standard ObserveEvent json format") {
@@ -93,10 +94,11 @@ class JsonContractTest extends FunSpec with Matchers {
 
       val structParam        = structKey.set(structItem)
       val observeEvent       = ObserveEvent(eventInfo).add(structParam)
-      val observeEventToJson = JsonSupport.writeEvent(observeEvent)
+      val observeEventToJson = Json.prettyPrint(JsonSupport.writeEvent(observeEvent))
 
-      val expectedObserveEventJson = scala.io.Source.fromResource("json/observe_event.json").mkString
-      observeEventToJson shouldEqual expectedObserveEventJson.parseJson
+      val expectedObserveEventJson =
+        Json.prettyPrint(Json.parse(Source.fromResource("json/observe_event.json").mkString))
+      observeEventToJson shouldEqual expectedObserveEventJson
     }
 
     it("should adhere to specified standard SystemEvent json format") {
@@ -107,10 +109,10 @@ class JsonContractTest extends FunSpec with Matchers {
       val arrayDataParam = arrayDataKey.set(ArrayData(a1), ArrayData(a2))
 
       val systemEvent       = SystemEvent(eventInfo).add(arrayDataParam)
-      val systemEventToJson = JsonSupport.writeEvent(systemEvent)
+      val systemEventToJson = Json.prettyPrint(JsonSupport.writeEvent(systemEvent))
 
-      val expectedSystemEventJson = scala.io.Source.fromResource("json/system_event.json").mkString
-      systemEventToJson shouldEqual expectedSystemEventJson.parseJson
+      val expectedSystemEventJson = Json.prettyPrint(Json.parse(Source.fromResource("json/system_event.json").mkString))
+      systemEventToJson shouldEqual expectedSystemEventJson
     }
   }
 
@@ -129,10 +131,11 @@ class JsonContractTest extends FunSpec with Matchers {
         timestampKey.set(Instant.ofEpochMilli(0), Instant.parse("2017-09-04T16:28:00.123456789Z")).withUnits(second)
 
       val currentState       = CurrentState(prefix).madd(charParam, intArrayParam, timestampParam)
-      val currentStateToJson = JsonSupport.writeStateVariable(currentState)
+      val currentStateToJson = Json.prettyPrint(JsonSupport.writeStateVariable(currentState))
 
-      val expectedCurrentStateJson = scala.io.Source.fromResource("json/current_State.json").mkString
-      currentStateToJson shouldBe expectedCurrentStateJson.parseJson
+      val expectedCurrentStateJson =
+        Json.prettyPrint(Json.parse(Source.fromResource("json/current_State.json").mkString))
+      currentStateToJson shouldBe expectedCurrentStateJson
     }
 
     it("should adhere to specified standard DemandState json format") {
@@ -147,10 +150,10 @@ class JsonContractTest extends FunSpec with Matchers {
       val timestampParam = timestampKey.set(Instant.ofEpochMilli(0), Instant.parse("2017-09-04T16:28:00.123456789Z"))
 
       val demandState       = DemandState(prefix).madd(charParam, intParam, booleanParam, timestampParam)
-      val demandStateToJson = JsonSupport.writeStateVariable(demandState)
+      val demandStateToJson = Json.prettyPrint(JsonSupport.writeStateVariable(demandState))
 
-      val expectedDemandStateJson = scala.io.Source.fromResource("json/demand_state.json").mkString
-      demandStateToJson shouldBe expectedDemandStateJson.parseJson
+      val expectedDemandStateJson = Json.prettyPrint(Json.parse(Source.fromResource("json/demand_state.json").mkString))
+      demandStateToJson shouldBe expectedDemandStateJson
     }
   }
 
@@ -221,11 +224,11 @@ class JsonContractTest extends FunSpec with Matchers {
         p25
       )
 
-      val setupToJson = JsonSupport.writeSequenceCommand(setup)
+      val setupToJson = Json.prettyPrint(JsonSupport.writeSequenceCommand(setup))
 
-      val expectedSetupJson = scala.io.Source.fromResource("json/setup_with_all_keys.json").mkString
-      setupToJson shouldBe expectedSetupJson.parseJson
+      val expectedSetupJson =
+        Json.prettyPrint(Json.parse(Source.fromResource("json/setup_with_all_keys.json").mkString))
+      setupToJson shouldBe expectedSetupJson
     }
   }
-
 }
