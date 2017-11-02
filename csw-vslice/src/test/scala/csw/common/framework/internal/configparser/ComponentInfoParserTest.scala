@@ -1,7 +1,8 @@
 package csw.common.framework.internal.configparser
 
 import com.typesafe.config.ConfigFactory
-import csw.common.framework.models.{ComponentInfo, ContainerInfo, DoNotRegister, RegisterOnly}
+import csw.common.framework.models.LocationServiceUsage.{DoNotRegister, RegisterOnly}
+import csw.common.framework.models.{ComponentInfo, ContainerInfo}
 import csw.services.location.models.ComponentType.{Assembly, HCD}
 import csw.services.location.models.Connection
 import org.scalatest.{FunSuite, Matchers}

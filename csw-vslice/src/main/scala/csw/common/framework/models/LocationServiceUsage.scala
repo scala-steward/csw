@@ -13,13 +13,13 @@ sealed abstract class LocationServiceUsage(override val entryName: String) exten
   def name: String = entryName
 }
 
-case object DoNotRegister            extends LocationServiceUsage("DoNotRegister")
-case object RegisterOnly             extends LocationServiceUsage("RegisterOnly")
-case object RegisterAndTrackServices extends LocationServiceUsage("RegisterAndTrackServices")
-
 object LocationServiceUsage extends Enum[LocationServiceUsage] {
 
   override def values: IndexedSeq[LocationServiceUsage] = findValues
+
+  case object DoNotRegister            extends LocationServiceUsage("DoNotRegister")
+  case object RegisterOnly             extends LocationServiceUsage("RegisterOnly")
+  case object RegisterAndTrackServices extends LocationServiceUsage("RegisterAndTrackServices")
 
   val JDoNotRegister: LocationServiceUsage            = DoNotRegister
   val JRegisterOnly: LocationServiceUsage             = RegisterOnly
