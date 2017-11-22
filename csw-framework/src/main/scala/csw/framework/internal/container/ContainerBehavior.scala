@@ -39,7 +39,7 @@ class ContainerBehavior(
     supervisorInfoFactory: SupervisorInfoFactory,
     registrationFactory: RegistrationFactory,
     locationService: LocationService
-) extends FrameworkLogger.MutableActor[ContainerMessage](ctx, containerInfo.name) {
+) extends FrameworkLogger.MutableActor[ContainerMessage](ctx, containerInfo) {
 
   import ctx.executionContext
 

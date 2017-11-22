@@ -5,6 +5,7 @@ import akka.typed
 import akka.typed.scaladsl.adapter.UntypedActorSystemOps
 import akka.typed.testkit.scaladsl.TestProbe
 import akka.typed.testkit.{StubbedActorContext, TestKitSettings}
+import csw.ccs.commons.ComponentInfoFactory
 import csw.messages.CommandResponseManagerMessage
 import csw.messages.CommandResponseManagerMessage._
 import csw.messages.ccs.commands.CommandResponse
@@ -30,7 +31,8 @@ class CommandResponseManagerBehaviorTest extends FunSuite with Matchers {
     new StubbedActorContext[CommandResponseManagerMessage]("ctx-command-status-service", 100, typedSystem)
 
   def createCommandStatusService(): CommandResponseManagerBehavior =
-    new CommandResponseManagerBehavior(ctx, "test-component") with MutableActorMock[CommandResponseManagerMessage]
+    new CommandResponseManagerBehavior(ctx, ComponentInfoFactory.make("test-component"))
+    with MutableActorMock[CommandResponseManagerMessage]
 
   test("should be able to add command entry in Command Response Manager") {
     val commandStatusService = createCommandStatusService()

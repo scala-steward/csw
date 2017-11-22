@@ -1,12 +1,13 @@
 package csw.services.logging.components
 
 import akka.actor.Props
+import csw.services.logging.commons.ComponentInfoFactory
 import csw.services.logging.components.IRIS._
 import csw.services.logging.scaladsl.{FrameworkLogger, GenericLogger, LibraryLogger}
 
 object IRISLogger extends LibraryLogger(IRIS.COMPONENT_NAME)
 
-class IRIS(componentName: String) extends FrameworkLogger.Actor(componentName) {
+class IRIS(componentName: String) extends FrameworkLogger.Actor(ComponentInfoFactory.make(componentName)) {
 
   // Do not add any lines before this method
   // Tests are written to assert on this line numbers

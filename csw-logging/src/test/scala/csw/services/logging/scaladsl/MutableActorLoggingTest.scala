@@ -6,6 +6,7 @@ import csw.services.logging.LogCommand
 import csw.services.logging.internal.LoggingLevels
 import csw.services.logging.internal.LoggingLevels.Level
 import csw.services.logging.LogCommand._
+import csw.services.logging.commons.ComponentInfoFactory
 import csw.services.logging.utils.LoggingTestSuite
 
 object TromboneMutableActor {
@@ -16,7 +17,7 @@ object TromboneMutableActor {
 class TromboneMutableActor(
     ctx: ActorContext[LogCommand],
     componentName: String
-) extends FrameworkLogger.MutableActor[LogCommand](ctx, componentName) {
+) extends FrameworkLogger.MutableActor[LogCommand](ctx, ComponentInfoFactory.make(componentName)) {
   override def onMessage(msg: LogCommand): Behavior[LogCommand] = {
     msg match {
       case LogTrace => log.trace("Level is trace")

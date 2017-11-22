@@ -8,13 +8,14 @@ import csw.messages.CommandResponseManagerMessage._
 import csw.messages.ccs.commands.CommandResponse.CommandNotAvailable
 import csw.messages.ccs.commands.CommandResultType.{Final, Intermediate}
 import csw.messages.ccs.commands.{CommandResponse, CommandResultType}
+import csw.messages.framework.ComponentInfo
 import csw.messages.params.models.RunId
 import csw.services.logging.scaladsl.FrameworkLogger
 
 class CommandResponseManagerBehavior(
     ctx: ActorContext[CommandResponseManagerMessage],
-    componentName: String
-) extends FrameworkLogger.MutableActor[CommandResponseManagerMessage](ctx, componentName) {
+    componentInfo: ComponentInfo
+) extends FrameworkLogger.MutableActor[CommandResponseManagerMessage](ctx, componentInfo) {
 
   var commandStatus: CommandResponseManagerState = CommandResponseManagerState(Map.empty)
   var commandCoRelation: CommandCorrelation      = CommandCorrelation(Map.empty, Map.empty)

@@ -4,6 +4,7 @@ import akka.actor.{ActorPath, ActorRef}
 import akka.serialization.Serialization
 import akka.typed.scaladsl.adapter.TypedActorRefOps
 import akka.typed.scaladsl.{Actor, ActorContext}
+import csw.messages.framework.BaseComponentInfo
 
 private[logging] abstract class AbstractLogger {
 
@@ -64,10 +65,10 @@ object FrameworkLogger extends AbstractLogger {
     override protected def maybeName: Option[String] = Some(componentName())
   }
 
-  abstract class Actor(componentName: String) extends super.Actor(Some(componentName))
+  abstract class Actor(componentInfo: BaseComponentInfo) extends super.Actor(Some(componentInfo.name))
 
-  abstract class MutableActor[T](ctx: ActorContext[T], componentName: String)
-      extends super.MutableActor[T](ctx, Some(componentName))
+  abstract class MutableActor[T](ctx: ActorContext[T], componentInfo: BaseComponentInfo)
+      extends super.MutableActor[T](ctx, Some(componentInfo.name))
 
   def immutable[T](ctx: ActorContext[T], componentName: String): Logger = immutable(ctx, Some(componentName))
 }

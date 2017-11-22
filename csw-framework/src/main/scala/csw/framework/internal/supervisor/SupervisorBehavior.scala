@@ -69,7 +69,7 @@ class SupervisorBehavior(
     pubSubBehaviorFactory: PubSubBehaviorFactory,
     registrationFactory: RegistrationFactory,
     locationService: LocationService
-) extends FrameworkLogger.MutableActor[SupervisorMessage](ctx, componentInfo.name) {
+) extends FrameworkLogger.MutableActor[SupervisorMessage](ctx, componentInfo) {
 
   import SupervisorBehavior._
   import ctx.executionContext
@@ -356,7 +356,7 @@ class SupervisorBehavior(
   private def makePubSubLifecycle: ActorRef[PubSub[LifecycleStateChanged]] =
     pubSubBehaviorFactory.make(ctx, PubSubLifecycleActor, componentName)
 
-  private def makeCommandResponseManager = CommandResponseManagerFactory.make(ctx, CommandResponseManagerActor, componentName)
+  private def makeCommandResponseManager = CommandResponseManagerFactory.make(ctx, CommandResponseManagerActor, componentInfo)
 
   private def ignore(message: SupervisorMessage): Unit =
     log.error(s"Unexpected message :[$message] received by supervisor in lifecycle state :[$lifecycleState]")

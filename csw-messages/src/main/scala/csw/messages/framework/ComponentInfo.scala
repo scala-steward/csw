@@ -1,7 +1,6 @@
 package csw.messages.framework
 
 import ai.x.play.json.Jsonx
-import csw.messages.TMTSerializable
 import csw.messages.location.{ComponentType, Connection}
 import play.api.libs.json._
 
@@ -26,7 +25,7 @@ final case class ComponentInfo(
     locationServiceUsage: LocationServiceUsage,
     connections: Set[Connection] = Set.empty,
     initializeTimeout: FiniteDuration = 10.seconds
-) extends TMTSerializable {
+) extends BaseComponentInfo {
 
   /**
    * Java API to get the list of connections for the assembly

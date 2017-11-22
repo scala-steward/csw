@@ -43,7 +43,7 @@ class ComponentBehavior[Msg <: DomainMessage: ClassTag](
     lifecycleHandlers: ComponentHandlers[Msg],
     commandResponseManager: ActorRef[CommandResponseManagerMessage],
     locationService: LocationService
-) extends FrameworkLogger.MutableActor[ComponentMessage](ctx, componentInfo.name) {
+) extends FrameworkLogger.MutableActor[ComponentMessage](ctx, componentInfo) {
 
   import ctx.executionContext
 
