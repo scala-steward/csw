@@ -25,6 +25,7 @@ object Libs {
   val `akka-http-play-json`          = "de.heikoseeberger"      %% "akka-http-play-json"          % "1.18.1" //Apache 2.0
   val `scalapb-runtime`              = "com.thesamet.scalapb"   %% "scalapb-runtime"              % scalapbVersion % "protobuf"
   val `scalapb-json4s`               = "com.thesamet.scalapb"   %% "scalapb-json4s"               % "0.7.0-rc1"
+  val scredis                        = "com.livestream"         % "scredis_2.11"                  % "2.0.8"
 }
 
 object Jackson {
@@ -33,6 +34,7 @@ object Jackson {
   val `jackson-databind`     = "com.fasterxml.jackson.core" % "jackson-databind" % Version
   val `jackson-module-scala` = "com.fasterxml.jackson.module" %% "jackson-module-scala" % Version
 }
+
 object Enumeratum {
   val version           = "1.5.12"
   val `enumeratum`      = "com.beachape" %% "enumeratum" % version //MIT License

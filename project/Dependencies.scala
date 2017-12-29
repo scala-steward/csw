@@ -111,6 +111,11 @@ object Dependencies {
     Akka.`akka-stream-testkit`     % Test
   )
 
+  val CswAlarms = Seq(
+    Libs.`scredis`,
+    Akka.`akka-typed`
+  )
+
   val CswClusterSeed = Seq(
     AkkaHttp.`akka-http`,
     Libs.`play-json`,

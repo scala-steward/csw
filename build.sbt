@@ -133,6 +133,11 @@ lazy val `csw-config-client-cli` = project
     libraryDependencies ++= Dependencies.CswConfigClientCli
   )
 
+lazy val `csw-alarms` = project
+  .settings(
+    libraryDependencies ++= Dependencies.CswAlarms
+  )
+
 lazy val `csw-vslice` = project
   .dependsOn(
     `csw-framework`,
