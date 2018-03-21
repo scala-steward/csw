@@ -6,8 +6,8 @@ Listed below are Units of Measurement, supported by TMT observatory framework an
 
 Units are made available via separate files, for consumption in Scala and Java code.
 
- * Import `csw.messages.params.models.Units` for **Scala** 
- * Import `csw.messages.javadsl.JUnits` for **Java**.  
+ * Import `csw.common.params.models.Units` for **Scala**
+ * Import `JUnits` for **Java**.
 
 @@@
 

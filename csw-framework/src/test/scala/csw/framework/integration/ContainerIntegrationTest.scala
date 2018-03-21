@@ -11,18 +11,18 @@ import com.typesafe.config.ConfigFactory
 import csw.common.FrameworkAssertions._
 import csw.common.components.framework.SampleComponentState._
 import csw.framework.internal.wiring.{Container, FrameworkWiring}
-import csw.messages.framework
-import csw.messages.framework.PubSub.Subscribe
-import csw.messages.framework.ToComponentLifecycleMessages.{GoOffline, GoOnline}
-import csw.messages.framework.{Components, ContainerLifecycleState, LifecycleStateChanged, SupervisorLifecycleState}
-import csw.messages.location.ComponentType.{Assembly, HCD}
-import csw.messages.location.Connection.AkkaConnection
-import csw.messages.location.{ComponentId, ComponentType, LocationRemoved, TrackingEvent}
-import csw.messages.params.states.CurrentState
-import csw.messages.scaladsl.ComponentCommonMessage.{GetSupervisorLifecycleState, LifecycleStateSubscription}
-import csw.messages.scaladsl.ContainerCommonMessage.{GetComponents, GetContainerLifecycleState}
-import csw.messages.scaladsl.RunningMessage.Lifecycle
-import csw.messages.scaladsl.SupervisorContainerCommonMessages.{Restart, Shutdown}
+import csw.common.framework
+import csw.common.framework.PubSub.Subscribe
+import csw.common.framework.ToComponentLifecycleMessages.{GoOffline, GoOnline}
+import csw.common.framework.{Components, ContainerLifecycleState, LifecycleStateChanged, SupervisorLifecycleState}
+import csw.common.location.ComponentType.{Assembly, HCD}
+import csw.common.location.Connection.AkkaConnection
+import csw.common.location.{ComponentId, ComponentType, LocationRemoved, TrackingEvent}
+import csw.common.params.states.CurrentState
+import csw.common.scaladsl.ComponentCommonMessage.{GetSupervisorLifecycleState, LifecycleStateSubscription}
+import csw.common.scaladsl.ContainerCommonMessage.{GetComponents, GetContainerLifecycleState}
+import csw.common.scaladsl.RunningMessage.Lifecycle
+import csw.common.scaladsl.SupervisorContainerCommonMessages.{Restart, Shutdown}
 import csw.services.command.scaladsl.CommandService
 import csw.services.location.commons.ClusterSettings
 import csw.services.location.scaladsl.{LocationService, LocationServiceFactory}

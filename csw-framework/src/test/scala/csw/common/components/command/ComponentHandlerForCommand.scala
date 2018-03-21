@@ -7,15 +7,15 @@ import akka.stream.scaladsl.{Sink, Source}
 import akka.stream.{ActorMaterializer, ThrottleMode}
 import akka.util.Timeout
 import csw.framework.scaladsl.{ComponentHandlers, CurrentStatePublisher}
-import csw.messages.commands.CommandIssue.{OtherIssue, WrongPrefixIssue}
-import csw.messages.commands.CommandResponse._
-import csw.messages.commands._
-import csw.messages.framework.ComponentInfo
-import csw.messages.location._
-import csw.messages.params.generics.{KeyType, Parameter}
-import csw.messages.params.models.Id
-import csw.messages.params.states.CurrentState
-import csw.messages.scaladsl.TopLevelActorMessage
+import csw.common.commands.CommandIssue.{OtherIssue, WrongPrefixIssue}
+import csw.common.commands.CommandResponse._
+import csw.common.commands._
+import csw.common.framework.ComponentInfo
+import csw.common.location._
+import csw.common.params.generics.{KeyType, Parameter}
+import csw.common.params.models.Id
+import csw.common.params.states.CurrentState
+import csw.common.scaladsl.TopLevelActorMessage
 import csw.services.command.scaladsl.CommandResponseManager
 import csw.services.location.scaladsl.LocationService
 import csw.services.logging.scaladsl.LoggerFactory

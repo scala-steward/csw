@@ -1,6 +1,6 @@
 package csw.services.location.javadsl;
 
-import csw.messages.location.ConnectionType;
+import csw.common.location.ConnectionType;
 
 /**
  * Helper class for Java to get the handle of `ConnectionType` which is fundamental to LocationService library

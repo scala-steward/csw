@@ -1,13 +1,13 @@
 package csw.services.messages;
 
-import csw.messages.params.formats.JavaJsonSupport;
-import csw.messages.params.generics.JKeyTypes;
-import csw.messages.params.generics.Key;
-import csw.messages.params.generics.Parameter;
-import csw.messages.params.models.MatrixData;
-import csw.messages.params.models.ObsId;
-import csw.messages.params.states.CurrentState;
-import csw.messages.params.states.DemandState;
+import csw.common.params.formats.JavaJsonSupport;
+import csw.common.params.generics.JKeyTypes;
+import csw.common.params.generics.Key;
+import csw.common.params.generics.Parameter;
+import csw.common.params.models.MatrixData;
+import csw.common.params.models.ObsId;
+import csw.common.params.states.CurrentState;
+import csw.common.params.states.DemandState;
 import org.junit.Assert;
 import org.junit.Test;
 import play.api.libs.json.JsValue;
@@ -17,8 +17,8 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static csw.messages.javadsl.JUnits.NoUnits;
-import static csw.messages.javadsl.JUnits.meter;
+import static csw.common.javadsl.JUnits.NoUnits;
+import static csw.common.javadsl.JUnits.meter;
 
 public class JStateVariablesTest {
 

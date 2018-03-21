@@ -1,10 +1,10 @@
 package csw.common.components.framework
 
-import csw.messages.location.Connection.{HttpConnection, TcpConnection}
-import csw.messages.location.{ComponentId, ComponentType}
-import csw.messages.params.generics.GChoiceKey
-import csw.messages.params.generics.KeyType.ChoiceKey
-import csw.messages.params.models.{Choice, Choices, Prefix}
+import csw.common.location.Connection.{HttpConnection, TcpConnection}
+import csw.common.location.{ComponentId, ComponentType}
+import csw.common.params.generics.GChoiceKey
+import csw.common.params.generics.KeyType.ChoiceKey
+import csw.common.params.models.{Choice, Choices, Prefix}
 
 object SampleComponentState {
   val restartChoice             = Choice("Restart")

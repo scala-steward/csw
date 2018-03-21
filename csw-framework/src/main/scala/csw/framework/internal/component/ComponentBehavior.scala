@@ -3,18 +3,18 @@ package csw.framework.internal.component
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
 import akka.actor.typed.{ActorRef, Behavior, PostStop, Signal}
 import csw.framework.scaladsl.ComponentHandlers
-import csw.messages.commands.CommandResponse
-import csw.messages.commands.CommandResponse.Accepted
-import csw.messages.framework.LocationServiceUsage.RegisterAndTrackServices
-import csw.messages.framework.ToComponentLifecycleMessages.{GoOffline, GoOnline}
-import csw.messages.framework.{ComponentInfo, ToComponentLifecycleMessage}
-import csw.messages.scaladsl.CommandMessage.{Oneway, Submit}
-import csw.messages.scaladsl.CommandResponseManagerMessage.AddOrUpdateCommand
-import csw.messages.scaladsl.FromComponentLifecycleMessage.Running
-import csw.messages.scaladsl.RunningMessage.Lifecycle
-import csw.messages.scaladsl.TopLevelActorCommonMessage.{TrackingEventReceived, UnderlyingHookFailed}
-import csw.messages.scaladsl.TopLevelActorIdleMessage.Initialize
-import csw.messages.scaladsl._
+import csw.common.commands.CommandResponse
+import csw.common.commands.CommandResponse.Accepted
+import csw.common.framework.LocationServiceUsage.RegisterAndTrackServices
+import csw.common.framework.ToComponentLifecycleMessages.{GoOffline, GoOnline}
+import csw.common.framework.{ComponentInfo, ToComponentLifecycleMessage}
+import csw.common.scaladsl.CommandMessage.{Oneway, Submit}
+import csw.common.scaladsl.CommandResponseManagerMessage.AddOrUpdateCommand
+import csw.common.scaladsl.FromComponentLifecycleMessage.Running
+import csw.common.scaladsl.RunningMessage.Lifecycle
+import csw.common.scaladsl.TopLevelActorCommonMessage.{TrackingEventReceived, UnderlyingHookFailed}
+import csw.common.scaladsl.TopLevelActorIdleMessage.Initialize
+import csw.common.scaladsl._
 import csw.services.command.scaladsl.CommandResponseManager
 import csw.services.location.scaladsl.LocationService
 import csw.services.logging.scaladsl.{Logger, LoggerFactory}
@@ -166,9 +166,9 @@ private[framework] final class ComponentBehavior(
     }
 
   /**
-   * Defines action for messages which represent a [[csw.messages.commands.Command]]
+   * Defines action for messages which represent a [[csw.common.commands.Command]]
    *
-   * @param commandMessage message encapsulating a [[csw.messages.commands.Command]]
+   * @param commandMessage message encapsulating a [[csw.common.commands.Command]]
    */
   private def onRunningCompCommandMessage(commandMessage: CommandMessage): Unit = {
 

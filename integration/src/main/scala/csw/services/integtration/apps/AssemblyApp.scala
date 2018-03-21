@@ -5,8 +5,8 @@ import akka.serialization.Serialization
 import akka.actor.typed
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.adapter._
-import csw.messages.location.Connection.AkkaConnection
-import csw.messages.location.{ComponentId, ComponentType}
+import csw.common.location.Connection.AkkaConnection
+import csw.common.location.{ComponentId, ComponentType}
 import csw.services.integtration.common.TestFutureExtension.RichFuture
 import csw.services.location.commons.{ActorSystemFactory, ClusterSettings, CswCluster}
 import csw.services.location.models.{AkkaRegistration, RegistrationResult}

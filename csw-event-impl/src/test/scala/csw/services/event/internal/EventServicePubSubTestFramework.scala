@@ -3,8 +3,8 @@ package csw.services.event.internal
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Keep, Sink, Source}
-import csw.messages.events.{Event, EventKey, EventName, SystemEvent}
-import csw.messages.params.models.Prefix
+import csw.common.events.{Event, EventKey, EventName, SystemEvent}
+import csw.common.params.models.Prefix
 import csw.services.event.helpers.TestFutureExt.RichFuture
 import csw.services.event.helpers.Utils.makeEvent
 import csw.services.event.scaladsl.{EventPublisher, EventSubscriber}

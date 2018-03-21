@@ -15,19 +15,19 @@ import csw.framework.exceptions.{FailureRestart, FailureStop}
 import csw.framework.internal.component.ComponentBehavior
 import csw.framework.scaladsl.{ComponentBehaviorFactory, ComponentHandlers, CurrentStatePublisher}
 import csw.framework.{FrameworkTestMocks, FrameworkTestSuite}
-import csw.messages.commands.{CommandName, CommandResponse, ControlCommand, Setup}
-import csw.messages.framework.{ComponentInfo, LifecycleStateChanged, PubSub, SupervisorLifecycleState}
-import csw.messages.params.generics.{KeyType, Parameter}
-import csw.messages.params.models.ObsId
-import csw.messages.params.states.CurrentState
-import csw.messages.scaladsl.CommandMessage.Submit
-import csw.messages.scaladsl.ComponentCommonMessage.{
+import csw.common.commands.{CommandName, CommandResponse, ControlCommand, Setup}
+import csw.common.framework.{ComponentInfo, LifecycleStateChanged, PubSub, SupervisorLifecycleState}
+import csw.common.params.generics.{KeyType, Parameter}
+import csw.common.params.models.ObsId
+import csw.common.params.states.CurrentState
+import csw.common.scaladsl.CommandMessage.Submit
+import csw.common.scaladsl.ComponentCommonMessage.{
   ComponentStateSubscription,
   GetSupervisorLifecycleState,
   LifecycleStateSubscription
 }
-import csw.messages.scaladsl.SupervisorContainerCommonMessages.Restart
-import csw.messages.scaladsl.{ComponentMessage, ContainerIdleMessage, TopLevelActorMessage}
+import csw.common.scaladsl.SupervisorContainerCommonMessages.Restart
+import csw.common.scaladsl.{ComponentMessage, ContainerIdleMessage, TopLevelActorMessage}
 import csw.services.command.scaladsl.CommandResponseManager
 import csw.services.location.scaladsl.LocationService
 import csw.services.logging.internal.LoggingLevels.ERROR

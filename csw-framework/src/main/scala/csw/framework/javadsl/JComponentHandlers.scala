@@ -4,8 +4,8 @@ import java.util.concurrent.CompletableFuture
 
 import akka.actor.typed.javadsl.ActorContext
 import csw.framework.scaladsl.{ComponentHandlers, CurrentStatePublisher}
-import csw.messages.framework.ComponentInfo
-import csw.messages.scaladsl.TopLevelActorMessage
+import csw.common.framework.ComponentInfo
+import csw.common.scaladsl.TopLevelActorMessage
 import csw.services.command.scaladsl.CommandResponseManager
 import csw.services.location.javadsl.ILocationService
 import csw.services.logging.javadsl.JLoggerFactory
@@ -18,7 +18,7 @@ import scala.concurrent.{ExecutionContextExecutor, Future}
  *
  * @param ctx the ActorContext under which the actor instance of the component, which use these handlers, is created
  * @param componentInfo component related information as described in the configuration file
- * @param currentStatePublisher the pub sub actor to publish state represented by [[csw.messages.params.states.CurrentState]] for this component
+ * @param currentStatePublisher the pub sub actor to publish state represented by [[csw.common.params.states.CurrentState]] for this component
  * @param locationService the single instance of Location service created for a running application
  */
 abstract class JComponentHandlers(

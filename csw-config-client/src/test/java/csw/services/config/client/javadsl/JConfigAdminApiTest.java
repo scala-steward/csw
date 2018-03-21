@@ -2,7 +2,7 @@ package csw.services.config.client.javadsl;
 
 import akka.actor.ActorSystem;
 import akka.stream.Materializer;
-import csw.messages.commons.CoordinatedShutdownReasons;
+import csw.common.commons.CoordinatedShutdownReasons;
 import csw.services.config.api.exceptions.FileAlreadyExists;
 import csw.services.config.api.exceptions.FileNotFound;
 import csw.services.config.api.javadsl.IConfigService;

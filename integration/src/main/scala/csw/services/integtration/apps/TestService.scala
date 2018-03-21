@@ -1,7 +1,7 @@
 package csw.services.integtration.apps
 
-import csw.messages.location.Connection.HttpConnection
-import csw.messages.location.{ComponentId, ComponentType}
+import csw.common.location.Connection.HttpConnection
+import csw.common.location.{ComponentId, ComponentType}
 import csw.services.integtration.common.RegistrationFactory
 import csw.services.integtration.common.TestFutureExtension.RichFuture
 import csw.services.location.scaladsl.LocationServiceFactory

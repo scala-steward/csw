@@ -9,8 +9,8 @@ import akka.testkit.typed.scaladsl.TestProbe
 import akka.util.Timeout
 import csw.framework.internal.supervisor.SupervisorBehaviorFactory
 import csw.framework.scaladsl.{ComponentBehaviorFactory, ComponentHandlers, CurrentStatePublisher}
-import csw.messages.framework.ComponentInfo
-import csw.messages.scaladsl.{ComponentMessage, ContainerIdleMessage, TopLevelActorMessage}
+import csw.common.framework.ComponentInfo
+import csw.common.scaladsl.{ComponentMessage, ContainerIdleMessage, TopLevelActorMessage}
 import csw.services.command.scaladsl.CommandResponseManager
 import csw.services.location.commons.ActorSystemFactory
 import csw.services.location.scaladsl.LocationService

@@ -3,7 +3,7 @@ package csw.services.event.scaladsl
 import akka.actor.typed.ActorRef
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Sink, Source}
-import csw.messages.events.{Event, EventKey}
+import csw.common.events.{Event, EventKey}
 import csw.services.event.internal.RateAdapterStage
 
 import scala.concurrent.Future

@@ -4,9 +4,9 @@ import akka.actor.typed.ActorRef
 import akka.actor.typed.scaladsl.adapter._
 import akka.stream.scaladsl.{Keep, Sink, Source}
 import akka.stream.{KillSwitches, Materializer, OverflowStrategy}
-import csw.messages.framework.PubSub.Subscribe
-import csw.messages.params.states.CurrentState
-import csw.messages.scaladsl.ComponentCommonMessage.ComponentStateSubscription
+import csw.common.framework.PubSub.Subscribe
+import csw.common.params.states.CurrentState
+import csw.common.scaladsl.ComponentCommonMessage.ComponentStateSubscription
 
 /**
  * The handle to the subscription created for the current state published by the specified publisher

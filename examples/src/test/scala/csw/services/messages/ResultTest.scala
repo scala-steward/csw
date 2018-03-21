@@ -1,10 +1,10 @@
 package csw.services.messages
 
-import csw.messages.commands.Result
-import csw.messages.params.formats.JsonSupport
-import csw.messages.params.generics.KeyType.DoubleMatrixKey
-import csw.messages.params.generics.{Key, KeyType, Parameter}
-import csw.messages.params.models._
+import csw.common.commands.Result
+import csw.common.params.formats.JsonSupport
+import csw.common.params.generics.KeyType.DoubleMatrixKey
+import csw.common.params.generics.{Key, KeyType, Parameter}
+import csw.common.params.models._
 import org.scalatest.{FunSpec, Matchers}
 
 class ResultTest extends FunSpec with Matchers {

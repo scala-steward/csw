@@ -10,11 +10,11 @@ import csw.framework.components.ConfigNotAvailableException
 import csw.framework.components.assembly.WorkerActorMsgs.{GetStatistics, InitialState}
 import csw.framework.components.assembly.{WorkerActor, WorkerActorMsg}
 import csw.framework.scaladsl.{ComponentHandlers, CurrentStatePublisher}
-import csw.messages.commands.CommandResponse.Accepted
-import csw.messages.commands.{CommandResponse, ControlCommand, Observe, Setup}
-import csw.messages.framework.ComponentInfo
-import csw.messages.location.{LocationRemoved, LocationUpdated, TrackingEvent}
-import csw.messages.scaladsl.TopLevelActorMessage
+import csw.common.commands.CommandResponse.Accepted
+import csw.common.commands.{CommandResponse, ControlCommand, Observe, Setup}
+import csw.common.framework.ComponentInfo
+import csw.common.location.{LocationRemoved, LocationUpdated, TrackingEvent}
+import csw.common.scaladsl.TopLevelActorMessage
 import csw.services.command.scaladsl.CommandResponseManager
 import csw.services.config.api.models.ConfigData
 import csw.services.config.api.scaladsl.ConfigClientService

@@ -9,10 +9,10 @@ import akka.actor.typed.scaladsl.ActorContext
 import akka.actor.typed.scaladsl.adapter.TypedActorSystemOps
 import akka.util.Timeout
 import csw.framework.scaladsl.{ComponentHandlers, CurrentStatePublisher}
-import csw.messages.commands.{CommandResponse, ControlCommand}
-import csw.messages.framework.ComponentInfo
-import csw.messages.location.TrackingEvent
-import csw.messages.scaladsl.TopLevelActorMessage
+import csw.common.commands.{CommandResponse, ControlCommand}
+import csw.common.framework.ComponentInfo
+import csw.common.location.TrackingEvent
+import csw.common.scaladsl.TopLevelActorMessage
 import csw.services.command.scaladsl.CommandResponseManager
 import csw.services.config.api.models.ConfigData
 import csw.services.location.scaladsl.LocationService

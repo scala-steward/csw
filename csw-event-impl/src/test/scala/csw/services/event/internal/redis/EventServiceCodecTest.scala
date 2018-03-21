@@ -3,8 +3,8 @@ package csw.services.event.internal.redis
 import java.nio.ByteBuffer
 
 import akka.util.ByteString
-import csw.messages.events.{Event, EventKey, EventName, SystemEvent}
-import csw.messages.params.models.Prefix
+import csw.common.events.{Event, EventKey, EventName, SystemEvent}
+import csw.common.params.models.Prefix
 import org.scalatest.{FunSuite, Matchers}
 
 class EventServiceCodecTest extends FunSuite with Matchers {

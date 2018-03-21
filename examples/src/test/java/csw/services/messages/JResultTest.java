@@ -1,13 +1,13 @@
 package csw.services.messages;
 
-import csw.messages.commands.Result;
-import csw.messages.params.formats.JavaJsonSupport;
-import csw.messages.params.generics.JKeyTypes;
-import csw.messages.params.generics.Key;
-import csw.messages.params.generics.Parameter;
-import csw.messages.params.models.MatrixData;
-import csw.messages.params.models.ObsId;
-import csw.messages.params.models.Id;
+import csw.common.commands.Result;
+import csw.common.params.formats.JavaJsonSupport;
+import csw.common.params.generics.JKeyTypes;
+import csw.common.params.generics.Key;
+import csw.common.params.generics.Parameter;
+import csw.common.params.models.MatrixData;
+import csw.common.params.models.ObsId;
+import csw.common.params.models.Id;
 import org.junit.Assert;
 import org.junit.Test;
 import play.api.libs.json.JsValue;

@@ -15,16 +15,16 @@ import csw.apps.clusterseed.utils.AdminLogTestSuite
 import csw.common.FrameworkAssertions.assertThatContainerIsRunning
 import csw.commons.tags.LoggingSystemSensitive
 import csw.framework.internal.wiring.{Container, FrameworkWiring}
-import csw.messages.commands.{CommandName, CommandResponse, Setup}
-import csw.messages.commons.CoordinatedShutdownReasons.TestFinishedReason
-import csw.messages.framework.{Component, Components, ContainerLifecycleState}
-import csw.messages.location.ComponentId
-import csw.messages.location.ComponentType.{Assembly, HCD}
-import csw.messages.location.Connection.AkkaConnection
-import csw.messages.params.models.Prefix
-import csw.messages.scaladsl.CommandMessage.Oneway
-import csw.messages.scaladsl.ContainerCommonMessage.GetComponents
-import csw.messages.scaladsl.ContainerMessage
+import csw.common.commands.{CommandName, CommandResponse, Setup}
+import csw.common.commons.CoordinatedShutdownReasons.TestFinishedReason
+import csw.common.framework.{Component, Components, ContainerLifecycleState}
+import csw.common.location.ComponentId
+import csw.common.location.ComponentType.{Assembly, HCD}
+import csw.common.location.Connection.AkkaConnection
+import csw.common.params.models.Prefix
+import csw.common.scaladsl.CommandMessage.Oneway
+import csw.common.scaladsl.ContainerCommonMessage.GetComponents
+import csw.common.scaladsl.ContainerMessage
 import csw.services.location.commons.{ClusterAwareSettings, ClusterSettings}
 import csw.services.logging.internal.LoggingLevels.{ERROR, Level, WARN}
 import csw.services.logging.internal._

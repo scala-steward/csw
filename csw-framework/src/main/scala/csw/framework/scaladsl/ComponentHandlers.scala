@@ -1,11 +1,11 @@
 package csw.framework.scaladsl
 
 import akka.actor.typed.scaladsl.ActorContext
-import csw.messages.commands.{CommandResponse, ControlCommand}
-import csw.messages.framework.ComponentInfo
-import csw.messages.location.{Connection, TrackingEvent}
-import csw.messages.scaladsl.TopLevelActorCommonMessage.TrackingEventReceived
-import csw.messages.scaladsl.TopLevelActorMessage
+import csw.common.commands.{CommandResponse, ControlCommand}
+import csw.common.framework.ComponentInfo
+import csw.common.location.{Connection, TrackingEvent}
+import csw.common.scaladsl.TopLevelActorCommonMessage.TrackingEventReceived
+import csw.common.scaladsl.TopLevelActorMessage
 import csw.services.command.scaladsl.CommandResponseManager
 import csw.services.location.scaladsl.LocationService
 import csw.services.logging.scaladsl.LoggerFactory
@@ -17,7 +17,7 @@ import scala.concurrent.Future
  *
  * @param ctx the ActorContext under which the actor instance of the component, which use these handlers, is created
  * @param componentInfo component related information as described in the configuration file
- * @param currentStatePublisher the pub sub actor to publish state represented by [[csw.messages.params.states.CurrentState]] for this component
+ * @param currentStatePublisher the pub sub actor to publish state represented by [[csw.common.params.states.CurrentState]] for this component
  * @param locationService the single instance of Location service created for a running application
  */
 abstract class ComponentHandlers(

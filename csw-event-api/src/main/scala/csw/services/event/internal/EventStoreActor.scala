@@ -1,8 +1,8 @@
 package csw.services.event.internal
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
-import csw.messages.events.{Event, EventName, SystemEvent}
-import csw.messages.params.models.Prefix
+import csw.common.events.{Event, EventName, SystemEvent}
+import csw.common.params.models.Prefix
 
 class EventStoreActor extends Actor {
 

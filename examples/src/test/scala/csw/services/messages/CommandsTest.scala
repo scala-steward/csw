@@ -2,11 +2,11 @@ package csw.services.messages
 
 import java.time.Instant
 
-import csw.messages.commands.{CommandName, Observe, Setup, Wait}
-import csw.messages.params.formats.JsonSupport
-import csw.messages.params.generics.KeyType.{ByteKey, DoubleMatrixKey}
-import csw.messages.params.generics.{Key, KeyType, Parameter}
-import csw.messages.params.models._
+import csw.common.commands.{CommandName, Observe, Setup, Wait}
+import csw.common.params.formats.JsonSupport
+import csw.common.params.generics.KeyType.{ByteKey, DoubleMatrixKey}
+import csw.common.params.generics.{Key, KeyType, Parameter}
+import csw.common.params.models._
 import org.scalatest.{FunSpec, Matchers}
 
 import scala.util.Try

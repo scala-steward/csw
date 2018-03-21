@@ -6,12 +6,12 @@ import akka.actor.typed.scaladsl.adapter.UntypedActorSystemOps
 import akka.testkit.typed.scaladsl.TestProbe
 import com.typesafe.config.Config
 import csw.framework.internal.wiring.{FrameworkWiring, Standalone}
-import csw.messages.framework.{ContainerLifecycleState, SupervisorLifecycleState}
-import csw.messages.location.Connection.AkkaConnection
-import csw.messages.location.{AkkaLocation, ComponentId, ComponentType}
-import csw.messages.scaladsl.ComponentCommonMessage.GetSupervisorLifecycleState
-import csw.messages.scaladsl.ContainerCommonMessage.GetContainerLifecycleState
-import csw.messages.scaladsl.{ComponentMessage, ContainerMessage}
+import csw.common.framework.{ContainerLifecycleState, SupervisorLifecycleState}
+import csw.common.location.Connection.AkkaConnection
+import csw.common.location.{AkkaLocation, ComponentId, ComponentType}
+import csw.common.scaladsl.ComponentCommonMessage.GetSupervisorLifecycleState
+import csw.common.scaladsl.ContainerCommonMessage.GetContainerLifecycleState
+import csw.common.scaladsl.{ComponentMessage, ContainerMessage}
 import csw.services.command.scaladsl.CommandService
 import csw.services.location.commons.BlockingUtils
 import csw.services.location.scaladsl.LocationServiceFactory

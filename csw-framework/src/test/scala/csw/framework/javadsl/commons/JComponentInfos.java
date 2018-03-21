@@ -1,8 +1,8 @@
 package csw.framework.javadsl.commons;
 
 import csw.framework.javadsl.JComponentInfo;
-import csw.messages.framework.ComponentInfo;
-import csw.messages.framework.LocationServiceUsage;
+import csw.common.framework.ComponentInfo;
+import csw.common.framework.LocationServiceUsage;
 import csw.services.location.javadsl.JComponentType;
 import scala.concurrent.duration.FiniteDuration;
 

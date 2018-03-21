@@ -7,8 +7,8 @@ import akka.serialization.Serialization
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.adapter.{TypedActorRefOps, UntypedActorSystemOps}
 import com.typesafe.config.{Config, ConfigFactory}
-import csw.messages.location.Connection.{AkkaConnection, HttpConnection, TcpConnection}
-import csw.messages.location._
+import csw.common.location.Connection.{AkkaConnection, HttpConnection, TcpConnection}
+import csw.common.location._
 import csw.services.location.commons.{ActorSystemFactory, LocationFactory, RegistrationFactory}
 import csw.services.location.exceptions.LocalAkkaActorRegistrationNotAllowed
 import csw.services.location.internal.Networks

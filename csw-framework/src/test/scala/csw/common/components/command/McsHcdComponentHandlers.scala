@@ -3,12 +3,12 @@ package csw.common.components.command
 import akka.actor.typed.scaladsl.ActorContext
 import csw.common.components.command.ComponentStateForCommand._
 import csw.framework.scaladsl.{ComponentHandlers, CurrentStatePublisher}
-import csw.messages.commands.CommandResponse.{Accepted, Completed, Error}
-import csw.messages.commands.{CommandResponse, ControlCommand}
-import csw.messages.framework.ComponentInfo
-import csw.messages.location.TrackingEvent
-import csw.messages.scaladsl.CommandResponseManagerMessage.AddOrUpdateCommand
-import csw.messages.scaladsl.TopLevelActorMessage
+import csw.common.commands.CommandResponse.{Accepted, Completed, Error}
+import csw.common.commands.{CommandResponse, ControlCommand}
+import csw.common.framework.ComponentInfo
+import csw.common.location.TrackingEvent
+import csw.common.scaladsl.CommandResponseManagerMessage.AddOrUpdateCommand
+import csw.common.scaladsl.TopLevelActorMessage
 import csw.services.command.scaladsl.CommandResponseManager
 import csw.services.location.scaladsl.LocationService
 import csw.services.logging.scaladsl.LoggerFactory

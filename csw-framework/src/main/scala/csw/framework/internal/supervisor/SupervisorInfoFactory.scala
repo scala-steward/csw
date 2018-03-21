@@ -2,8 +2,8 @@ package csw.framework.internal.supervisor
 
 import akka.actor.typed.ActorRef
 import csw.framework.internal.wiring.CswFrameworkSystem
-import csw.messages.framework.{Component, ComponentInfo, SupervisorInfo}
-import csw.messages.scaladsl.ContainerIdleMessage
+import csw.common.framework.{Component, ComponentInfo, SupervisorInfo}
+import csw.common.scaladsl.ContainerIdleMessage
 import csw.services.command.internal.CommandResponseManagerFactory
 import csw.services.location.commons.ActorSystemFactory
 import csw.services.location.scaladsl.{LocationService, RegistrationFactory}
@@ -14,7 +14,7 @@ import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.util.control.NonFatal
 
 /**
- * The factory for creating supervisor actors of a component specified by [[csw.messages.framework.ComponentInfo]]
+ * The factory for creating supervisor actors of a component specified by [[csw.common.framework.ComponentInfo]]
  */
 private[framework] class SupervisorInfoFactory(containerName: String) {
   private val log: Logger = new LoggerFactory(containerName).getLogger

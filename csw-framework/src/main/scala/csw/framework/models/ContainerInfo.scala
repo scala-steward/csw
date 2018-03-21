@@ -1,6 +1,6 @@
 package csw.framework.models
 
-import csw.messages.framework.ComponentInfo
+import csw.common.framework.ComponentInfo
 import play.api.libs.json._
 
 /**

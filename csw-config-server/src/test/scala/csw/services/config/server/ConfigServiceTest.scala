@@ -7,7 +7,7 @@ import java.time.Instant
 import akka.stream.scaladsl.StreamConverters
 import com.typesafe.config.{Config, ConfigFactory}
 import csw.commons.tagobjects.FileSystemSensitive
-import csw.messages.commons.CoordinatedShutdownReasons.TestFinishedReason
+import csw.common.commons.CoordinatedShutdownReasons.TestFinishedReason
 import csw.services.config.api.exceptions.{FileAlreadyExists, FileNotFound}
 import csw.services.config.api.models._
 import csw.services.config.api.scaladsl.ConfigService

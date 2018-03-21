@@ -2,8 +2,8 @@ package csw.services.location
 
 import akka.stream.scaladsl.Keep
 import akka.stream.testkit.scaladsl.TestSink
-import csw.messages.location.Connection.{HttpConnection, TcpConnection}
-import csw.messages.location._
+import csw.common.location.Connection.{HttpConnection, TcpConnection}
+import csw.common.location._
 import csw.services.location.helpers.{LSNodeSpec, TwoMembersAndSeed}
 import csw.services.location.models.{HttpRegistration, TcpRegistration}
 import csw.services.logging.commons.LogAdminActorFactory

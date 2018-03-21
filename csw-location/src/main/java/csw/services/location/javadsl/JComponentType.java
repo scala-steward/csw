@@ -1,6 +1,6 @@
 package csw.services.location.javadsl;
 
-import csw.messages.location.ComponentType;
+import csw.common.location.ComponentType;
 
 /**
  * Helper class for Java to get the handle of `ComponentType` which is fundamental to LocationService library

@@ -1,7 +1,7 @@
 package csw.services.config.client.commons
 
-import csw.messages.location.Connection.HttpConnection
-import csw.messages.location.{ComponentId, ComponentType}
+import csw.common.location.Connection.HttpConnection
+import csw.common.location.{ComponentId, ComponentType}
 
 /**
  * `ConfigServiceConnection` is a wrapper over predefined `HttpConnection` representing config server. It is used to resolve

@@ -1,7 +1,7 @@
 package csw.services.event.helpers
 
-import csw.messages.events.{Event, EventName, SystemEvent}
-import csw.messages.params.models.{Id, Prefix}
+import csw.common.events.{Event, EventName, SystemEvent}
+import csw.common.params.models.{Id, Prefix}
 
 object Utils {
   def makeEvent(id: Int): Event = {

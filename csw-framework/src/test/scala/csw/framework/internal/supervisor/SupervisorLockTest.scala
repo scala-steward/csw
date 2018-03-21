@@ -6,17 +6,17 @@ import csw.common.components.framework.SampleComponentState.{choiceKey, initChoi
 import csw.common.utils.LockCommandFactory
 import csw.framework.ComponentInfos.assemblyInfo
 import csw.framework.FrameworkTestSuite
-import csw.messages.commands.CommandResponse.{Accepted, NotAllowed}
-import csw.messages.commands.{CommandName, CommandResponse, Setup}
-import csw.messages.framework.LockingResponses._
-import csw.messages.framework.{LifecycleStateChanged, LockingResponse, PubSub, SupervisorLifecycleState}
-import csw.messages.params.models.{ObsId, Prefix}
-import csw.messages.params.states.CurrentState
-import csw.messages.scaladsl.CommandMessage.Submit
-import csw.messages.scaladsl.{CommandResponseManagerMessage ⇒ CRM}
+import csw.common.commands.CommandResponse.{Accepted, NotAllowed}
+import csw.common.commands.{CommandName, CommandResponse, Setup}
+import csw.common.framework.LockingResponses._
+import csw.common.framework.{LifecycleStateChanged, LockingResponse, PubSub, SupervisorLifecycleState}
+import csw.common.params.models.{ObsId, Prefix}
+import csw.common.params.states.CurrentState
+import csw.common.scaladsl.CommandMessage.Submit
+import csw.common.scaladsl.{CommandResponseManagerMessage ⇒ CRM}
 import CRM.{AddOrUpdateCommand, Query, Unsubscribe}
-import csw.messages.scaladsl.ComponentCommonMessage.{ComponentStateSubscription, LifecycleStateSubscription}
-import csw.messages.scaladsl.SupervisorLockMessage.{Lock, Unlock}
+import csw.common.scaladsl.ComponentCommonMessage.{ComponentStateSubscription, LifecycleStateSubscription}
+import csw.common.scaladsl.SupervisorLockMessage.{Lock, Unlock}
 import org.scalatest.BeforeAndAfterEach
 
 import scala.concurrent.duration.DurationDouble

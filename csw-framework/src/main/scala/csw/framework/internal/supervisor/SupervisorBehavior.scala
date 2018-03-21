@@ -9,32 +9,32 @@ import akka.actor.typed.{ActorRef, Behavior, PostStop, Signal, SupervisorStrateg
 import csw.framework.exceptions.{FailureRestart, InitializationFailed}
 import csw.framework.internal.pubsub.PubSubBehaviorFactory
 import csw.framework.scaladsl.{ComponentBehaviorFactory, CurrentStatePublisher}
-import csw.messages.commons.CoordinatedShutdownReasons.ShutdownMessageReceivedReason
-import csw.messages.framework.LocationServiceUsage.DoNotRegister
-import csw.messages.framework.LockingResponses.{LockExpired, LockExpiringShortly}
-import csw.messages.framework.PubSub.Publish
-import csw.messages.framework.SupervisorLifecycleState.{Idle, RunningOffline}
-import csw.messages.framework.ToComponentLifecycleMessages.{GoOffline, GoOnline}
-import csw.messages.framework._
-import csw.messages.location.ComponentId
-import csw.messages.location.Connection.AkkaConnection
-import csw.messages.params.models.Prefix
-import csw.messages.params.states.CurrentState
-import csw.messages.scaladsl.CommandResponseManagerMessage.{Query, Subscribe, Unsubscribe}
-import csw.messages.scaladsl.ComponentCommonMessage.{
+import csw.common.commons.CoordinatedShutdownReasons.ShutdownMessageReceivedReason
+import csw.common.framework.LocationServiceUsage.DoNotRegister
+import csw.common.framework.LockingResponses.{LockExpired, LockExpiringShortly}
+import csw.common.framework.PubSub.Publish
+import csw.common.framework.SupervisorLifecycleState.{Idle, RunningOffline}
+import csw.common.framework.ToComponentLifecycleMessages.{GoOffline, GoOnline}
+import csw.common.framework._
+import csw.common.location.ComponentId
+import csw.common.location.Connection.AkkaConnection
+import csw.common.params.models.Prefix
+import csw.common.params.states.CurrentState
+import csw.common.scaladsl.CommandResponseManagerMessage.{Query, Subscribe, Unsubscribe}
+import csw.common.scaladsl.ComponentCommonMessage.{
   ComponentStateSubscription,
   GetSupervisorLifecycleState,
   LifecycleStateSubscription
 }
-import csw.messages.scaladsl.FromComponentLifecycleMessage.Running
-import csw.messages.scaladsl.FromSupervisorMessage.SupervisorLifecycleStateChanged
-import csw.messages.scaladsl.RunningMessage.Lifecycle
-import csw.messages.scaladsl.SupervisorContainerCommonMessages.{Restart, Shutdown}
-import csw.messages.scaladsl.SupervisorIdleMessage.InitializeTimeout
-import csw.messages.scaladsl.SupervisorInternalRunningMessage.{RegistrationFailed, RegistrationNotRequired, RegistrationSuccess}
-import csw.messages.scaladsl.SupervisorLockMessage.{Lock, Unlock}
-import csw.messages.scaladsl.SupervisorRestartMessage.{UnRegistrationComplete, UnRegistrationFailed}
-import csw.messages.scaladsl._
+import csw.common.scaladsl.FromComponentLifecycleMessage.Running
+import csw.common.scaladsl.FromSupervisorMessage.SupervisorLifecycleStateChanged
+import csw.common.scaladsl.RunningMessage.Lifecycle
+import csw.common.scaladsl.SupervisorContainerCommonMessages.{Restart, Shutdown}
+import csw.common.scaladsl.SupervisorIdleMessage.InitializeTimeout
+import csw.common.scaladsl.SupervisorInternalRunningMessage.{RegistrationFailed, RegistrationNotRequired, RegistrationSuccess}
+import csw.common.scaladsl.SupervisorLockMessage.{Lock, Unlock}
+import csw.common.scaladsl.SupervisorRestartMessage.{UnRegistrationComplete, UnRegistrationFailed}
+import csw.common.scaladsl._
 import csw.services.command.internal.CommandResponseManagerFactory
 import csw.services.command.scaladsl.CommandResponseManager
 import csw.services.location.models.AkkaRegistration
@@ -67,7 +67,7 @@ private[framework] object SupervisorBehavior {
  * @param commandResponseManagerFactory the factory for creating actor instance of [[csw.framework.internal.pubsub.PubSubBehavior]]
  *                                      for utilising pub-sub of any state of a component
  * @param registrationFactory the factory for creating a typed [[csw.services.location.models.AkkaRegistration]] from
- *                            [[csw.messages.location.Connection.AkkaConnection]]
+ *                            [[csw.common.location.Connection.AkkaConnection]]
  * @param locationService the single instance of Location service created for a running application
  * @param loggerFactory the factory for creating [[csw.services.logging.scaladsl.Logger]] instance
  */
@@ -107,7 +107,7 @@ private[framework] final class SupervisorBehavior(
   spawnAndWatchComponent()
 
   /**
-   * Defines processing for a [[csw.messages.scaladsl.SupervisorMessage]] received by the actor instance
+   * Defines processing for a [[csw.common.scaladsl.SupervisorMessage]] received by the actor instance
    *
    * @param msg supervisorMessage received
    * @return the existing behavior

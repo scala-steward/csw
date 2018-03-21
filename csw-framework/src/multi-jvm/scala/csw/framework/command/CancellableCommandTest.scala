@@ -9,14 +9,14 @@ import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
 import csw.common.components.command.ComponentStateForCommand.{acceptedCmd, cancelCmd, prefix}
 import csw.framework.internal.wiring.{FrameworkWiring, Standalone}
-import csw.messages.scaladsl.CommandMessage.{Oneway, Submit}
-import csw.messages.scaladsl.CommandResponseManagerMessage.Subscribe
-import csw.messages.commands.CommandResponse.{Accepted, Cancelled, Completed}
-import csw.messages.commands.{CommandResponse, Setup}
-import csw.messages.location.Connection.AkkaConnection
-import csw.messages.location.{ComponentId, ComponentType}
-import csw.messages.params.generics.KeyType
-import csw.messages.params.models.ObsId
+import csw.common.scaladsl.CommandMessage.{Oneway, Submit}
+import csw.common.scaladsl.CommandResponseManagerMessage.Subscribe
+import csw.common.commands.CommandResponse.{Accepted, Cancelled, Completed}
+import csw.common.commands.{CommandResponse, Setup}
+import csw.common.location.Connection.AkkaConnection
+import csw.common.location.{ComponentId, ComponentType}
+import csw.common.params.generics.KeyType
+import csw.common.params.models.ObsId
 import csw.services.location.helpers.{LSNodeSpec, OneMemberAndSeed}
 
 import scala.concurrent.duration.DurationInt

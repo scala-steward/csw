@@ -7,10 +7,10 @@ import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.{ActorSystem, Props}
 import akka.stream.scaladsl.{Keep, Sink}
 import akka.stream.{ActorMaterializer, Materializer}
-import csw.messages.commons.CoordinatedShutdownReasons.ActorTerminatedReason
-import csw.messages.location.Connection.{AkkaConnection, HttpConnection}
-import csw.messages.location._
-import csw.messages.scaladsl.{ComponentMessage, ContainerMessage}
+import csw.common.commons.CoordinatedShutdownReasons.ActorTerminatedReason
+import csw.common.location.Connection.{AkkaConnection, HttpConnection}
+import csw.common.location._
+import csw.common.scaladsl.{ComponentMessage, ContainerMessage}
 import csw.services.location.commons.ActorSystemFactory
 import csw.services.location.models._
 import csw.services.location.scaladsl.{LocationService, LocationServiceFactory, RegistrationFactory}

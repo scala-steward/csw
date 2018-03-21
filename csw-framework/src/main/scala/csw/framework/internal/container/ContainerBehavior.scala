@@ -8,16 +8,16 @@ import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
 import akka.actor.typed.{ActorRef, Behavior, PostStop, Signal, Terminated}
 import csw.framework.internal.supervisor.SupervisorInfoFactory
 import csw.framework.models._
-import csw.messages.commons.CoordinatedShutdownReasons.{AllActorsWithinContainerTerminatedReason, FailedToCreateSupervisorsReason}
-import csw.messages.framework._
-import csw.messages.location.Connection.AkkaConnection
-import csw.messages.location.{ComponentId, ComponentType}
-import csw.messages.scaladsl.ContainerCommonMessage.{GetComponents, GetContainerLifecycleState}
-import csw.messages.scaladsl.ContainerIdleMessage.SupervisorsCreated
-import csw.messages.scaladsl.FromSupervisorMessage.SupervisorLifecycleStateChanged
-import csw.messages.scaladsl.RunningMessage.Lifecycle
-import csw.messages.scaladsl.SupervisorContainerCommonMessages.{Restart, Shutdown}
-import csw.messages.scaladsl.{ComponentMessage, ContainerActorMessage, ContainerCommonMessage, ContainerIdleMessage}
+import csw.common.commons.CoordinatedShutdownReasons.{AllActorsWithinContainerTerminatedReason, FailedToCreateSupervisorsReason}
+import csw.common.framework._
+import csw.common.location.Connection.AkkaConnection
+import csw.common.location.{ComponentId, ComponentType}
+import csw.common.scaladsl.ContainerCommonMessage.{GetComponents, GetContainerLifecycleState}
+import csw.common.scaladsl.ContainerIdleMessage.SupervisorsCreated
+import csw.common.scaladsl.FromSupervisorMessage.SupervisorLifecycleStateChanged
+import csw.common.scaladsl.RunningMessage.Lifecycle
+import csw.common.scaladsl.SupervisorContainerCommonMessages.{Restart, Shutdown}
+import csw.common.scaladsl.{ComponentMessage, ContainerActorMessage, ContainerCommonMessage, ContainerIdleMessage}
 import csw.services.location.models._
 import csw.services.location.scaladsl.{LocationService, RegistrationFactory}
 import csw.services.logging.scaladsl.{Logger, LoggerFactory}
@@ -32,7 +32,7 @@ import scala.util.{Failure, Success}
  * @param containerInfo container related information as described in the configuration file
  * @param supervisorInfoFactory the factory for creating the Supervisors for components described in ContainerInfo
  * @param registrationFactory the factory for creating a typed [[csw.services.location.models.AkkaRegistration]] from
-                              [[csw.messages.location.Connection.AkkaConnection]]
+                              [[csw.common.location.Connection.AkkaConnection]]
  * @param locationService the single instance of Location service created for a running application
  */
 private[framework] final class ContainerBehavior(
@@ -62,7 +62,7 @@ private[framework] final class ContainerBehavior(
   createComponents(containerInfo.components)
 
   /**
-   * Defines processing for a [[csw.messages.scaladsl.ContainerActorMessage]] received by the actor instance.
+   * Defines processing for a [[csw.common.scaladsl.ContainerActorMessage]] received by the actor instance.
    *
    * @param msg containerMessage received
    * @return the existing behavior
@@ -102,7 +102,7 @@ private[framework] final class ContainerBehavior(
   }
 
   /**
-   * Defines action for messages which can be received in any [[csw.messages.framework.ContainerLifecycleState]] state
+   * Defines action for messages which can be received in any [[csw.common.framework.ContainerLifecycleState]] state
    *
    * @param commonMessage message representing a message received in any lifecycle state
    */
@@ -123,9 +123,9 @@ private[framework] final class ContainerBehavior(
   }
 
   /**
-   * Defines action for messages which can be received in [[csw.messages.framework.ContainerLifecycleState.Idle]] state
+   * Defines action for messages which can be received in [[csw.common.framework.ContainerLifecycleState.Idle]] state
    *
-   * @param idleMessage message representing a message received in [[csw.messages.framework.ContainerLifecycleState.Idle]] state
+   * @param idleMessage message representing a message received in [[csw.common.framework.ContainerLifecycleState.Idle]] state
    */
   private def onIdle(idleMessage: ContainerIdleMessage): Unit = idleMessage match {
     case SupervisorsCreated(supervisorInfos) ⇒

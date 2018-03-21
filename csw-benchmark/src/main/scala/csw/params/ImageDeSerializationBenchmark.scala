@@ -5,11 +5,11 @@ import java.util.concurrent.TimeUnit
 
 import akka.actor.ActorSystem
 import akka.serialization.{Serialization, SerializationExtension}
-import csw.messages.commands.{CommandName, Observe}
-import csw.messages.params.generics.KeyType.ByteArrayKey
-import csw.messages.params.generics.{Key, Parameter}
-import csw.messages.params.models.Units.pascal
-import csw.messages.params.models.{ArrayData, ObsId}
+import csw.common.commands.{CommandName, Observe}
+import csw.common.params.generics.KeyType.ByteArrayKey
+import csw.common.params.generics.{Key, Parameter}
+import csw.common.params.models.Units.pascal
+import csw.common.params.models.{ArrayData, ObsId}
 import org.openjdk.jmh.annotations._
 
 import scala.concurrent.Await

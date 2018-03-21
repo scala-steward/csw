@@ -1,6 +1,6 @@
 package tmt.shared.dsl
 
-import csw.messages.commands.ControlCommand
+import csw.common.commands.ControlCommand
 import tmt.shared.services.CommandResponse
 import tmt.shared.util.FutureExt.RichFuture
 

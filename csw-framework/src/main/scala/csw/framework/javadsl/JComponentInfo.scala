@@ -2,14 +2,14 @@ package csw.framework.javadsl
 
 import java.util
 
-import csw.messages.framework.{ComponentInfo, LocationServiceUsage}
-import csw.messages.location.{ComponentType, Connection}
+import csw.common.framework.{ComponentInfo, LocationServiceUsage}
+import csw.common.location.{ComponentType, Connection}
 
 import scala.collection.JavaConverters.iterableAsScalaIterableConverter
 import scala.concurrent.duration.FiniteDuration
 
 /**
- * Helper instance for Java to create [[csw.messages.framework.ComponentInfo]]
+ * Helper instance for Java to create [[csw.common.framework.ComponentInfo]]
  */
 object JComponentInfo {
 
@@ -17,7 +17,7 @@ object JComponentInfo {
    * The information needed to create a component. This class is created after de-serializing the config file for the component.
    *
    * @param name the name of the component
-   * @param componentType the type of the component as defined by [[csw.messages.location.ComponentType]]
+   * @param componentType the type of the component as defined by [[csw.common.location.ComponentType]]
    * @param prefix identifies the subsystem
    * @param className specifies the component to be created by name of the class of it's factory
    * @param locationServiceUsage specifies component's usage of location service

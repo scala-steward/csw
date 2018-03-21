@@ -6,7 +6,7 @@ package csw.services
  * This project defines the basic classes and traits for the ''Command Service''.
  *
  * Related projects are:
- * - '''csw-messages''':
+ * - '''csw-common''':
  *   - This defines the types of command (Oneway/Submit etc.) and types of ''configurations'' (Setup/Observe/Wait etc.)
  *   - Complete usage of Messages is available at: https://tmtsoftware.github.io/csw-prod/services/messages.html
  *
@@ -26,13 +26,13 @@ package csw.services
  *
  * - [[csw.services.command.internal.CommandResponseManagerBehavior]] maintains two states:
  *  - [[csw.services.command.models.CommandResponseManagerState]]:
- *      It maintains [[csw.messages.params.models.Id]] of Commands and their corresponding [[csw.services.command.models.CommandState]].
+ *      It maintains [[csw.common.params.models.Id]] of Commands and their corresponding [[csw.services.command.models.CommandState]].
  *  - [[csw.services.command.models.CommandCorrelation]] :
- *      It maintains commands [[csw.messages.params.models.Id]] correlation between parent to child and child to parent.
+ *      It maintains commands [[csw.common.params.models.Id]] correlation between parent to child and child to parent.
  *
  * - [[csw.services.command.scaladsl.CommandService]]
  *
- * This class wraps the [[csw.messages.location.AkkaLocation]] and provides helpers to send commands to component actor extracted from provided location.
+ * This class wraps the [[csw.common.location.AkkaLocation]] and provides helpers to send commands to component actor extracted from provided location.
  * Normal component writers workflow would be to first resolve component using location service and then create CommandService instance using resolved location.
  *
  * Using this instance, you can Submit Command/Commands to other component or query for command result or subscribe for long running command result.

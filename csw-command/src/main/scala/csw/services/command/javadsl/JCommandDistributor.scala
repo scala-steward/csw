@@ -5,7 +5,7 @@ import java.util.concurrent.CompletableFuture
 
 import akka.stream.Materializer
 import akka.util.Timeout
-import csw.messages.commands.{CommandResponse, ControlCommand}
+import csw.common.commands.{CommandResponse, ControlCommand}
 import csw.services.command.scaladsl.CommandDistributor
 
 import scala.collection.JavaConverters.{collectionAsScalaIterableConverter, mapAsScalaMapConverter}

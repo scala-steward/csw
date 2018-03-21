@@ -4,27 +4,27 @@ import akka.testkit.typed.scaladsl.TestProbe
 import csw.framework.ComponentInfos._
 import csw.framework.FrameworkTestSuite
 import csw.framework.javadsl.commons.JComponentInfos.{jHcdInfo, jHcdInfoWithInitializeTimeout}
-import csw.messages.commands.CommandResponse.{Accepted, Invalid}
-import csw.messages.commands._
-import csw.messages.commands.matchers.DemandMatcher
-import csw.messages.framework.PubSub.Subscribe
-import csw.messages.framework.ToComponentLifecycleMessages.{GoOffline, GoOnline}
-import csw.messages.framework.{ComponentInfo, LifecycleStateChanged, SupervisorLifecycleState}
-import csw.messages.location.ComponentType.{Assembly, HCD}
-import csw.messages.location.Connection.AkkaConnection
-import csw.messages.params.generics.{KeyType, Parameter}
-import csw.messages.params.models.ObsId
-import csw.messages.params.states.{CurrentState, DemandState}
-import csw.messages.scaladsl.CommandMessage.{Oneway, Submit}
-import csw.messages.scaladsl.ComponentCommonMessage.{
+import csw.common.commands.CommandResponse.{Accepted, Invalid}
+import csw.common.commands._
+import csw.common.commands.matchers.DemandMatcher
+import csw.common.framework.PubSub.Subscribe
+import csw.common.framework.ToComponentLifecycleMessages.{GoOffline, GoOnline}
+import csw.common.framework.{ComponentInfo, LifecycleStateChanged, SupervisorLifecycleState}
+import csw.common.location.ComponentType.{Assembly, HCD}
+import csw.common.location.Connection.AkkaConnection
+import csw.common.params.generics.{KeyType, Parameter}
+import csw.common.params.models.ObsId
+import csw.common.params.states.{CurrentState, DemandState}
+import csw.common.scaladsl.CommandMessage.{Oneway, Submit}
+import csw.common.scaladsl.ComponentCommonMessage.{
   ComponentStateSubscription,
   GetSupervisorLifecycleState,
   LifecycleStateSubscription
 }
-import csw.messages.scaladsl.ContainerIdleMessage
-import csw.messages.scaladsl.FromSupervisorMessage.SupervisorLifecycleStateChanged
-import csw.messages.scaladsl.RunningMessage.Lifecycle
-import csw.messages.scaladsl.SupervisorContainerCommonMessages.Restart
+import csw.common.scaladsl.ContainerIdleMessage
+import csw.common.scaladsl.FromSupervisorMessage.SupervisorLifecycleStateChanged
+import csw.common.scaladsl.RunningMessage.Lifecycle
+import csw.common.scaladsl.SupervisorContainerCommonMessages.Restart
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach

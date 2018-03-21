@@ -7,12 +7,12 @@ import akka.actor.typed.scaladsl.adapter._
 import akka.testkit.typed.TestKitSettings
 import akka.testkit.typed.scaladsl.TestProbe
 import akka.util.Timeout
-import csw.messages.scaladsl.CommandMessage.Submit
-import csw.messages.commands.{CommandName, Setup}
-import csw.messages.location.Connection.{AkkaConnection, HttpConnection}
-import csw.messages.location.{AkkaLocation, ComponentId, ComponentType, HttpLocation}
-import csw.messages.commons.CoordinatedShutdownReasons.TestFinishedReason
-import csw.messages.params.models.Prefix
+import csw.common.scaladsl.CommandMessage.Submit
+import csw.common.commands.{CommandName, Setup}
+import csw.common.location.Connection.{AkkaConnection, HttpConnection}
+import csw.common.location.{AkkaLocation, ComponentId, ComponentType, HttpLocation}
+import csw.common.commons.CoordinatedShutdownReasons.TestFinishedReason
+import csw.common.params.models.Prefix
 import csw.services.integtration.apps.TromboneHCD
 import csw.services.integtration.common.TestFutureExtension.RichFuture
 import csw.services.location.commons.ClusterAwareSettings

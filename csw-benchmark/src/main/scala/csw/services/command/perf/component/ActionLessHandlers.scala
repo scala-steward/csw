@@ -2,12 +2,12 @@ package csw.services.command.perf.component
 
 import akka.actor.typed.scaladsl.ActorContext
 import csw.framework.scaladsl.{ComponentHandlers, CurrentStatePublisher}
-import csw.messages.commands.CommandResponse.Completed
-import csw.messages.commands._
-import csw.messages.framework.ComponentInfo
-import csw.messages.location.TrackingEvent
-import csw.messages.params.models.Id
-import csw.messages.scaladsl.TopLevelActorMessage
+import csw.common.commands.CommandResponse.Completed
+import csw.common.commands._
+import csw.common.framework.ComponentInfo
+import csw.common.location.TrackingEvent
+import csw.common.params.models.Id
+import csw.common.scaladsl.TopLevelActorMessage
 import csw.services.command.scaladsl.CommandResponseManager
 import csw.services.location.scaladsl.LocationService
 import csw.services.logging.scaladsl.{Logger, LoggerFactory}

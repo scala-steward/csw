@@ -4,7 +4,7 @@ Events are the most basic type of asynchronous notification in TMT when an activ
 
 @@@ note
 
-`csw-messages` library offers out of the box support to serialize Events using **Protobuf**, so that events can be produced and consumed by JVM(Java virtual machine) as well as Non-JVM applications.
+`csw-common` library offers out of the box support to serialize Events using **Protobuf**, so that events can be produced and consumed by JVM(Java virtual machine) as well as Non-JVM applications.
 
 For more on this [Protobuf support](events.html#protobuf) section below.
 
@@ -75,11 +75,11 @@ Protobuf aka Protocol buffers, are a language-neutral, platform-neutral extensib
 
 In TMT observatory, subsystems and components could be running on JVM(Java virtual machine) and Non-JVM platform. This leads to solving a non-trivial problem of a **Non-JVM component** wanting to consume an Event produced by a **JVM component**. Amongst the available options for **data over the wire**, Protobuf was chosen for its performance, data compression and official/unofficial support many mainstream languages.      
 
-`csw-messages` library enhances the Protobuf support, by providing out of the box helper methods, to convert events from/to protobuf binary data.
+`csw-common` library enhances the Protobuf support, by providing out of the box helper methods, to convert events from/to protobuf binary data.
 
 @@@ note { title="Protobuf Code generation for Non-JVM languages" }
 
-The protobuf schema is defined in @github[csw_protobuf](/csw-messages/src/main/protobuf/csw_protobuf/) directory. The contained **.proto** files can be fed to a protoc compiler in the language of your choice and it will do the required code generation. 
+The protobuf schema is defined in @github[csw_protobuf](/csw-common/src/main/protobuf/csw_protobuf/) directory. The contained **.proto** files can be fed to a protoc compiler in the language of your choice and it will do the required code generation.
 
 @@@
 

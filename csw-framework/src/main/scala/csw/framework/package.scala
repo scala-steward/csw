@@ -14,11 +14,11 @@ package csw
  * that intercepts common messages (ex. Shutdown, Restart) or lifecycle messages (ex. GoOffline or GoOnline)
  * sent from external entities to determine the state of the component.
  *
- * Components that are not in the [[csw.messages.framework.SupervisorLifecycleState.Running]] state, do not receive [[csw.messages.scaladsl.CommandMessage]].
+ * Components that are not in the [[csw.common.framework.SupervisorLifecycleState.Running]] state, do not receive [[csw.common.scaladsl.CommandMessage]].
  *
  * When Component is created using this framework, it guarantees that component (HCD/Assembly) is registered with
- * LocationService only when Component moves to [[csw.messages.framework.SupervisorLifecycleState.Running]] state.
- * That means, one component can resolve other component only when its in ``Running`` state and ready to accept [[csw.messages.scaladsl.CommandMessage]]
+ * LocationService only when Component moves to [[csw.common.framework.SupervisorLifecycleState.Running]] state.
+ * That means, one component can resolve other component only when its in ``Running`` state and ready to accept [[csw.common.scaladsl.CommandMessage]]
  *
  * === Important Actors in Framework ===
  *
@@ -29,9 +29,9 @@ package csw
  *  - [[csw.framework.exceptions.FailureRestart]] : Restart the child actor i.e. kill the current child actor that failed and create a new one in its place
  *  - [[csw.framework.exceptions.FailureStop]] : Stop the child actor permanently
  *
- * Supervisor changes its [[csw.messages.framework.SupervisorLifecycleState]] based on the messages it receives.
- * Decision to handle external messages or not is taken by the supervisor based on its current [[csw.messages.framework.SupervisorLifecycleState]].
- * For complete list of supported messages per [[csw.messages.framework.SupervisorLifecycleState]], see `csw-messages` project.
+ * Supervisor changes its [[csw.common.framework.SupervisorLifecycleState]] based on the messages it receives.
+ * Decision to handle external messages or not is taken by the supervisor based on its current [[csw.common.framework.SupervisorLifecycleState]].
+ * For complete list of supported messages per [[csw.common.framework.SupervisorLifecycleState]], see `csw-common` project.
  *
  * - [[csw.framework.internal.component.ComponentBehavior]]
  * Like Supervisor, evey component is associate with this actor which is known as TLA (Top Level Actor)
@@ -42,17 +42,17 @@ package csw
  *
  * - [[csw.framework.internal.pubsub.PubSubBehavior]]
  * This actor is created by framework which is wrapped into [[csw.framework.scaladsl.CurrentStatePublisher]] for easy interaction with this actor
- * and then passed to component handlers so that component can publish their [[csw.messages.params.states.CurrentState]].
+ * and then passed to component handlers so that component can publish their [[csw.common.params.states.CurrentState]].
  *
- * If one component (ex. Assembly) is interested in [[csw.messages.params.states.CurrentState]] published by other component (ex. HCD)
+ * If one component (ex. Assembly) is interested in [[csw.common.params.states.CurrentState]] published by other component (ex. HCD)
  * then Assembly can subscribe to HCD's current state.
  *
- * PubSub actor maintains the list of subscribers and keeps publishing [[csw.messages.params.states.CurrentState]] to all subscribers.
+ * PubSub actor maintains the list of subscribers and keeps publishing [[csw.common.params.states.CurrentState]] to all subscribers.
  *
  * - [[csw.framework.internal.container.ContainerBehavior]]
  * When multiple components needs to be started in container, then this actor is created.
- * Job of this actor is just to logically group multiple components and support [[csw.messages.scaladsl.SupervisorContainerCommonMessages]].
- * It receives [[csw.messages.scaladsl.SupervisorContainerCommonMessages.Shutdown]] or [[csw.messages.scaladsl.SupervisorContainerCommonMessages.Restart]] message
+ * Job of this actor is just to logically group multiple components and support [[csw.common.scaladsl.SupervisorContainerCommonMessages]].
+ * It receives [[csw.common.scaladsl.SupervisorContainerCommonMessages.Shutdown]] or [[csw.common.scaladsl.SupervisorContainerCommonMessages.Restart]] message
  * and forwards it to all the components residing in this container.
  *
  * == deploy package ==

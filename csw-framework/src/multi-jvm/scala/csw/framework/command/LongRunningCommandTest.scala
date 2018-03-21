@@ -10,12 +10,12 @@ import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
 import csw.common.components.command.ComponentStateForCommand._
 import csw.framework.internal.wiring.{FrameworkWiring, Standalone}
-import csw.messages.commands.CommandResponse.{Accepted, Completed, Invalid}
-import csw.messages.commands.{CommandResponse, Setup}
-import csw.messages.location.Connection.AkkaConnection
-import csw.messages.location.{AkkaLocation, ComponentId, ComponentType}
-import csw.messages.params.models.ObsId
-import csw.messages.params.states.CurrentState
+import csw.common.commands.CommandResponse.{Accepted, Completed, Invalid}
+import csw.common.commands.{CommandResponse, Setup}
+import csw.common.location.Connection.AkkaConnection
+import csw.common.location.{AkkaLocation, ComponentId, ComponentType}
+import csw.common.params.models.ObsId
+import csw.common.params.states.CurrentState
 import csw.services.command.scaladsl.{CommandDistributor, CommandService}
 import csw.services.location.helpers.{LSNodeSpec, TwoMembersAndSeed}
 import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}

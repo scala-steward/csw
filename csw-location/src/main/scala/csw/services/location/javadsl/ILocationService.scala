@@ -10,7 +10,7 @@ import akka.Done
 import akka.actor.CoordinatedShutdown.Reason
 import akka.stream.KillSwitch
 import akka.stream.javadsl.Source
-import csw.messages.location._
+import csw.common.location._
 import csw.services.location.models._
 import csw.services.location.scaladsl.LocationService
 

@@ -3,7 +3,7 @@ package csw.services.event.internal.redis
 import java.nio.ByteBuffer
 
 import akka.util.ByteString
-import csw.messages.events.{Event, EventKey}
+import csw.common.events.{Event, EventKey}
 import csw_protobuf.events.PbEvent
 import io.lettuce.core.codec.RedisCodec
 

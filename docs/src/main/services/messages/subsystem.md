@@ -8,8 +8,8 @@ TMT Observatory system is composed of many subsystems. The subsystems that are k
 
 Subsystems are made available via separate files, for consumption in Scala and Java code.
 
- * Import `csw.messages.params.models.Subsystem` for **Scala** 
- * Import `csw.messages.javadsl.JSubsystem` for **Java**.  
+ * Import `csw.common.params.models.Subsystem` for **Scala**
+ * Import `JSubsystem` for **Java**.
 
 @@@
 

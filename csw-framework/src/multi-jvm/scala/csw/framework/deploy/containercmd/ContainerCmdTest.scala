@@ -10,21 +10,21 @@ import akka.actor.typed.{ActorRef, ActorSystem}
 import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
 import csw.common.FrameworkAssertions._
-import csw.messages.commands.CommandResponse.Invalid
-import csw.messages.commands.{CommandName, Setup}
-import csw.messages.framework.PubSub.Subscribe
-import csw.messages.framework.ToComponentLifecycleMessages.GoOffline
-import csw.messages.framework.{Components, ContainerLifecycleState, SupervisorLifecycleState}
-import csw.messages.location.Connection.AkkaConnection
-import csw.messages.location.{ComponentId, ComponentType}
-import csw.messages.params.generics.{KeyType, Parameter}
-import csw.messages.params.models.ObsId
-import csw.messages.params.states.CurrentState
-import csw.messages.scaladsl.ComponentCommonMessage.{ComponentStateSubscription, GetSupervisorLifecycleState}
-import csw.messages.scaladsl.ContainerCommonMessage.GetComponents
-import csw.messages.scaladsl.RunningMessage.Lifecycle
-import csw.messages.scaladsl.SupervisorContainerCommonMessages.Shutdown
-import csw.messages.scaladsl.{ComponentMessage, ContainerMessage}
+import csw.common.commands.CommandResponse.Invalid
+import csw.common.commands.{CommandName, Setup}
+import csw.common.framework.PubSub.Subscribe
+import csw.common.framework.ToComponentLifecycleMessages.GoOffline
+import csw.common.framework.{Components, ContainerLifecycleState, SupervisorLifecycleState}
+import csw.common.location.Connection.AkkaConnection
+import csw.common.location.{ComponentId, ComponentType}
+import csw.common.params.generics.{KeyType, Parameter}
+import csw.common.params.models.ObsId
+import csw.common.params.states.CurrentState
+import csw.common.scaladsl.ComponentCommonMessage.{ComponentStateSubscription, GetSupervisorLifecycleState}
+import csw.common.scaladsl.ContainerCommonMessage.GetComponents
+import csw.common.scaladsl.RunningMessage.Lifecycle
+import csw.common.scaladsl.SupervisorContainerCommonMessages.Shutdown
+import csw.common.scaladsl.{ComponentMessage, ContainerMessage}
 import csw.services.command.scaladsl.CommandService
 import csw.services.config.api.models.ConfigData
 import csw.services.config.client.scaladsl.ConfigClientFactory

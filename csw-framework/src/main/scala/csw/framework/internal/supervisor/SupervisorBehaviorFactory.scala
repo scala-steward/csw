@@ -3,8 +3,8 @@ package csw.framework.internal.supervisor
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
 import csw.framework.scaladsl.ComponentBehaviorFactory
-import csw.messages.framework.ComponentInfo
-import csw.messages.scaladsl.{ComponentMessage, ContainerIdleMessage, SupervisorMessage}
+import csw.common.framework.ComponentInfo
+import csw.common.scaladsl.{ComponentMessage, ContainerIdleMessage, SupervisorMessage}
 import csw.services.command.internal.CommandResponseManagerFactory
 import csw.services.location.scaladsl.{LocationService, RegistrationFactory}
 import csw.services.logging.scaladsl.LoggerFactory

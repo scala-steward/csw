@@ -2,7 +2,7 @@ import sbt._
 
 object Dependencies {
 
-  val Messages = Seq(
+  val Common = Seq(
     Libs.`scala-java8-compat`,
     Enumeratum.`enumeratum`,
     Libs.`play-json`,

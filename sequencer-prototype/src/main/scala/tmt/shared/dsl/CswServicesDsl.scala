@@ -3,8 +3,8 @@ package tmt.shared.dsl
 import akka.stream.KillSwitch
 import akka.actor.typed.ActorSystem
 import akka.util.Timeout
-import csw.messages.commands.{CommandIssue, CommandResponse, ControlCommand}
-import csw.messages.location._
+import csw.common.commands.{CommandIssue, CommandResponse, ControlCommand}
+import csw.common.location._
 import csw.services.command.scaladsl.CommandService
 import csw.services.location.scaladsl.LocationService
 import tmt.shared.util.FutureExt.RichFuture

@@ -2,7 +2,7 @@ package csw.services.config.client.scaladsl
 
 import java.nio.file.Paths
 
-import csw.messages.commons.CoordinatedShutdownReasons.TestFinishedReason
+import csw.common.commons.CoordinatedShutdownReasons.TestFinishedReason
 import csw.services.config.api.models.ConfigData
 import csw.services.config.api.scaladsl.{ConfigClientService, ConfigService}
 import csw.services.config.server.ServerWiring
