@@ -25,6 +25,14 @@ class TestConfigs(config: Config) {
   lazy val redisHost: String     = config.getString("csw.test.EventServicePerfTest.redis.host")
   lazy val redisPort: Int        = config.getInt("csw.test.EventServicePerfTest.redis.port")
 
+  lazy val redisHost2: String = config.getString("csw.test.EventServicePerfTest.redis-2.host")
+  lazy val redisPort2: Int    = config.getInt("csw.test.EventServicePerfTest.redis-2.port")
+
+  lazy val redisHost3: String = config.getString("csw.test.EventServicePerfTest.redis-3.host")
+  lazy val redisPort3: Int    = config.getInt("csw.test.EventServicePerfTest.redis-3.port")
+
+  lazy val redisHost4: String = config.getString("csw.test.EventServicePerfTest.redis-4.host")
+  lazy val redisPort4: Int    = config.getInt("csw.test.EventServicePerfTest.redis-4.port")
   //################### Kafka Configuration ###################
   lazy val kafkaHost: String = config.getString("csw.test.EventServicePerfTest.kafka.host")
   lazy val kafkaPort: Int    = config.getInt("csw.test.EventServicePerfTest.kafka.port")

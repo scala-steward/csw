@@ -18,14 +18,15 @@ class Subscriber(
     reporter: TestRateReporter,
     publisherId: Int,
     subscriberId: Int,
-    testWiring: TestWiring
+    testWiring: TestWiring,
+    jvmId: Int = 1
 ) {
 
   import testConfigs._
   import testSettings._
   import testWiring.wiring._
 
-  private val subscriber: EventSubscriber = testWiring.subscriber
+  private val subscriber: EventSubscriber = testWiring.subscriber(jvmId)
   val histogram: Histogram                = new Histogram(SECONDS.toNanos(10), 3)
   private val resultReporter              = new ResultReporter(testName, actorSystem)
 
@@ -34,7 +35,6 @@ class Subscriber(
   var eventsReceived  = 0L
   var lastId          = 0
   var outOfOrderCount = 0
-  var lastCurrentId   = 0
 
   private val eventKeys    = Set(EventKey(s"$testEventKey-$publisherId"), EventKey(s"${prefix.prefix}.$endEventS-$publisherId"))
   private val eventsToDrop = warmupMsgs + eventKeys.size //inclusive of latest events from subscription

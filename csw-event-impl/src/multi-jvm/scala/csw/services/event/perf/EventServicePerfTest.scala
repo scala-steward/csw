@@ -24,7 +24,7 @@ object EventServicePerfTest extends MultiNodeConfig {
 
   val totalNumberOfNodes: Int =
     System.getProperty("akka.test.FanInThroughputSpec.nrOfNodes") match {
-      case null  ⇒ 4
+      case null  ⇒ 2
       case value ⇒ value.toInt
     }
 
@@ -37,10 +37,10 @@ class EventServicePerfTestMultiJvmNode1 extends EventServicePerfTest
 class EventServicePerfTestMultiJvmNode2 extends EventServicePerfTest
 //class EventServicePerfTestMultiJvmNode3 extends EventServicePerfTest
 //class EventServicePerfTestMultiJvmNode4 extends EventServicePerfTest
-//class EventServicePerfTestMultiJvmNode5 extends EventServicePerfTest
-//class EventServicePerfTestMultiJvmNode6 extends EventServicePerfTest
-//class EventServicePerfTestMultiJvmNode7  extends EventServicePerfTest
-//class EventServicePerfTestMultiJvmNode8  extends EventServicePerfTest
+// class EventServicePerfTestMultiJvmNode5 extends EventServicePerfTest
+// class EventServicePerfTestMultiJvmNode6 extends EventServicePerfTest
+// class EventServicePerfTestMultiJvmNode7 extends EventServicePerfTest
+// class EventServicePerfTestMultiJvmNode8 extends EventServicePerfTest
 //class EventServicePerfTestMultiJvmNode9  extends EventServicePerfTest
 //class EventServicePerfTestMultiJvmNode10 extends EventServicePerfTest
 
@@ -145,13 +145,13 @@ class EventServicePerfTest
           case _ ⇒ newEvent = true
         }
 
-        val eventSubscription = subscriber.subscribeCallback(Set(EventUtils.perfEventKey), onEvent)
+        val eventSubscription = subscriber().subscribeCallback(Set(EventUtils.perfEventKey), onEvent)
         Await.result(eventSubscription.ready(), 30.seconds)
       }
 
       val subscribers = subIds.map { n ⇒
         val pubId      = if (singlePublisher) 1 else n
-        val subscriber = new Subscriber(testSettings, testConfigs, rep, pubId, n, testWiring)
+        val subscriber = new Subscriber(testSettings, testConfigs, rep, pubId, n, testWiring, nodeId)
         val doneF      = subscriber.startSubscription()
         (doneF, subscriber)
       }
@@ -171,7 +171,7 @@ class EventServicePerfTest
       histogramPerNode.encodeIntoByteBuffer(byteBuffer)
 
       Await.result(
-        publisher.publish(
+        publisher().publish(
           EventUtils.perfResultEvent(byteBuffer.array(), eventsReceivedPerNode / nanosToSeconds(totalTimePerNode))
         ),
         30.seconds
@@ -203,7 +203,7 @@ class EventServicePerfTest
 
       enterBarrier(subscriberName + "-started")
 
-      pubIds.foreach(id ⇒ new Publisher(testSettings, testConfigs, id, testWiring).startPublishingWithEventGenerator())
+      pubIds.foreach(id ⇒ new Publisher(testSettings, testConfigs, id, testWiring, nodeId).startPublishingWithEventGenerator())
 
       enterBarrier(testName + "-done")
     }

@@ -15,12 +15,28 @@ class TestWiring(actorSystem: ActorSystem, val wiring: Wiring) extends MockitoSu
   lazy val redisFactory: RedisFactory = new RedisFactory(RedisClient.create(), mock[LocationService], wiring)
   lazy val kafkaFactory: KafkaFactory = new KafkaFactory(mock[LocationService], wiring)
 
-  def publisher: EventPublisher =
-    if (redisEnabled) redisFactory.publisher(redisHost, redisPort)
-    else kafkaFactory.publisher(kafkaHost, kafkaPort)
+  def publisher(id: Int = 1): EventPublisher =
+    if (redisEnabled) {
+      if (id % 1 == 0)
+        redisFactory.publisher(redisHost, redisPort)
+      else if (id % 2 == 0)
+        redisFactory.publisher(redisHost2, redisPort2)
+      else if (id % 4 == 3)
+        redisFactory.publisher(redisHost3, redisPort3)
+      else
+        redisFactory.publisher(redisHost4, redisPort4)
+    } else kafkaFactory.publisher(kafkaHost, kafkaPort)
 
-  def subscriber: EventSubscriber =
-    if (redisEnabled) redisFactory.subscriber(redisHost, redisPort)
-    else kafkaFactory.subscriber(kafkaHost, kafkaPort)
+  def subscriber(id: Int = 1): EventSubscriber =
+    if (redisEnabled) {
+      if (id % 1 == 0)
+        redisFactory.subscriber(redisHost, redisPort)
+      else if (id % 2 == 0)
+        redisFactory.subscriber(redisHost2, redisPort2)
+      else if (id % 4 == 3)
+        redisFactory.subscriber(redisHost3, redisPort3)
+      else
+        redisFactory.subscriber(redisHost4, redisPort4)
+    } else kafkaFactory.subscriber(kafkaHost, kafkaPort)
 
 }
