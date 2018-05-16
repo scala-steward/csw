@@ -1,1 +1,1 @@
-class AlarmName {}
+case class AlarmName(value: String)
