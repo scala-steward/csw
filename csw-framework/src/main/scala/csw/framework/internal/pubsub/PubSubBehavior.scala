@@ -1,51 +1,73 @@
 package csw.framework.internal.pubsub
 
-import akka.actor.typed.scaladsl.{ActorContext, MutableBehavior}
-import akka.actor.typed.{ActorRef, Behavior, Signal, Terminated}
+import akka.actor.typed.scaladsl.Behaviors
+import akka.actor.typed.{ActorRef, Behavior, Terminated}
 import csw.messages.framework.PubSub
-import csw.messages.framework.PubSub.{Publish, Subscribe, Unsubscribe}
+import csw.messages.framework.PubSub.{Publish, Subscribe, SubscribeOnly, Unsubscribe}
 import csw.services.logging.scaladsl.{Logger, LoggerFactory}
 
-/**
- * The actor which can be used by a component to publish its data of a given type, to all the components who subscribe
- *
- * @param ctx the Actor Context under which the actor instance of this behavior is created
- * @param loggerFactory the LoggerFactory used for logging with component name
- * @tparam T the type of the data which will be published or subscribed to using this actor
- */
-private[framework] class PubSubBehavior[T](ctx: ActorContext[PubSub[T]], loggerFactory: LoggerFactory)
-    extends MutableBehavior[PubSub[T]] {
-  private val log: Logger = loggerFactory.getLogger(ctx)
+object PubSubBehavior {
 
-  // list of subscribers who subscribe to the component using this pub-sub actor for the data of type [[T]]
-  var subscribers: Set[ActorRef[T]] = Set.empty
+  /**
+   * Represents the protocol or messages about publishing data and subscribing it
+   *
+   * @tparam T represents the type of data that is published or subscribed
+   */
+  /*
+  sealed trait PubSub[T]
 
-  override def onMessage(msg: PubSub[T]): Behavior[PubSub[T]] = {
-    msg match {
-      case Subscribe(ref)   => subscribe(ref)
-      case Unsubscribe(ref) => unsubscribe(ref)
-      case Publish(data)    => notifySubscribers(data)
-    }
-    this
-  }
+  sealed trait SubscriberMessage[T] extends PubSub[T]
 
-  override def onSignal: PartialFunction[Signal, Behavior[PubSub[T]]] = {
-    case Terminated(ref) ⇒ unsubscribe(ref.upcast); this
-  }
+  case class Subscribe[T](ref: ActorRef[T], f: T => Boolean) extends SubscriberMessage[T]
 
-  private def subscribe(actorRef: ActorRef[T]): Unit = {
-    if (!subscribers.contains(actorRef)) {
-      subscribers += actorRef
-      ctx.watch(actorRef)
+  case class Unsubscribe[T](ref: ActorRef[T]) extends SubscriberMessage[T]
+
+  sealed trait PublisherMessage[T] extends PubSub[T]
+
+  case class Publish[T](data: T) extends PublisherMessage[T]
+*/
+  def behavior[T](loggerFactory: LoggerFactory): Behavior[PubSub[T]] = {
+    Behaviors.setup[PubSub[T]] { ctx =>
+      val log: Logger = loggerFactory.getLogger(ctx)
+      ready(Set.empty, log)
     }
   }
 
-  private def unsubscribe(actorRef: ActorRef[T]): Unit = {
-    subscribers -= actorRef
+  def ready[T](subscribers: Set[(ActorRef[T], T => Boolean)], log: Logger): Behavior[PubSub[T]] = {
+
+    val allTrue = (lsf: T) => true
+
+    Behaviors
+      .receive[PubSub[T]] { (ctx, msg) =>
+        msg match {
+          case SubscribeOnly(ref, f) =>
+            if (subscribers.find(_._1 == ref) == None) {
+              ctx.watch(ref)
+              ready(subscribers + Tuple2(ref, f), log)
+            } else ready(subscribers, log)
+
+          case Subscribe(ref) =>
+            if (subscribers.find(_._1 == ref) == None) {
+              ctx.watch(ref)
+              ready(subscribers + Tuple2(ref, allTrue), log)
+            } else ready(subscribers, log)
+
+          case Unsubscribe(ref) =>
+            ctx.unwatch(ref)
+            ready(subscribers.filterNot(_._1 == ref), log)
+
+          case Publish(data) =>
+            log.info(s"Notifying subscribers :[${subscribers.mkString(",")}] with data :[$data]")
+            subscribers.foreach(s => if (s._2(data)) s._1 ! data)
+            ready(subscribers, log)
+
+        }
+      }
+      .receiveSignal {
+        case (ctx, Terminated(ref)) =>
+          log.debug(s"Pubsub received terminated for: $ref")
+          ready(subscribers.filterNot(_._1 == ref), log)
+      }
   }
 
-  protected def notifySubscribers(data: T): Unit = {
-    log.debug(s"Notifying subscribers :[${subscribers.mkString(",")}] with data :[$data]")
-    subscribers.foreach(_ ! data)
-  }
 }

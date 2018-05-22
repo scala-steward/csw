@@ -40,7 +40,7 @@ package csw
  * Main purpose of this actor is to invoke component specific code written in their corresponding handlers.
  * This is where framework code meets Component specific code.
  *
- * - [[csw.framework.internal.pubsub.PubSubBehavior]]
+ * - [[csw.framework.internal.pubsub.PubSub]]
  * : This actor is created by framework which is wrapped into [[csw.framework.scaladsl.CurrentStatePublisher]] for easy interaction with this actor
  * and then passed to component handlers so that component can publish their [[csw.messages.params.states.CurrentState]].
  *
