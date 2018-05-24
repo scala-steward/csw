@@ -13,19 +13,6 @@ object PubSubBehavior {
    *
    * @tparam T represents the type of data that is published or subscribed
    */
-  /*
-  sealed trait PubSub[T]
-
-  sealed trait SubscriberMessage[T] extends PubSub[T]
-
-  case class Subscribe[T](ref: ActorRef[T], f: T => Boolean) extends SubscriberMessage[T]
-
-  case class Unsubscribe[T](ref: ActorRef[T]) extends SubscriberMessage[T]
-
-  sealed trait PublisherMessage[T] extends PubSub[T]
-
-  case class Publish[T](data: T) extends PublisherMessage[T]
-*/
   def behavior[T](loggerFactory: LoggerFactory): Behavior[PubSub[T]] = {
     Behaviors.setup[PubSub[T]] { ctx =>
       val log: Logger = loggerFactory.getLogger(ctx)

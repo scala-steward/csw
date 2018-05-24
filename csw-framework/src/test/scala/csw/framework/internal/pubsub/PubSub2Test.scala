@@ -41,21 +41,25 @@ class PubSubTest extends FunSuite with Matchers with BeforeAndAfterAll {
 
   test("message should be published to all the subscribers") {
     val pubSubBehavior: BehaviorTestKit[PubSub[LifecycleStateChanged]] = createPubSubBehavior()
-    val supervisorProbe                                                                = TestProbe[ComponentMessage]
+    val supervisorProbe                                                = TestProbe[ComponentMessage]
 
-    pubSubBehavior.run(SubscribeOnly(lifecycleProbe1.ref, _ => true))
+    pubSubBehavior.run(SubscribeOnly(lifecycleProbe1.ref, (ls:LifecycleStateChanged) => ls == SupervisorLifecycleState.Running))
     pubSubBehavior.run(SubscribeOnly(lifecycleProbe2.ref, _ => true))
 
-    pubSubBehavior.run(
-      Publish(LifecycleStateChanged(supervisorProbe.ref, SupervisorLifecycleState.Running))
-    )
+    pubSubBehavior.run(Publish(LifecycleStateChanged(supervisorProbe.ref, SupervisorLifecycleState.Running)))
+    pubSubBehavior.run(Publish(LifecycleStateChanged(supervisorProbe.ref, SupervisorLifecycleState.Idle)))
+    pubSubBehavior.run(Publish(LifecycleStateChanged(supervisorProbe.ref, SupervisorLifecycleState.Restart)))
+
     lifecycleProbe1.expectMessage(framework.LifecycleStateChanged(supervisorProbe.ref, SupervisorLifecycleState.Running))
     lifecycleProbe2.expectMessage(framework.LifecycleStateChanged(supervisorProbe.ref, SupervisorLifecycleState.Running))
+    lifecycleProbe2.expectMessage(framework.LifecycleStateChanged(supervisorProbe.ref, SupervisorLifecycleState.Idle))
+    lifecycleProbe2.expectMessage(framework.LifecycleStateChanged(supervisorProbe.ref, SupervisorLifecycleState.Restart))
+    lifecycleProbe1.expectNoMessage(200.millis)
   }
 
   test("should not receive messages on un-subscription") {
     val pubSubBehavior: BehaviorTestKit[PubSub[LifecycleStateChanged]] = createPubSubBehavior()
-    val supervisorProbe                                                                = TestProbe[ComponentMessage]
+    val supervisorProbe                                                = TestProbe[ComponentMessage]
 
     pubSubBehavior.run(Subscribe(lifecycleProbe1.ref))
     pubSubBehavior.run(Subscribe(lifecycleProbe2.ref))

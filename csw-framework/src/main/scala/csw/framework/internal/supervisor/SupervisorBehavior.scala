@@ -20,7 +20,11 @@ import csw.messages.location.Connection.AkkaConnection
 import csw.messages.params.models.Prefix
 import csw.messages.params.states.CurrentState
 import csw.messages.scaladsl.CommandResponseManagerMessage.{Query, Subscribe, Unsubscribe}
-import csw.messages.scaladsl.ComponentCommonMessage.{ComponentStateSubscription, GetSupervisorLifecycleState, LifecycleStateSubscription}
+import csw.messages.scaladsl.ComponentCommonMessage.{
+  ComponentStateSubscription,
+  GetSupervisorLifecycleState,
+  LifecycleStateSubscription
+}
 import csw.messages.scaladsl.FromComponentLifecycleMessage.Running
 import csw.messages.scaladsl.FromSupervisorMessage.SupervisorLifecycleStateChanged
 import csw.messages.scaladsl.RunningMessage.Lifecycle
@@ -89,7 +93,7 @@ private[framework] final class SupervisorBehavior(
   private val isStandalone: Boolean                        = maybeContainerRef.isEmpty
   private[framework] val initializeTimeout: FiniteDuration = componentInfo.initializeTimeout
 
-  private val commandResponseManager: CommandResponseManager                      = makeCommandResponseManager()
+  private val commandResponseManager: CommandResponseManager = makeCommandResponseManager()
   //private val pubSubBehaviorFactory: PubSubBehaviorFactory                        = new PubSubBehaviorFactory
   private[framework] val pubSubComponentActor: ActorRef[PubSub[CurrentState]]     = makePubSubComponent()
   private[framework] val pubSubLifecycle: ActorRef[PubSub[LifecycleStateChanged]] = makePubSubLifecycle()
