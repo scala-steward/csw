@@ -81,7 +81,7 @@ public class JSampleAssemblyHandlers extends JComponentHandlers {
 
     private ActorRef<WorkerCommand> createWorkerActor() {
         return actorContext.spawn(
-                Behaviors.immutable((ctx, msg) -> {
+                Behaviors.receiveMessage(msg -> {
                     if (msg instanceof SendCommand) {
                         SendCommand command = (SendCommand) msg;
                         log.trace("WorkerActor received SendCommand message.");
