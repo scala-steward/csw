@@ -2,23 +2,19 @@ package csw.services.event.perf.model_obs
 
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeUnit.SECONDS
-import java.util.concurrent.{ExecutorService, Executors}
 
 import akka.actor.typed.scaladsl.adapter.UntypedActorSystemOps
-import akka.remote.testkit.{MultiNodeConfig, MultiNodeSpec, MultiNodeSpecCallbacks}
-import akka.testkit.ImplicitSender
+import akka.remote.testkit.MultiNodeConfig
 import akka.testkit.typed.scaladsl
 import com.typesafe.config.ConfigFactory
+import csw.services.event.perf.BasePerfSuite
 import csw.services.event.perf.reporter._
+import csw.services.event.perf.utils.EventUtils
 import csw.services.event.perf.utils.EventUtils.nanosToSeconds
-import csw.services.event.perf.utils.{EventUtils, PerfFlamesSupport}
-import csw.services.event.perf.wiring.{TestConfigs, TestWiring}
-import csw.services.event.scaladsl.EventPublisher
 import org.HdrHistogram.Histogram
-import org.scalatest.{BeforeAndAfterAll, FunSuiteLike, Matchers}
 
 import scala.concurrent.Await
-import scala.concurrent.duration.{Duration, DurationLong}
+import scala.concurrent.duration.Duration
 
 sealed trait BaseSetting {
   def subsystem: String
@@ -41,7 +37,7 @@ object ModelObsMultiNodeConfig extends MultiNodeConfig {
 
   val totalNumberOfNodes: Int =
     System.getProperty("csw.event.perf.model-obs.nodes") match {
-      case null  ⇒ 5
+      case null  ⇒ 2
       case value ⇒ value.toInt
     }
 
@@ -53,9 +49,9 @@ object ModelObsMultiNodeConfig extends MultiNodeConfig {
 
 class ModelObsPerfTestMultiJvmNode1 extends ModelObsPerfTest
 class ModelObsPerfTestMultiJvmNode2 extends ModelObsPerfTest
-class ModelObsPerfTestMultiJvmNode3 extends ModelObsPerfTest
-class ModelObsPerfTestMultiJvmNode4 extends ModelObsPerfTest
-class ModelObsPerfTestMultiJvmNode5 extends ModelObsPerfTest
+//class ModelObsPerfTestMultiJvmNode3 extends ModelObsPerfTest
+//class ModelObsPerfTestMultiJvmNode4 extends ModelObsPerfTest
+//class ModelObsPerfTestMultiJvmNode5 extends ModelObsPerfTest
 //class ModelObsPerfTestMultiJvmNode6  extends ModelObsPerfTest
 //class ModelObsPerfTestMultiJvmNode7  extends ModelObsPerfTest
 //class ModelObsPerfTestMultiJvmNode8  extends ModelObsPerfTest
@@ -73,46 +69,11 @@ class ModelObsPerfTestMultiJvmNode5 extends ModelObsPerfTest
 //class ModelObsPerfTestMultiJvmNode20 extends ModelObsPerfTest
 //class ModelObsPerfTestMultiJvmNode21 extends ModelObsPerfTest
 
-class ModelObsPerfTest
-    extends MultiNodeSpec(ModelObsMultiNodeConfig)
-    with MultiNodeSpecCallbacks
-    with FunSuiteLike
-    with Matchers
-    with ImplicitSender
-    with PerfFlamesSupport
-    with BeforeAndAfterAll {
-
-  private val testConfigs = new TestConfigs(system.settings.config)
-  private val testWiring  = new TestWiring(system)
-
-  import testWiring._
-
-  lazy val sharedPublisher: EventPublisher = publisher
-//  lazy val sharedSubscriber: EventSubscriber = subscriber
-
-  override def initialParticipants: Int = roles.size
-
-  lazy val reporterExecutor: ExecutorService = Executors.newFixedThreadPool(1)
-  def reporter(name: String): TestRateReporter = {
-    val r = new TestRateReporter(name)
-    reporterExecutor.execute(r)
-    r
-  }
-
-  var throughputPlots: PlotResult = PlotResult()
-  var latencyPlots: LatencyPlots  = LatencyPlots()
-
-  override def beforeAll(): Unit = multiNodeSpecBeforeAll()
+class ModelObsPerfTest extends BasePerfSuite {
 
   override def afterAll(): Unit = {
-    reporterExecutor.shutdown()
-    runOn(roles.last) {
-      println("================================ Throughput msgs/s ================================")
-      throughputPlots.printTable()
-      println()
-      latencyPlots.printTable(system.name)
-    }
-    multiNodeSpecAfterAll()
+    if (topProcess.isDefined) plotLatencyHistogram(s"${BenchmarkFileReporter.targetDirectory.toPath}/$scenarioName/Aggregated-*")
+    super.afterAll()
   }
 
   def runScenario(testSettings: ModelObservatoryTestSettings): Unit = {
@@ -127,9 +88,8 @@ class ModelObsPerfTest
       val subscribers = subSettings.flatMap { subSetting ⇒
         import subSetting._
         (1 to noOfSubs).map { subId ⇒
-          val subscriber =
-            new ModelObsSubscriber(s"${subSetting.key}-$subId", subSetting, rep, testWiring)
-          val doneF = subscriber.startSubscription()
+          val subscriber = new ModelObsSubscriber(s"${subSetting.key}-$subId", subSetting, rep, testWiring)
+          val doneF      = subscriber.startSubscription()
           (doneF, subscriber)
         }
       }
@@ -141,8 +101,9 @@ class ModelObsPerfTest
       val histogramPerNode: Histogram = new Histogram(SECONDS.toNanos(10), 3)
 
       runOn(roles.last) {
-        val resultAggregator = new ResultAggregator("ModelObsPerfTest", testWiring.subscriber, roles.size, completionProbe.ref)
-        Await.result(resultAggregator.startSubscription().ready(), 30.seconds)
+        val resultAggregator =
+          new ResultAggregator(scenarioName, "ModelObsPerfTest", testWiring.subscriber, roles.size, completionProbe.ref)
+        Await.result(resultAggregator.startSubscription().ready(), defaultTimeout)
       }
 
       enterBarrier("subscribers-started")
@@ -157,10 +118,16 @@ class ModelObsPerfTest
 
       enterBarrier("publishers-started")
 
+      var totalDroppedPerSubscriber: Long    = 0L
+      var outOfOrderCountPerSubscriber: Long = 0L
+
       subscribers.foreach {
         case (doneF, subscriber) ⇒
           Await.result(doneF, Duration.Inf)
           subscriber.printResult()
+
+          totalDroppedPerSubscriber += subscriber.totalDropped()
+          outOfOrderCountPerSubscriber += subscriber.outOfOrderCount
 
           histogramPerNode.add(subscriber.histogram)
           eventsReceivedPerNode += subscriber.eventsReceived
@@ -173,20 +140,19 @@ class ModelObsPerfTest
       val publisher = testWiring.publisher
       Await.result(
         publisher.publish(
-          EventUtils.perfResultEvent(byteBuffer.array(), eventsReceivedPerNode / nanosToSeconds(totalTimePerNode))
+          EventUtils.perfResultEvent(
+            byteBuffer.array(),
+            eventsReceivedPerNode / nanosToSeconds(totalTimePerNode),
+            totalDroppedPerSubscriber,
+            outOfOrderCountPerSubscriber
+          )
         ),
-        30.seconds
+        defaultTimeout
       )
 
       runOn(roles.last) {
-        val aggregatedResult = completionProbe.expectMessageType[AggregatedResult](5.minute)
-        latencyPlots = latencyPlots.copy(
-          plot50 = latencyPlots.plot50.addAll(aggregatedResult.latencyPlots.plot50),
-          plot90 = latencyPlots.plot90.addAll(aggregatedResult.latencyPlots.plot90),
-          plot99 = latencyPlots.plot99.addAll(aggregatedResult.latencyPlots.plot99)
-        )
-
-        throughputPlots = throughputPlots.addAll(aggregatedResult.throughputPlots)
+        val aggregatedResult = completionProbe.expectMessageType[AggregatedResult](maxTimeout)
+        aggregateResult("ModelObsPerfTest", aggregatedResult)
       }
 
       enterBarrier("done")
@@ -195,9 +161,10 @@ class ModelObsPerfTest
   }
 
   private val scenarios = new ModelObsScenarios(testConfigs)
+  val scenarioName      = "Model-Obs"
 
   test("Perf results must be great for model observatory use case") {
-    runScenario(scenarios.modelObsScenarioWithFiveProcesses)
+    runScenario(scenarios.modelObsScenarioWithTwoProcesses)
   }
 
 }
