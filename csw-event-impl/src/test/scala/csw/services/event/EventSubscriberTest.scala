@@ -277,6 +277,28 @@ class EventSubscriberTest extends TestNGSuite with Matchers with Eventually with
     inbox.receiveAll().size shouldBe 5
   }
 
+  def should_be_able_to_subscribe_with_pattern(): Unit = {
+    val redisProps = redisTestProps
+    import redisProps._
+    import redisProps.wiring._
+
+    val event1             = makeEvent(1)
+    val eventKey: EventKey = event1.eventKey
+    val testProbe          = TestProbe[Event]()(actorSystem.toTyped)
+    val subscription =
+      subscriber.pSubscribe("*test*").toMat(Sink.foreach(e ⇒ { println(e); testProbe.ref ! e }))(Keep.left).run()
+
+    subscription.ready.await
+    publisher.publish(event1).await
+
+    testProbe.expectMessage(event1)
+
+    subscription.unsubscribe().await
+
+    publisher.publish(event1).await
+    testProbe.expectNoMessage(2.seconds)
+  }
+
   @Test(dataProvider = "event-service-provider")
   def should_be_able_to_make_independent_subscriptions(baseProperties: BaseProperties): Unit = {
     import baseProperties._
