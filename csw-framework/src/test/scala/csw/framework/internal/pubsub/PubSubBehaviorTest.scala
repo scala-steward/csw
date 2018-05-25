@@ -2,12 +2,12 @@ package csw.framework.internal.pubsub
 
 import akka.actor.typed.scaladsl.adapter.UntypedActorSystemOps
 import akka.actor.typed.scaladsl.MutableBehavior
-import akka.actor.{ActorSystem, typed}
+import akka.actor.{typed, ActorSystem}
 import akka.testkit.typed.TestKitSettings
 import akka.testkit.typed.scaladsl.{BehaviorTestKit, TestProbe}
 import csw.framework.FrameworkTestMocks
 import csw.messages.framework
-import csw.messages.framework.PubSub.{Publish, Subscribe, SubscribeOnly, Unsubscribe}
+import csw.messages.framework.PubSub.{Publish, Subscribe, Unsubscribe}
 import csw.messages.framework.{LifecycleStateChanged, PubSub, SupervisorLifecycleState}
 import csw.messages.scaladsl.ComponentMessage
 import csw.services.location.commons.ActorSystemFactory
@@ -18,7 +18,7 @@ import org.scalatest.{BeforeAndAfterAll, FunSuite, Matchers}
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
 
-class PubSubTest extends FunSuite with Matchers with BeforeAndAfterAll {
+class PubSubBehaviorTest extends FunSuite with Matchers with BeforeAndAfterAll {
 
   trait MutableActorMock[T] { this: MutableBehavior[T] ⇒
     protected lazy val log: Logger = MockitoSugar.mock[Logger]
@@ -43,18 +43,14 @@ class PubSubTest extends FunSuite with Matchers with BeforeAndAfterAll {
     val pubSubBehavior: BehaviorTestKit[PubSub[LifecycleStateChanged]] = createPubSubBehavior()
     val supervisorProbe                                                = TestProbe[ComponentMessage]
 
-    pubSubBehavior.run(SubscribeOnly(lifecycleProbe1.ref, (ls:LifecycleStateChanged) => ls == SupervisorLifecycleState.Running))
-    pubSubBehavior.run(SubscribeOnly(lifecycleProbe2.ref, _ => true))
+    //pubSubBehavior.run(SubscribeOnly(lifecycleProbe1.ref, (ls: LifecycleStateChanged) => ls == SupervisorLifecycleState.Running))
+    pubSubBehavior.run(Subscribe(lifecycleProbe1.ref))
+    pubSubBehavior.run(Subscribe(lifecycleProbe2.ref))
 
     pubSubBehavior.run(Publish(LifecycleStateChanged(supervisorProbe.ref, SupervisorLifecycleState.Running)))
-    pubSubBehavior.run(Publish(LifecycleStateChanged(supervisorProbe.ref, SupervisorLifecycleState.Idle)))
-    pubSubBehavior.run(Publish(LifecycleStateChanged(supervisorProbe.ref, SupervisorLifecycleState.Restart)))
 
     lifecycleProbe1.expectMessage(framework.LifecycleStateChanged(supervisorProbe.ref, SupervisorLifecycleState.Running))
     lifecycleProbe2.expectMessage(framework.LifecycleStateChanged(supervisorProbe.ref, SupervisorLifecycleState.Running))
-    lifecycleProbe2.expectMessage(framework.LifecycleStateChanged(supervisorProbe.ref, SupervisorLifecycleState.Idle))
-    lifecycleProbe2.expectMessage(framework.LifecycleStateChanged(supervisorProbe.ref, SupervisorLifecycleState.Restart))
-    lifecycleProbe1.expectNoMessage(200.millis)
   }
 
   test("should not receive messages on un-subscription") {
