@@ -1,12 +1,14 @@
-package models
+package models.alarmentity
 
-case class AlarmInfo(
+import models.Severity
+
+case class AlarmEntity(
     subsystem: String,
     component: String,
     name: String,
     description: String,
     location: String,
-    alarmType: AlarmInfo,
+    alarmType: AlarmType,
     severityLevels: List[Severity],
     probableCause: String,
     operatorResponse: String,

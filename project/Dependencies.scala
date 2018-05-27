@@ -165,6 +165,19 @@ object Dependencies {
     Libs.testng                     % Test
   )
 
+  val Alarm = Seq(
+    Libs.`kafka-streams-scala`,
+    Libs.`kafka-streams-query`,
+    Akka.`akka-stream`,
+    AkkaHttp.`akka-http`,
+    Libs.`play-json`,
+    Enumeratum.`enumeratum-play`,
+    Libs.`scala-async`,
+    Akka.`akka-actor-typed`,
+    Chill.`chill-akka`,
+    Chill.`chill-bijection`
+  )
+
   val Commons = Seq(
     Akka.`akka-stream`,
     AkkaHttp.`akka-http`,

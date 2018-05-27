@@ -195,6 +195,7 @@ lazy val `csw-event-impl` = project
 lazy val `csw-alarm` = project
   .dependsOn(`csw-messages`)
   .enablePlugins(GenJavadocPlugin)
+  .settings(libraryDependencies ++= Dependencies.Alarm)
 
 lazy val `csw-commons` = project
   .enablePlugins(PublishBintray, GenJavadocPlugin)

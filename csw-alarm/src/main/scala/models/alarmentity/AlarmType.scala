@@ -1,4 +1,4 @@
-package models
+package models.alarmentity
 
 import csw.messages.TMTSerializable
 import enumeratum.EnumEntry.Lowercase

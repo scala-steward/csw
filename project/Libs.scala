@@ -33,6 +33,8 @@ object Libs {
   val `scalatest-embedded-redis`     = "com.github.sebruck"     %% "scalatest-embedded-redis"     % "0.3.0"
   val `HdrHistogram`                 = "org.hdrhistogram"       % "HdrHistogram"                  % "2.1.10"
   val `testng`                       = "org.testng"             % "testng"                        % "6.14.3"
+  val `kafka-streams-scala`          = "com.lightbend"          %% "kafka-streams-scala"          % "0.2.1"
+  val `kafka-streams-query`          = "com.lightbend"          %% "kafka-streams-query"          % "0.1.1"
 }
 
 object Jackson {
