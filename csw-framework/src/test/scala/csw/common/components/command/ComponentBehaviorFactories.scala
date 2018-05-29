@@ -1,6 +1,7 @@
 package csw.common.components.command
 
 import akka.actor.typed.scaladsl.ActorContext
+import csw.common.components.pubsub.{PubSubAssemblyComponentHandlers, PubSubHcdComponentHandlers}
 import csw.framework.scaladsl.{ComponentBehaviorFactory, ComponentHandlers, CurrentStatePublisher}
 import csw.messages.framework.ComponentInfo
 import csw.messages.scaladsl.TopLevelActorMessage
@@ -56,4 +57,36 @@ class McsHcdBehaviorFactory extends ComponentBehaviorFactory {
       loggerFactory: LoggerFactory
   ): ComponentHandlers =
     new McsHcdComponentHandlers(ctx, componentInfo, commandResponseManager, currentStatePublisher, locationService, loggerFactory)
+}
+
+
+class PubSubAssemblyBehaviorFactory extends ComponentBehaviorFactory {
+  protected override def handlers(
+                                   ctx: ActorContext[TopLevelActorMessage],
+                                   componentInfo: ComponentInfo,
+                                   commandResponseManager: CommandResponseManager,
+                                   currentStatePublisher: CurrentStatePublisher,
+                                   locationService: LocationService,
+                                   loggerFactory: LoggerFactory
+                                 ): ComponentHandlers =
+    new PubSubAssemblyComponentHandlers(
+      ctx,
+      componentInfo,
+      commandResponseManager,
+      currentStatePublisher,
+      locationService,
+      loggerFactory
+    )
+}
+
+class PubSubHcdBehaviorFactory extends ComponentBehaviorFactory {
+  protected override def handlers(
+                                   ctx: ActorContext[TopLevelActorMessage],
+                                   componentInfo: ComponentInfo,
+                                   commandResponseManager: CommandResponseManager,
+                                   currentStatePublisher: CurrentStatePublisher,
+                                   locationService: LocationService,
+                                   loggerFactory: LoggerFactory
+                                 ): ComponentHandlers =
+    new PubSubHcdComponentHandlers(ctx, componentInfo, commandResponseManager, currentStatePublisher, locationService, loggerFactory)
 }
