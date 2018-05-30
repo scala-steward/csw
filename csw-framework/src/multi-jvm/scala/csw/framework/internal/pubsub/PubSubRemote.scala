@@ -8,15 +8,15 @@ import akka.testkit.typed.TestKitSettings
 import akka.testkit.typed.scaladsl.TestProbe
 import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
-import csw.common.components.command.ComponentStateForCommand._
+import csw.common.components.pubsub.ComponentStateForPubSub._
 import csw.framework.internal.wiring.{FrameworkWiring, Standalone}
-import csw.messages.commands.CommandResponse.{Accepted, Completed, Invalid}
 import csw.messages.commands.{CommandResponse, Setup}
 import csw.messages.location.Connection.AkkaConnection
 import csw.messages.location.{AkkaLocation, ComponentId, ComponentType}
 import csw.messages.params.models.ObsId
 import csw.messages.params.states.CurrentState
-import csw.services.command.scaladsl.{CommandDistributor, CommandService}
+import csw.messages.scaladsl.ComponentMessage
+import csw.services.command.scaladsl.CommandService
 import csw.services.location.helpers.{LSNodeSpec, OneMemberAndSeed}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
@@ -45,16 +45,18 @@ class PubSubRemote(ignore: Int) extends LSNodeSpec(config = new OneMemberAndSeed
       val obsId = ObsId("Obs001")
 
       // resolve assembly running in jvm-2 and send setup command expecting immediate command completion response
-      val assemblyLocF =
+      val hcdLocF =
         locationService.resolve(
-          AkkaConnection(ComponentId("Test_Component_Running_Long_Command", ComponentType.Assembly)),
+          AkkaConnection(ComponentId("Test_Remote_PubSub_HCD", ComponentType.HCD)),
           5.seconds
         )
-      val assemblyLocation: AkkaLocation = Await.result(assemblyLocF, 10.seconds).get
-      val assemblyCommandService         = new CommandService(assemblyLocation)
+      val hcdLocation: AkkaLocation = Await.result(hcdLocF, 10.seconds).get
+      val hcdCommandService         = new CommandService(hcdLocation)
 
-      val setup = Setup(prefix, longRunning, Some(obsId))
+      val setup = Setup(prefix, publishCmd, Some(obsId))
       val probe = TestProbe[CurrentState]
+
+      val hcdSubscription = hcdCommandService.subscribeCurrentState(probe.ref ! _)
 
     }
 

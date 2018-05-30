@@ -9,10 +9,12 @@ import csw.messages.location.TrackingEvent
 import csw.messages.scaladsl.CommandResponseManagerMessage.AddOrUpdateCommand
 import csw.messages.scaladsl.TopLevelActorMessage
 import csw.services.command.scaladsl.CommandResponseManager
+import csw.common.components.pubsub.ComponentStateForPubSub._
 import csw.services.location.scaladsl.LocationService
 import csw.services.logging.scaladsl.LoggerFactory
 
 import scala.concurrent.Future
+import scala.concurrent.duration._
 
 class PubSubHcdComponentHandlers(
   ctx: ActorContext[TopLevelActorMessage],
@@ -36,30 +38,17 @@ class PubSubHcdComponentHandlers(
 
     override def validateCommand(controlCommand: ControlCommand): CommandResponse = {
       controlCommand.commandName match {
-        case `longRunning`               ⇒ Accepted(controlCommand.runId)
-        case `mediumRunning`             ⇒ Accepted(controlCommand.runId)
-        case `shortRunning`              ⇒ Accepted(controlCommand.runId)
-        case `failureAfterValidationCmd` ⇒ Accepted(controlCommand.runId)
+        case `publishCmd`                ⇒ Accepted(controlCommand.runId)
         case _                           ⇒ CommandResponse.Error(controlCommand.runId, "")
       }
     }
 
     override def onSubmit(controlCommand: ControlCommand): Unit = {
       controlCommand.commandName match {
-        case `longRunning` ⇒
-          ctx.schedule(5.seconds,
-            commandResponseManager.commandResponseManagerActor,
-            AddOrUpdateCommand(controlCommand.runId, Completed(controlCommand.runId)))
-        case `mediumRunning` ⇒
-          ctx.schedule(3.seconds,
-            commandResponseManager.commandResponseManagerActor,
-            AddOrUpdateCommand(controlCommand.runId, Completed(controlCommand.runId)))
-        case `shortRunning` ⇒
+        case `publishCmd` ⇒
           ctx.schedule(1.seconds,
             commandResponseManager.commandResponseManagerActor,
             AddOrUpdateCommand(controlCommand.runId, Completed(controlCommand.runId)))
-        case `failureAfterValidationCmd` ⇒
-          commandResponseManager.addOrUpdateCommand(controlCommand.runId, Error(controlCommand.runId, "Failed command"))
         case _ ⇒
       }
     }

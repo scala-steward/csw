@@ -18,6 +18,8 @@ import csw.services.logging.scaladsl.LoggerFactory
 
 import scala.concurrent.{ExecutionContext, Future}
 
+import scala.concurrent.duration._
+
 class PubSubAssemblyComponentHandlers(ctx: ActorContext[TopLevelActorMessage],
                                       componentInfo: ComponentInfo,
                                       commandResponseManager: CommandResponseManager,
