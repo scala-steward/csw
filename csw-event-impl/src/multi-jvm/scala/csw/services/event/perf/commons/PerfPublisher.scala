@@ -1,4 +1,4 @@
-package csw.services.event.perf.event_service
+package csw.services.event.perf.commons
 
 import akka.Done
 import akka.actor.Cancellable
@@ -11,33 +11,36 @@ import csw.services.event.scaladsl.EventPublisher
 
 import scala.async.Async.{async, await}
 import scala.concurrent.Future
+import scala.concurrent.duration.DurationLong
 
-class Publisher(
-    testSettings: TestSettings,
+class PerfPublisher(
+    publishKey: String,
+    eventsSetting: EventsSetting,
     testConfigs: TestConfigs,
-    id: Int,
     testWiring: TestWiring,
     sharedPublisher: EventPublisher
 ) {
+  import eventsSetting._
   import testConfigs._
-  import testSettings._
   import testWiring.wiring._
 
-  private val totalMessages        = totalTestMsgs + warmupMsgs + 1 //inclusive of end-event
+  private val totalMessages        = totalTestMsgs + warmup + 1 //inclusive of end-event
   private val payload: Array[Byte] = ("0" * payloadSize).getBytes("utf-8")
 
   private val publisher: EventPublisher =
     if (shareConnection) sharedPublisher else testWiring.publisher
 
-  private val endEvent                 = event(EventName(s"${EventUtils.endEventS}-$id"))
-  private val eventName                = EventName(s"$testEventS-$id")
+  private val endEvent                 = event(EventName(s"${EventUtils.endEventS}-$publishKey"))
+  private val eventName                = EventName(s"$testEventS-$publishKey")
   private var eventId                  = 0
   private var cancellable: Cancellable = _
   private var remaining: Long          = totalMessages
 
   private def eventGenerator(): Event = {
     eventId += 1
-    if (eventId > totalMessages) cancellable.cancel()
+    // send extra two end envents in case one goes missing
+    // subscriber stops listening on receiving firs end event, hence not affected by publisher publishing multiple end events
+    if (eventId > totalMessages + 2) cancellable.cancel()
     if (eventId < totalMessages) event(eventName, eventId, payload) else endEvent
   }
 
@@ -48,12 +51,12 @@ class Publisher(
       }
       .watchTermination()(Keep.right)
 
-  def startPublishingWithEventGenerator(): Unit = { cancellable = publisher.publish(eventGenerator(), publishFrequency) }
+  def startPublishingWithEventGenerator(): Unit = { cancellable = publisher.publish(eventGenerator(), (1000 / rate).millis) }
 
   def startPublishingWithSource(): Future[Done] =
     for {
-      _   ← publisher.publish(source(EventName(s"$testEventS-$id")))
-      end ← publisher.publish(event(EventName(s"$endEventS-$id")))
+      _   ← publisher.publish(source(EventName(s"$testEventS-$publishKey")))
+      end ← publisher.publish(event(EventName(s"$endEventS-$publishKey")))
     } yield end
 
   def startPublishingInBatches(): Future[Done] = async {
@@ -73,7 +76,7 @@ class Publisher(
       await(Future.sequence(batchCompletionF))
     }
 
-    await(publisher.publish(event(EventName(s"$endEventS-$id"))))
+    await(publisher.publish(event(EventName(s"$endEventS-$publishKey"))))
   }
 
 }
