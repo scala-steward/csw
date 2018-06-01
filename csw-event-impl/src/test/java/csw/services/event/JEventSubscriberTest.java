@@ -51,7 +51,7 @@ public class JEventSubscriberTest extends TestNGSuite {
         redisTestProps.redisSentinel().stop();
         redisTestProps.wiring().jShutdown(CoordinatedShutdownReasons.TestFinishedReason$.MODULE$).get(10, TimeUnit.SECONDS);
 
-        kafkaTestProps.publisher().asJava().shutdown().get(10, TimeUnit.SECONDS);
+        kafkaTestProps.jPublisher().shutdown().get(10, TimeUnit.SECONDS);
         EmbeddedKafka$.MODULE$.stop();
         kafkaTestProps.wiring().jShutdown(CoordinatedShutdownReasons.TestFinishedReason$.MODULE$).get(10, TimeUnit.SECONDS);
     }
@@ -111,6 +111,7 @@ public class JEventSubscriberTest extends TestNGSuite {
     }
 
     //DEOPSCSW-338: Provide callback for Event alerts
+    //DEOPSCSW-343: Unsubscribe based on prefix and event name
     @Test(dataProvider = "event-service-provider")
     public void should_be_able_to_subscribe_with_async_callback(BaseProperties baseProperties) throws InterruptedException, TimeoutException, ExecutionException {
         Event event1 = Utils.makeDistinctEvent(304);
