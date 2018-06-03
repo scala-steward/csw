@@ -8,8 +8,6 @@ import akka.testkit.typed.TestKitSettings
 import akka.testkit.typed.scaladsl.TestProbe
 import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
-import csw.common.components.pubsub.ComponentStateForPubSub
-import csw.common.components.pubsub.ComponentStateForPubSub._
 import csw.framework.internal.wiring.{FrameworkWiring, Standalone}
 import csw.messages.commands.CommandResponse.Accepted
 import csw.messages.commands.Setup
@@ -29,6 +27,7 @@ class PubSubRemoteMultiJvmNode1 extends PubSubRemote(ignore = 0)
 class PubSubRemoteMultiJvmNode2 extends PubSubRemote(ignore = 0)
 
 class PubSubRemote(ignore: Int) extends LSNodeSpec(config = new OneMemberAndSeed) with ScalaFutures {
+  import csw.common.components.pubsub.ComponentStateForPubSub._
 
   import config._
 
@@ -39,9 +38,9 @@ class PubSubRemote(ignore: Int) extends LSNodeSpec(config = new OneMemberAndSeed
   implicit val scheduler: Scheduler = actorSystem.scheduler
   implicit val testkit: TestKitSettings = TestKitSettings(actorSystem)
 
-  val probe = TestProbe[CurrentState]
+  private val probe = TestProbe[CurrentState]
   // A second probe that will handle only csprefix1
-  val probe2 = TestProbe[CurrentState]
+  private val probe2 = TestProbe[CurrentState]
 
   test("See if pubsub 2 function is supported") {
 
@@ -71,25 +70,25 @@ class PubSubRemote(ignore: Int) extends LSNodeSpec(config = new OneMemberAndSeed
         result shouldBe a[Accepted]
       }
 
-      probe.expectMessage(CurrentState(csprefix1))
-      probe.expectMessage(CurrentState(csprefix2))
+      probe.expectMessage(CurrentState(prefix, stateName1))
+      probe.expectMessage(CurrentState(prefix, stateName2))
 
       enterBarrier("pubsub2")
 
       // Subscribe probe2 to only csprefix1
       val cssubscriber = hcdCommandService.subscribeOnlyCurrentState(probe2.ref ! _,
-        (cs: CurrentState) => cs.prefix == ComponentStateForPubSub.csprefix1)
+        (cs: CurrentState) => cs.stateName == stateName1)
 
       val response2 = hcdCommandService.submit(setup)
       whenReady(response2, PatienceConfiguration.Timeout(10.seconds)) { result =>
         result shouldBe a[Accepted]
       }
 
-      probe.expectMessage(CurrentState(csprefix1))
-      probe.expectMessage(CurrentState(csprefix2))
+      probe.expectMessage(CurrentState(prefix, stateName1))
+      probe.expectMessage(CurrentState(prefix, stateName2))
       probe.expectNoMessage(200.millis)
 
-      probe2.expectMessage(CurrentState(csprefix1))
+      probe2.expectMessage(CurrentState(prefix, stateName1))
       probe2.expectNoMessage(200.millis)
 
       enterBarrier("pubsub3")
@@ -102,8 +101,8 @@ class PubSubRemote(ignore: Int) extends LSNodeSpec(config = new OneMemberAndSeed
         result shouldBe a[Accepted]
       }
 
-      probe.expectMessage(CurrentState(csprefix1))
-      probe.expectMessage(CurrentState(csprefix2))
+      probe.expectMessage(CurrentState(prefix, stateName1))
+      probe.expectMessage(CurrentState(prefix, stateName2))
       probe.expectNoMessage(200.millis)
 
       probe2.expectNoMessage(200.millis)

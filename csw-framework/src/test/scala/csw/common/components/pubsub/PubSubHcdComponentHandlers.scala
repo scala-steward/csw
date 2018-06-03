@@ -43,10 +43,11 @@ class PubSubHcdComponentHandlers(
   }
 
   override def onSubmit(controlCommand: ControlCommand): Unit = {
+    import ComponentStateForPubSub._
     controlCommand.commandName match {
       case `publishCmd` ⇒
-        currentStatePublisher.publish(CurrentState(ComponentStateForPubSub.csprefix1))
-        currentStatePublisher.publish(CurrentState(ComponentStateForPubSub.csprefix2))
+        currentStatePublisher.publish(CurrentState(prefix, stateName1))
+        currentStatePublisher.publish(CurrentState(prefix, stateName2))
 
       case _ ⇒
     }

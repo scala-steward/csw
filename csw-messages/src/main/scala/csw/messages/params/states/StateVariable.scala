@@ -36,6 +36,14 @@ object StateVariable {
      * identifies the name of the state
      */
     val stateName: StateName
+
+    /**
+     * A common toString method for all concrete implementation
+     *
+     * @return the string representation of a StateVariable
+     */
+    override def toString: String =
+      s"$typeName(prefix=$prefix, stateName=$stateName, paramSet=$paramSet)"
   }
 
   /**
