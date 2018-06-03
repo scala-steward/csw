@@ -8,34 +8,40 @@ import akka.testkit.typed.TestKitSettings
 import akka.testkit.typed.scaladsl.TestProbe
 import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
+import csw.common.components.pubsub.ComponentStateForPubSub
 import csw.common.components.pubsub.ComponentStateForPubSub._
 import csw.framework.internal.wiring.{FrameworkWiring, Standalone}
-import csw.messages.commands.{CommandResponse, Setup}
+import csw.messages.commands.CommandResponse.Accepted
+import csw.messages.commands.Setup
 import csw.messages.location.Connection.AkkaConnection
 import csw.messages.location.{AkkaLocation, ComponentId, ComponentType}
 import csw.messages.params.models.ObsId
 import csw.messages.params.states.CurrentState
-import csw.messages.scaladsl.ComponentMessage
 import csw.services.command.scaladsl.CommandService
 import csw.services.location.helpers.{LSNodeSpec, OneMemberAndSeed}
-import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
 
 import scala.concurrent.duration.DurationDouble
-import scala.concurrent.{Await, ExecutionContextExecutor, Future}
+import scala.concurrent.{Await, ExecutionContextExecutor}
 
 class PubSubRemoteMultiJvmNode1 extends PubSubRemote(ignore = 0)
+
 class PubSubRemoteMultiJvmNode2 extends PubSubRemote(ignore = 0)
 
-class PubSubRemote(ignore: Int) extends LSNodeSpec(config = new OneMemberAndSeed) with BeforeAndAfterEach {
+class PubSubRemote(ignore: Int) extends LSNodeSpec(config = new OneMemberAndSeed) with ScalaFutures {
+
   import config._
 
-  implicit val actorSystem: ActorSystem[_]  = system.toTyped
-  implicit val mat: Materializer            = ActorMaterializer()
+  implicit val actorSystem: ActorSystem[_] = system.toTyped
+  implicit val mat: Materializer = ActorMaterializer()
   implicit val ec: ExecutionContextExecutor = actorSystem.executionContext
-  implicit val timeout: Timeout             = 20.seconds
-  implicit val scheduler: Scheduler         = actorSystem.scheduler
-  implicit val testkit: TestKitSettings     = TestKitSettings(actorSystem)
+  implicit val timeout: Timeout = 20.seconds
+  implicit val scheduler: Scheduler = actorSystem.scheduler
+  implicit val testkit: TestKitSettings = TestKitSettings(actorSystem)
+
+  val probe = TestProbe[CurrentState]
+  // A second probe that will handle only csprefix1
+  val probe2 = TestProbe[CurrentState]
 
   test("See if pubsub 2 function is supported") {
 
@@ -51,24 +57,68 @@ class PubSubRemote(ignore: Int) extends LSNodeSpec(config = new OneMemberAndSeed
           5.seconds
         )
       val hcdLocation: AkkaLocation = Await.result(hcdLocF, 10.seconds).get
-      val hcdCommandService         = new CommandService(hcdLocation)
+      val hcdCommandService = new CommandService(hcdLocation)
+
+      enterBarrier("pubsub1")
 
       val setup = Setup(prefix, publishCmd, Some(obsId))
-      val probe = TestProbe[CurrentState]
 
-      val hcdSubscription = hcdCommandService.subscribeCurrentState(probe.ref ! _)
+      // Subscribe probe1 to all CurrentState values
+      hcdCommandService.subscribeCurrentState(probe.ref ! _)
 
+      val response1 = hcdCommandService.submit(setup)
+      whenReady(response1, PatienceConfiguration.Timeout(10.seconds)) { result =>
+        result shouldBe a[Accepted]
+      }
+
+      probe.expectMessage(CurrentState(csprefix1))
+      probe.expectMessage(CurrentState(csprefix2))
+
+      enterBarrier("pubsub2")
+
+      // Subscribe probe2 to only csprefix1
+      val cssubscriber = hcdCommandService.subscribeOnlyCurrentState(probe2.ref ! _,
+        (cs: CurrentState) => cs.prefix == ComponentStateForPubSub.csprefix1)
+
+      val response2 = hcdCommandService.submit(setup)
+      whenReady(response2, PatienceConfiguration.Timeout(10.seconds)) { result =>
+        result shouldBe a[Accepted]
+      }
+
+      probe.expectMessage(CurrentState(csprefix1))
+      probe.expectMessage(CurrentState(csprefix2))
+      probe.expectNoMessage(200.millis)
+
+      probe2.expectMessage(CurrentState(csprefix1))
+      probe2.expectNoMessage(200.millis)
+
+      enterBarrier("pubsub3")
+
+      // One more fun test to see if unsubscribe works
+      cssubscriber.unsubscribe()
+
+      val response3 = hcdCommandService.submit(setup)
+      whenReady(response3, PatienceConfiguration.Timeout(10.seconds)) { result =>
+        result shouldBe a[Accepted]
+      }
+
+      probe.expectMessage(CurrentState(csprefix1))
+      probe.expectMessage(CurrentState(csprefix2))
+      probe.expectNoMessage(200.millis)
+
+      probe2.expectNoMessage(200.millis)
     }
 
     runOn(member) {
       // spawn single hcd running in Standalone mode in jvm-3
-      val wiring  = FrameworkWiring.make(system, locationService)
-      val hcdConf = ConfigFactory.load("command/mcs_hcd.conf")
+      val wiring = FrameworkWiring.make(system, locationService)
+      val hcdConf = ConfigFactory.load("pubsub/pubsub_hcd.conf")
       Await.result(Standalone.spawn(hcdConf, wiring), 5.seconds)
       enterBarrier("spawned")
-      enterBarrier("long-commands")
-      enterBarrier("multiple-components-submit-multiple-commands")
-      enterBarrier("multiple-components-submit-subscribe-multiple-commands")
+      enterBarrier("pubsub1")
+      enterBarrier("pubsub2")
+      enterBarrier("pubsub3")
+
     }
     enterBarrier("end")
 

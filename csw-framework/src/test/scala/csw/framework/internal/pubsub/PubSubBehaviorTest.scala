@@ -2,7 +2,7 @@ package csw.framework.internal.pubsub
 
 import akka.actor.typed.scaladsl.adapter.UntypedActorSystemOps
 import akka.actor.typed.scaladsl.MutableBehavior
-import akka.actor.{ActorSystem, typed}
+import akka.actor.{typed, ActorSystem}
 import akka.testkit.typed.TestKitSettings
 import akka.testkit.typed.scaladsl.{BehaviorTestKit, TestProbe}
 import csw.framework.FrameworkTestMocks
@@ -28,7 +28,7 @@ class PubSubBehaviorTest extends FunSuite with Matchers with BeforeAndAfterAll {
   implicit val system: typed.ActorSystem[_]     = untypedSystem.toTyped
   implicit val testKitSettings: TestKitSettings = TestKitSettings(system)
 
-  private val mocks                             = new FrameworkTestMocks()
+  private val mocks = new FrameworkTestMocks()
 
   private val lifecycleProbe1 = TestProbe[LifecycleStateChanged]
   private val lifecycleProbe2 = TestProbe[LifecycleStateChanged]
@@ -51,7 +51,7 @@ class PubSubBehaviorTest extends FunSuite with Matchers with BeforeAndAfterAll {
     lifecycleProbe2.expectMessage(framework.LifecycleStateChanged(supervisorProbe.ref, SupervisorLifecycleState.Running))
   }
 
-  test("message should be published to some subscribers") {
+  test("message should be published to some subscribers using filter") {
     case class TestData(data: Int)
 
     val testDataProbe1 = TestProbe[TestData]
@@ -59,7 +59,7 @@ class PubSubBehaviorTest extends FunSuite with Matchers with BeforeAndAfterAll {
 
     val pubSubBehavior: BehaviorTestKit[PubSub[TestData]] = BehaviorTestKit(PubSubBehavior.behavior(mocks.loggerFactory))
 
-    pubSubBehavior.run(SubscribeOnly(testDataProbe1.ref, (x:TestData) => x.data == 3))
+    pubSubBehavior.run(SubscribeOnly(testDataProbe1.ref, (x: TestData) => x.data == 3))
     pubSubBehavior.run(Subscribe(testDataProbe2.ref))
 
     pubSubBehavior.run(Publish(TestData(3)))
