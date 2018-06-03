@@ -8,7 +8,7 @@ import csw.messages.params.generics.KeyType
 import csw.messages.params.generics.KeyType.{LongMatrixKey, StructKey}
 import csw.messages.params.models.Units.{encoder, meter, second, NoUnits}
 import csw.messages.params.models._
-import csw.messages.params.states.{CurrentState, DemandState}
+import csw.messages.params.states.{CurrentState, DemandState, StateName}
 import org.scalatest.{FunSpec, Matchers}
 import play.api.libs.json.Json
 
@@ -16,8 +16,9 @@ import scala.io.Source
 
 // DEOPSCSW-183: Configure attributes and values
 // DEOPSCSW-188: Efficient Serialization to/from JSON
-//DEOPSCSW-282: Add a timestamp Key and Parameter
-//DEOPSCSW-184: Change configurations - attributes and values
+// DEOPSCSW-282: Add a timestamp Key and Parameter
+// DEOPSCSW-184: Change configurations - attributes and values
+// DEOPSCSW-423: Introduce name for CurrentState and DemandState
 class JsonContractTest extends FunSpec with Matchers {
 
   private val prefix: Prefix       = Prefix("wfos.blue.filter")
@@ -122,13 +123,14 @@ class JsonContractTest extends FunSpec with Matchers {
       val a1: Array[Int] = Array(1, 2, 3, 4, 5)
       val a2: Array[Int] = Array(10, 20, 30, 40, 50)
       val timestampKey   = KeyType.TimestampKey.make("timestampKey")
+      val stateName      = StateName("testStateName")
 
       val charParam     = charKey.set('A', 'B', 'C').withUnits(encoder)
       val intArrayParam = intArrayKey.set(a1, a2).withUnits(meter)
       val timestampParam =
         timestampKey.set(Instant.ofEpochMilli(0), Instant.parse("2017-09-04T16:28:00.123456789Z")).withUnits(second)
 
-      val currentState       = CurrentState(prefix).madd(charParam, intArrayParam, timestampParam)
+      val currentState       = CurrentState(prefix, stateName).madd(charParam, intArrayParam, timestampParam)
       val currentStateToJson = Json.prettyPrint(JsonSupport.writeStateVariable(currentState))
 
       val expectedCurrentStateJson =
@@ -141,13 +143,14 @@ class JsonContractTest extends FunSpec with Matchers {
       val intKey       = KeyType.IntKey.make("intKey")
       val booleanKey   = KeyType.BooleanKey.make("booleanKey")
       val timestampKey = KeyType.TimestampKey.make("timestampKey")
+      val stateName    = StateName("testStateName")
 
       val charParam      = charKey.set('A', 'B', 'C').withUnits(NoUnits)
       val intParam       = intKey.set(1, 2, 3).withUnits(meter)
       val booleanParam   = booleanKey.set(true, false)
       val timestampParam = timestampKey.set(Instant.ofEpochMilli(0), Instant.parse("2017-09-04T16:28:00.123456789Z"))
 
-      val demandState       = DemandState(prefix).madd(charParam, intParam, booleanParam, timestampParam)
+      val demandState       = DemandState(prefix, stateName).madd(charParam, intParam, booleanParam, timestampParam)
       val demandStateToJson = Json.prettyPrint(JsonSupport.writeStateVariable(demandState))
 
       val expectedDemandStateJson = Json.prettyPrint(Json.parse(Source.fromResource("json/demand_state.json").mkString))

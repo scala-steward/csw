@@ -5,10 +5,9 @@ import java.util.concurrent.TimeUnit.SECONDS
 import java.util.concurrent.{ExecutorService, Executors}
 
 import akka.Done
-import akka.remote.testkit.{MultiNodeSpec, MultiNodeSpecCallbacks}
+import akka.remote.testkit.{MultiNodeConfig, MultiNodeSpec, MultiNodeSpecCallbacks}
 import akka.testkit.ImplicitSender
 import csw.services.event.perf.commons.PerfSubscriber
-import csw.services.event.perf.model_obs.ModelObsMultiNodeConfig
 import csw.services.event.perf.reporter._
 import csw.services.event.perf.utils.EventUtils.nanosToSeconds
 import csw.services.event.perf.utils.{EventUtils, SystemMonitoringSupport}
@@ -22,8 +21,8 @@ import scala.concurrent.duration.{Duration, DurationDouble, FiniteDuration}
 import scala.concurrent.{Await, Future}
 import scala.sys.process.{FileProcessLogger, Process}
 
-class BasePerfSuite
-    extends MultiNodeSpec(ModelObsMultiNodeConfig)
+class BasePerfSuite(config: MultiNodeConfig)
+    extends MultiNodeSpec(config)
     with MultiNodeSpecCallbacks
     with FunSuiteLike
     with Matchers
@@ -86,12 +85,12 @@ class BasePerfSuite
   }
 
   def waitForResultsFromAllSubscribers(subscribers: immutable.Seq[(Future[Done], PerfSubscriber)]): Unit = {
-    val histogramPerNode       = new Histogram(SECONDS.toNanos(10), 3)
-    var totalTimePerNode       = 0L
-    var eventsReceivedPerNode  = 0L
-    var totalDroppedPerNode    = 0L
-    var outOfOrderCountPerNode = 0L
-    var avgLatencyPerNode      = 0L
+    val histogramPerNode         = new Histogram(SECONDS.toNanos(10), 3)
+    var totalTimePerNode         = 0L
+    var eventsReceivedPerNode    = 0L
+    var totalDroppedPerNode      = 0L
+    var outOfOrderCountPerNode   = 0L
+    var aggregatedLatencyPerNode = 0L
 
     subscribers.foreach {
       case (doneF, subscriber) ⇒
@@ -99,9 +98,7 @@ class BasePerfSuite
         if (!subscriber.isPatternSubscriber) {
           outOfOrderCountPerNode += subscriber.outOfOrderCount
           totalDroppedPerNode += subscriber.totalDropped()
-          avgLatencyPerNode =
-            if (avgLatencyPerNode == 0) subscriber.avgLatency else (avgLatencyPerNode + subscriber.avgLatency) / 2
-
+          aggregatedLatencyPerNode += subscriber.avgLatency()
           histogramPerNode.add(subscriber.histogram)
           eventsReceivedPerNode += subscriber.eventsReceived
           totalTimePerNode = Math.max(totalTimePerNode, subscriber.totalTime)
@@ -118,7 +115,7 @@ class BasePerfSuite
           eventsReceivedPerNode / nanosToSeconds(totalTimePerNode),
           totalDroppedPerNode,
           outOfOrderCountPerNode,
-          avgLatencyPerNode
+          aggregatedLatencyPerNode / subscribers.size
         )
       ),
       defaultTimeout
