@@ -7,9 +7,8 @@ import csw.framework.javadsl.commons.JComponentInfos.{jHcdInfo, jHcdInfoWithInit
 import csw.messages.commands.CommandResponse.{Accepted, Invalid}
 import csw.messages.commands._
 import csw.messages.commands.matchers.DemandMatcher
-import csw.messages.framework.PubSub.Subscribe
 import csw.messages.framework.ToComponentLifecycleMessages.{GoOffline, GoOnline}
-import csw.messages.framework.{ComponentInfo, LifecycleStateChanged, SupervisorLifecycleState}
+import csw.messages.framework._
 import csw.messages.location.ComponentType.{Assembly, HCD}
 import csw.messages.location.Connection.AkkaConnection
 import csw.messages.params.generics.{KeyType, Parameter}
@@ -59,8 +58,8 @@ class SupervisorModuleTest extends FrameworkTestSuite with BeforeAndAfterEach {
         val containerIdleMessageProbe = TestProbe[ContainerIdleMessage]
         val supervisorRef             = createSupervisorAndStartTLA(info, mocks, containerIdleMessageProbe.ref)
 
-        supervisorRef ! ComponentStateSubscription(Subscribe(compStateProbe.ref))
-        supervisorRef ! LifecycleStateSubscription(Subscribe(lifecycleStateProbe.ref))
+        supervisorRef ! ComponentStateSubscription(CurrentStatePubSub.Subscribe(compStateProbe.ref))
+        supervisorRef ! LifecycleStateSubscription(PubSub.Subscribe(lifecycleStateProbe.ref))
 
         compStateProbe.expectMessage(CurrentState(prefix, StateName("testStateName"), Set(choiceKey.set(initChoice))))
 
@@ -100,8 +99,8 @@ class SupervisorModuleTest extends FrameworkTestSuite with BeforeAndAfterEach {
         val supervisorRef                                              = createSupervisorAndStartTLA(info, mocks)
         val commandValidationResponseProbe: TestProbe[CommandResponse] = TestProbe[CommandResponse]
 
-        supervisorRef ! ComponentStateSubscription(Subscribe(compStateProbe.ref))
-        supervisorRef ! LifecycleStateSubscription(Subscribe(lifecycleStateProbe.ref))
+        supervisorRef ! ComponentStateSubscription(CurrentStatePubSub.Subscribe(compStateProbe.ref))
+        supervisorRef ! LifecycleStateSubscription(PubSub.Subscribe(lifecycleStateProbe.ref))
         compStateProbe.expectMessage(CurrentState(prefix, StateName("testStateName"), Set(choiceKey.set(initChoice))))
         lifecycleStateProbe.expectMessage(LifecycleStateChanged(supervisorRef, SupervisorLifecycleState.Running))
 
@@ -175,8 +174,8 @@ class SupervisorModuleTest extends FrameworkTestSuite with BeforeAndAfterEach {
         val supervisorRef                                              = createSupervisorAndStartTLA(info, mocks)
         val commandValidationResponseProbe: TestProbe[CommandResponse] = TestProbe[CommandResponse]
 
-        supervisorRef ! ComponentStateSubscription(Subscribe(compStateProbe.ref))
-        supervisorRef ! LifecycleStateSubscription(Subscribe(lifecycleStateProbe.ref))
+        supervisorRef ! ComponentStateSubscription(CurrentStatePubSub.Subscribe(compStateProbe.ref))
+        supervisorRef ! LifecycleStateSubscription(PubSub.Subscribe(lifecycleStateProbe.ref))
 
         compStateProbe.expectMessage(CurrentState(prefix, StateName("testStateName"), Set(choiceKey.set(initChoice))))
         lifecycleStateProbe.expectMessage(LifecycleStateChanged(supervisorRef, SupervisorLifecycleState.Running))
@@ -248,8 +247,8 @@ class SupervisorModuleTest extends FrameworkTestSuite with BeforeAndAfterEach {
         import mocks._
         val supervisorRef = createSupervisorAndStartTLA(hcdInfo, mocks)
 
-        supervisorRef ! ComponentStateSubscription(Subscribe(compStateProbe.ref))
-        supervisorRef ! LifecycleStateSubscription(Subscribe(lifecycleStateProbe.ref))
+        supervisorRef ! ComponentStateSubscription(CurrentStatePubSub.Subscribe(compStateProbe.ref))
+        supervisorRef ! LifecycleStateSubscription(PubSub.Subscribe(lifecycleStateProbe.ref))
 
         compStateProbe.expectMessage(CurrentState(prefix, StateName("testStateName"), Set(choiceKey.set(initChoice))))
         lifecycleStateProbe.expectMessage(LifecycleStateChanged(supervisorRef, SupervisorLifecycleState.Running))
@@ -275,8 +274,8 @@ class SupervisorModuleTest extends FrameworkTestSuite with BeforeAndAfterEach {
         import mocks._
         val supervisorRef = createSupervisorAndStartTLA(info, mocks)
 
-        supervisorRef ! ComponentStateSubscription(Subscribe(compStateProbe.ref))
-        supervisorRef ! LifecycleStateSubscription(Subscribe(lifecycleStateProbe.ref))
+        supervisorRef ! ComponentStateSubscription(CurrentStatePubSub.Subscribe(compStateProbe.ref))
+        supervisorRef ! LifecycleStateSubscription(PubSub.Subscribe(lifecycleStateProbe.ref))
 
         compStateProbe.expectMessage(CurrentState(prefix, StateName("testStateName"), Set(choiceKey.set(initChoice))))
         lifecycleStateProbe.expectMessage(LifecycleStateChanged(supervisorRef, SupervisorLifecycleState.Running))
@@ -304,8 +303,8 @@ class SupervisorModuleTest extends FrameworkTestSuite with BeforeAndAfterEach {
         val containerIdleMessageProbe = TestProbe[ContainerIdleMessage]
         val supervisorRef             = createSupervisorAndStartTLA(info, mocks, containerIdleMessageProbe.ref)
 
-        supervisorRef ! ComponentStateSubscription(Subscribe(compStateProbe.ref))
-        supervisorRef ! LifecycleStateSubscription(Subscribe(lifecycleStateProbe.ref))
+        supervisorRef ! ComponentStateSubscription(CurrentStatePubSub.Subscribe(compStateProbe.ref))
+        supervisorRef ! LifecycleStateSubscription(PubSub.Subscribe(lifecycleStateProbe.ref))
 
         compStateProbe.expectMessage(CurrentState(prefix, StateName("testStateName"), Set(choiceKey.set(initChoice))))
         lifecycleStateProbe.expectMessage(LifecycleStateChanged(supervisorRef, SupervisorLifecycleState.Running))
@@ -332,8 +331,8 @@ class SupervisorModuleTest extends FrameworkTestSuite with BeforeAndAfterEach {
         import mocks._
         val supervisorRef = createSupervisorAndStartTLA(info, mocks)
 
-        supervisorRef ! ComponentStateSubscription(Subscribe(compStateProbe.ref))
-        supervisorRef ! LifecycleStateSubscription(Subscribe(lifecycleStateProbe.ref))
+        supervisorRef ! ComponentStateSubscription(CurrentStatePubSub.Subscribe(compStateProbe.ref))
+        supervisorRef ! LifecycleStateSubscription(PubSub.Subscribe(lifecycleStateProbe.ref))
 
         compStateProbe.expectMessage(CurrentState(prefix, StateName("testStateName"), Set(choiceKey.set(initChoice))))
         lifecycleStateProbe.expectMessage(LifecycleStateChanged(supervisorRef, SupervisorLifecycleState.Running))
@@ -351,8 +350,8 @@ class SupervisorModuleTest extends FrameworkTestSuite with BeforeAndAfterEach {
         import mocks._
         val supervisorRef = createSupervisorAndStartTLA(info, mocks)
 
-        supervisorRef ! ComponentStateSubscription(Subscribe(compStateProbe.ref))
-        supervisorRef ! LifecycleStateSubscription(Subscribe(lifecycleStateProbe.ref))
+        supervisorRef ! ComponentStateSubscription(CurrentStatePubSub.Subscribe(compStateProbe.ref))
+        supervisorRef ! LifecycleStateSubscription(PubSub.Subscribe(lifecycleStateProbe.ref))
 
         compStateProbe.expectMessage(CurrentState(prefix, StateName("testStateName"), Set(choiceKey.set(initChoice))))
         lifecycleStateProbe.expectMessage(LifecycleStateChanged(supervisorRef, SupervisorLifecycleState.Running))
@@ -386,8 +385,8 @@ class SupervisorModuleTest extends FrameworkTestSuite with BeforeAndAfterEach {
         val componentStateProbe: TestProbe[CurrentState] = TestProbe[CurrentState]
 
         val supervisorRef = createSupervisorAndStartTLA(info, mocks)
-        supervisorRef ! ComponentStateSubscription(Subscribe(componentStateProbe.ref))
-        supervisorRef ! LifecycleStateSubscription(Subscribe(lifecycleStateProbe.ref))
+        supervisorRef ! ComponentStateSubscription(CurrentStatePubSub.Subscribe(componentStateProbe.ref))
+        supervisorRef ! LifecycleStateSubscription(PubSub.Subscribe(lifecycleStateProbe.ref))
 
         componentStateProbe.expectMessage(CurrentState(prefix, StateName("testStateName"), Set(choiceKey.set(shutdownChoice))))
 

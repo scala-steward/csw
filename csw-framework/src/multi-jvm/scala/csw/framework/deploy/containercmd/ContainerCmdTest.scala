@@ -12,7 +12,7 @@ import com.typesafe.config.ConfigFactory
 import csw.common.FrameworkAssertions._
 import csw.messages.commands.CommandResponse.Invalid
 import csw.messages.commands.{CommandName, Setup}
-import csw.messages.framework.PubSub.Subscribe
+import csw.messages.framework.CurrentStatePubSub.Subscribe
 import csw.messages.framework.ToComponentLifecycleMessages.GoOffline
 import csw.messages.framework.{Components, ContainerLifecycleState, SupervisorLifecycleState}
 import csw.messages.location.Connection.AkkaConnection

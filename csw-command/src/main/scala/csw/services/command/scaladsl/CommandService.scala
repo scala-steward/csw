@@ -14,7 +14,7 @@ import csw.messages.commands.matchers.{Matcher, StateMatcher}
 import csw.messages.commands.{CommandResponse, ControlCommand}
 import csw.messages.location.AkkaLocation
 import csw.messages.params.models.Id
-import csw.messages.params.states.CurrentState
+import csw.messages.params.states.{CurrentState, StateName}
 import csw.messages.scaladsl.CommandMessage.{Oneway, Submit}
 import csw.messages.scaladsl.{CommandResponseManagerMessage, ComponentMessage}
 
@@ -167,17 +167,7 @@ class CommandService(componentLocation: AkkaLocation)(implicit val actorSystem: 
    * @param callback the action to be applied on the CurrentState element received as a result of subscription
    * @return a CurrentStateSubscription to stop the subscription
    */
-  def subscribeCurrentState(callback: CurrentState ⇒ Unit): CurrentStateSubscription =
-    subscribeOnlyCurrentState(callback, (cs: CurrentState) => true)
-
-  /**
-   * Subscribe to the current state of a component corresponding to the [[csw.messages.location.AkkaLocation]] of the component
-   *
-   * @param callback the action to be applied on the CurrentState element received as a result of subscription
-   * @param filter   a filter function can be provided that will only return CurrentState that passes the filter
-   * @return a CurrentStateSubscription to stop the subscription
-   */
-  def subscribeOnlyCurrentState(callback: CurrentState ⇒ Unit, filter: CurrentState => Boolean): CurrentStateSubscription =
-    new CurrentStateSubscription(component, callback, filter)
+  def subscribeCurrentState(callback: CurrentState ⇒ Unit, stateNames: Seq[StateName] = Seq.empty): CurrentStateSubscription =
+    new CurrentStateSubscription(component, callback, stateNames)
 
 }

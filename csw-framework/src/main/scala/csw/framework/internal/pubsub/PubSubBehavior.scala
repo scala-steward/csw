@@ -3,7 +3,7 @@ package csw.framework.internal.pubsub
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior, Terminated}
 import csw.messages.framework.PubSub
-import csw.messages.framework.PubSub.{Publish, Subscribe, SubscribeOnly, Unsubscribe}
+import csw.messages.framework.PubSub.{Publish, Subscribe, Unsubscribe}
 import csw.services.logging.scaladsl.{Logger, LoggerFactory}
 
 object PubSubBehavior {
@@ -20,39 +20,30 @@ object PubSubBehavior {
     }
   }
 
-  def ready[T](subscribers: Set[(ActorRef[T], T => Boolean)], log: Logger): Behavior[PubSub[T]] = {
-    // This function is provided to pass all CurrentStatus values
-    val allTrue = (_: T) => true
-
+  def ready[T](subscribers: Set[ActorRef[T]], log: Logger): Behavior[PubSub[T]] = {
     Behaviors
       .receive[PubSub[T]] { (ctx, msg) =>
         msg match {
-          case SubscribeOnly(ref, f) =>
-            if (!subscribers.exists(_._1 == ref)) {
-              ctx.watch(ref)
-              ready(subscribers + Tuple2(ref, f), log)
-            } else ready(subscribers, log)
-
           case Subscribe(ref) =>
-            if (!subscribers.exists(_._1 == ref)) {
+            if (!subscribers.exists(_ == ref)) {
               ctx.watch(ref)
-              ready(subscribers + Tuple2(ref, allTrue), log)
+              ready(subscribers + ref, log)
             } else ready(subscribers, log)
 
           case Unsubscribe(ref) =>
             ctx.unwatch(ref)
-            ready(subscribers.filterNot(_._1 == ref), log)
+            ready(subscribers.filterNot(_ == ref), log)
 
           case Publish(data) =>
             log.info(s"Notifying subscribers :[${subscribers.mkString(",")}] with data :[$data]")
-            subscribers.foreach(s => if (s._2(data)) s._1 ! data)
+            subscribers.foreach(_ ! data)
             ready(subscribers, log)
         }
       }
       .receiveSignal {
         case (_, Terminated(ref)) =>
           log.debug(s"Pubsub received terminated for: $ref")
-          ready(subscribers.filterNot(_._1 == ref), log)
+          ready(subscribers.filterNot(_ == ref), log)
       }
   }
 

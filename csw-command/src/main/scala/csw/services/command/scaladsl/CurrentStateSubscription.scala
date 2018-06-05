@@ -4,8 +4,8 @@ import akka.actor.typed.ActorRef
 import akka.actor.typed.scaladsl.adapter._
 import akka.stream.scaladsl.{Keep, Sink, Source}
 import akka.stream.{KillSwitches, Materializer, OverflowStrategy}
-import csw.messages.framework.PubSub.SubscribeOnly
-import csw.messages.params.states.CurrentState
+import csw.messages.framework.CurrentStatePubSub.SubscribeOnly
+import csw.messages.params.states.{CurrentState, StateName}
 import csw.messages.scaladsl.ComponentCommonMessage.ComponentStateSubscription
 
 /**
@@ -13,13 +13,12 @@ import csw.messages.scaladsl.ComponentCommonMessage.ComponentStateSubscription
  *
  * @param publisher the source of the current state
  * @param callback the action to perform on each received element
- * @param filter a boolean function that allows delivery of CurrentState when true
  * @param mat the materializer to materialize the underlying stream
  */
 class CurrentStateSubscription private[command] (
     publisher: ActorRef[ComponentStateSubscription],
     callback: CurrentState ⇒ Unit,
-    filter: CurrentState => Boolean
+    stateNames: Seq[StateName]
 )(implicit val mat: Materializer) {
 
   /**
@@ -33,7 +32,7 @@ class CurrentStateSubscription private[command] (
     Source
       .actorRef[CurrentState](bufferSize, OverflowStrategy.dropHead)
       .mapMaterializedValue { ref ⇒
-        publisher ! ComponentStateSubscription(SubscribeOnly(ref, filter))
+        publisher ! ComponentStateSubscription(SubscribeOnly(ref, stateNames))
       }
   }
 

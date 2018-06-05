@@ -27,14 +27,6 @@ object PubSub {
   case class Subscribe[T](ref: ActorRef[T]) extends SubscriberMessage[T]
 
   /**
-   * Represents a subscribe action with a filter function
-   *
-   * @param ref the reference of subscriber used to notify to when some data is published
-   * @tparam T represents the type of data that is subscribed
-   */
-  case class SubscribeOnly[T](ref: ActorRef[T], f: T => Boolean) extends SubscriberMessage[T]
-
-  /**
    * Represents a unsubscribe action
    *
    * @param ref the reference of subscriber that no longer wishes to receive notification for published data

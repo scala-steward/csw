@@ -3,6 +3,7 @@ package csw.messages.scaladsl
 import akka.actor.typed.ActorRef
 import csw.messages._
 import csw.messages.commands.{CommandCorrelation, CommandResponse, CommandResponseManagerState, ControlCommand}
+import csw.messages.framework.CurrentStatePubSub.CurrentStateSubscriberMessage
 import csw.messages.framework.PubSub.SubscriberMessage
 import csw.messages.framework._
 import csw.messages.location.TrackingEvent
@@ -182,7 +183,7 @@ object ComponentCommonMessage {
    *
    * @param subscriberMessage tells the component to subscribe to or unsubscribe from CurrentState notifications
    */
-  case class ComponentStateSubscription(subscriberMessage: SubscriberMessage[CurrentState]) extends ComponentCommonMessage
+  case class ComponentStateSubscription(subscriberMessage: CurrentStateSubscriberMessage) extends ComponentCommonMessage
 
   /**
    * Represents a message to get current lifecycle state of a component

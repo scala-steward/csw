@@ -13,7 +13,6 @@ import csw.messages.commands.CommandResponse._
 import csw.messages.commands.{CommandIssue, _}
 import csw.messages.events.{EventName, EventTime, ObserveEvent, SystemEvent}
 import csw.messages.framework.LocationServiceUsage.DoNotRegister
-import csw.messages.framework.PubSub.Subscribe
 import csw.messages.framework.ToComponentLifecycleMessages.{GoOffline, GoOnline}
 import csw.messages.framework._
 import csw.messages.location.ComponentType.HCD
@@ -203,8 +202,8 @@ class AkkaKryoSerializationTest extends FunSpec with Matchers with BeforeAndAfte
       val currentStateProbe = TestProbe[CurrentState]
       val supStateProbe     = TestProbe[SupervisorLifecycleState]
 
-      val lifecycleStateSubscription      = LifecycleStateSubscription(Subscribe(lifecycleProbe.ref))
-      val currentStateSubscription        = ComponentStateSubscription(Subscribe(currentStateProbe.ref))
+      val lifecycleStateSubscription      = LifecycleStateSubscription(PubSub.Subscribe(lifecycleProbe.ref))
+      val currentStateSubscription        = ComponentStateSubscription(CurrentStatePubSub.Subscribe(currentStateProbe.ref))
       val supervisorLifecycleStateMessage = GetSupervisorLifecycleState(supStateProbe.ref)
 
       serialization.findSerializerFor(lifecycleStateSubscription).getClass shouldBe classOf[AkkaSerializer]

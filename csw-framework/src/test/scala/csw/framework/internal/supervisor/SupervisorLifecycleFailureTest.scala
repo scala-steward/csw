@@ -16,7 +16,7 @@ import csw.framework.internal.component.ComponentBehavior
 import csw.framework.scaladsl.{ComponentBehaviorFactory, ComponentHandlers, CurrentStatePublisher}
 import csw.framework.{FrameworkTestMocks, FrameworkTestSuite}
 import csw.messages.commands.{CommandName, CommandResponse, ControlCommand, Setup}
-import csw.messages.framework.{ComponentInfo, LifecycleStateChanged, PubSub, SupervisorLifecycleState}
+import csw.messages.framework._
 import csw.messages.params.generics.{KeyType, Parameter}
 import csw.messages.params.models.ObsId
 import csw.messages.params.states.{CurrentState, StateName}
@@ -79,7 +79,7 @@ class SupervisorLifecycleFailureTest extends FrameworkTestSuite with BeforeAndAf
 
     createSupervisorAndStartTLA(testMocks, componentHandlers)
 
-    supervisorRef ! ComponentStateSubscription(PubSub.Subscribe(compStateProbe.ref))
+    supervisorRef ! ComponentStateSubscription(CurrentStatePubSub.Subscribe(compStateProbe.ref))
     supervisorRef ! LifecycleStateSubscription(PubSub.Subscribe(lifecycleStateProbe.ref))
 
     // Component fails to initialize with `FailureStop`. The default akka supervision strategy kills the TLA
@@ -135,7 +135,7 @@ class SupervisorLifecycleFailureTest extends FrameworkTestSuite with BeforeAndAf
     doThrow(TestFailureRestart(failureRestartExMsg)).doAnswer(initializeAnswer).when(componentHandlers).initialize()
     createSupervisorAndStartTLA(testMocks, componentHandlers)
 
-    supervisorRef ! ComponentStateSubscription(PubSub.Subscribe(compStateProbe.ref))
+    supervisorRef ! ComponentStateSubscription(CurrentStatePubSub.Subscribe(compStateProbe.ref))
     supervisorRef ! LifecycleStateSubscription(PubSub.Subscribe(lifecycleStateProbe.ref))
 
     // component fails to initialize with `FailureRestart`. The akka supervision strategy specified in SupervisorBehavior
@@ -182,7 +182,7 @@ class SupervisorLifecycleFailureTest extends FrameworkTestSuite with BeforeAndAf
 
     createSupervisorAndStartTLA(testMocks, componentHandlers)
 
-    supervisorRef ! ComponentStateSubscription(PubSub.Subscribe(compStateProbe.ref))
+    supervisorRef ! ComponentStateSubscription(CurrentStatePubSub.Subscribe(compStateProbe.ref))
     supervisorRef ! LifecycleStateSubscription(PubSub.Subscribe(lifecycleStateProbe.ref))
 
     // component Initializes successfully

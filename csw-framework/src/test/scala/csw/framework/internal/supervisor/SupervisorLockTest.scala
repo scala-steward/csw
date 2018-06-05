@@ -9,11 +9,11 @@ import csw.framework.FrameworkTestSuite
 import csw.messages.commands.CommandResponse.{Accepted, NotAllowed}
 import csw.messages.commands.{CommandName, CommandResponse, Setup}
 import csw.messages.framework.LockingResponses._
-import csw.messages.framework.{LifecycleStateChanged, LockingResponse, PubSub, SupervisorLifecycleState}
+import csw.messages.framework._
 import csw.messages.params.models.{ObsId, Prefix}
 import csw.messages.params.states.{CurrentState, StateName}
 import csw.messages.scaladsl.CommandMessage.Submit
-import csw.messages.scaladsl.{CommandResponseManagerMessage ⇒ CRM}
+import csw.messages.scaladsl.{CommandResponseManagerMessage => CRM}
 import CRM.{AddOrUpdateCommand, Query, Unsubscribe}
 import csw.messages.scaladsl.ComponentCommonMessage.{ComponentStateSubscription, LifecycleStateSubscription}
 import csw.messages.scaladsl.SupervisorLockMessage.{Lock, Unlock}
@@ -31,7 +31,7 @@ class SupervisorLockTest extends FrameworkTestSuite with BeforeAndAfterEach {
 
     val supervisorRef = createSupervisorAndStartTLA(assemblyInfo, mocks)
 
-    supervisorRef ! ComponentStateSubscription(PubSub.Subscribe(compStateProbe.ref))
+    supervisorRef ! ComponentStateSubscription(CurrentStatePubSub.Subscribe(compStateProbe.ref))
     supervisorRef ! LifecycleStateSubscription(PubSub.Subscribe(lifecycleStateProbe.ref))
 
     // Assure that component is in running state
@@ -92,7 +92,7 @@ class SupervisorLockTest extends FrameworkTestSuite with BeforeAndAfterEach {
 
     val supervisorRef = createSupervisorAndStartTLA(assemblyInfo, mocks)
 
-    supervisorRef ! ComponentStateSubscription(PubSub.Subscribe(compStateProbe.ref))
+    supervisorRef ! ComponentStateSubscription(CurrentStatePubSub.Subscribe(compStateProbe.ref))
     supervisorRef ! LifecycleStateSubscription(PubSub.Subscribe(lifecycleStateProbe.ref))
 
     // Assure that component is in running state
@@ -143,7 +143,7 @@ class SupervisorLockTest extends FrameworkTestSuite with BeforeAndAfterEach {
 
     val supervisorRef = createSupervisorAndStartTLA(assemblyInfo, mocks)
 
-    supervisorRef ! ComponentStateSubscription(PubSub.Subscribe(compStateProbe.ref))
+    supervisorRef ! ComponentStateSubscription(CurrentStatePubSub.Subscribe(compStateProbe.ref))
     supervisorRef ! LifecycleStateSubscription(PubSub.Subscribe(lifecycleStateProbe.ref))
 
     // Assure that component is in running state
@@ -192,7 +192,7 @@ class SupervisorLockTest extends FrameworkTestSuite with BeforeAndAfterEach {
 
     val supervisorRef = createSupervisorAndStartTLA(assemblyInfo, mocks)
 
-    supervisorRef ! ComponentStateSubscription(PubSub.Subscribe(compStateProbe.ref))
+    supervisorRef ! ComponentStateSubscription(CurrentStatePubSub.Subscribe(compStateProbe.ref))
     supervisorRef ! LifecycleStateSubscription(PubSub.Subscribe(lifecycleStateProbe.ref))
 
     // Assure that component is in running state
@@ -232,7 +232,7 @@ class SupervisorLockTest extends FrameworkTestSuite with BeforeAndAfterEach {
 
     val supervisorRef = createSupervisorAndStartTLA(assemblyInfo, mocks)
 
-    supervisorRef ! ComponentStateSubscription(PubSub.Subscribe(compStateProbe.ref))
+    supervisorRef ! ComponentStateSubscription(CurrentStatePubSub.Subscribe(compStateProbe.ref))
     supervisorRef ! LifecycleStateSubscription(PubSub.Subscribe(lifecycleStateProbe.ref))
 
     // Assure that component is in running state

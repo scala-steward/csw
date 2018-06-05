@@ -13,7 +13,7 @@ import csw.messages.commands.CommandResponse
 import csw.messages.framework.LocationServiceUsage.DoNotRegister
 import csw.messages.framework.PubSub.{Publish, Subscribe, Unsubscribe}
 import csw.messages.framework.ToComponentLifecycleMessages._
-import csw.messages.framework.{ComponentInfo, LifecycleStateChanged, PubSub, SupervisorLifecycleState}
+import csw.messages.framework._
 import csw.messages.params.models.Id
 import csw.messages.params.states.CurrentState
 import csw.messages.scaladsl.CommandResponseManagerMessage.Query
@@ -210,23 +210,23 @@ class SupervisorBehaviorLifecycleTest extends FrameworkTestSuite with BeforeAndA
     val previousSupervisorLifecycleState = supervisorLifecycleStateProbe.expectMessageType[SupervisorLifecycleState]
 
     // Subscribe
-    supervisorBehaviorKit.run(ComponentStateSubscription(Subscribe[CurrentState](subscriberProbe.ref)))
+    supervisorBehaviorKit.run(ComponentStateSubscription(CurrentStatePubSub.Subscribe(subscriberProbe.ref)))
     supervisorBehaviorKit.run(GetSupervisorLifecycleState(supervisorLifecycleStateProbe.ref))
     supervisorLifecycleStateProbe.expectMessage(previousSupervisorLifecycleState)
 
-    val childPubSubComponentStateInbox: TestInbox[PubSub[CurrentState]] =
+    val childPubSubComponentStateInbox: TestInbox[CurrentStatePubSub] =
       supervisorBehaviorKit.childInbox(SupervisorBehavior.PubSubComponentActor)
 
     val subscribeMessage = childPubSubComponentStateInbox.receiveMessage()
-    subscribeMessage shouldBe Subscribe[CurrentState](subscriberProbe.ref)
+    subscribeMessage shouldBe CurrentStatePubSub.Subscribe(subscriberProbe.ref)
 
     // Unsubscribe
-    supervisorBehaviorKit.run(ComponentStateSubscription(Unsubscribe[CurrentState](subscriberProbe.ref)))
+    supervisorBehaviorKit.run(ComponentStateSubscription(CurrentStatePubSub.Unsubscribe(subscriberProbe.ref)))
     supervisorBehaviorKit.run(GetSupervisorLifecycleState(supervisorLifecycleStateProbe.ref))
     supervisorLifecycleStateProbe.expectMessage(previousSupervisorLifecycleState)
 
     val unsubscribeMessage = childPubSubComponentStateInbox.receiveMessage()
-    unsubscribeMessage shouldBe Unsubscribe[CurrentState](subscriberProbe.ref)
+    unsubscribeMessage shouldBe CurrentStatePubSub.Unsubscribe(subscriberProbe.ref)
   }
 
   // *************** End of testing onCommonMessages ***************

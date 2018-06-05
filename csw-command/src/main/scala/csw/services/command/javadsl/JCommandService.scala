@@ -14,7 +14,7 @@ import csw.messages.commands.matchers.StateMatcher
 import csw.messages.commands.{CommandResponse, ControlCommand}
 import csw.messages.location.AkkaLocation
 import csw.messages.params.models.Id
-import csw.messages.params.states.CurrentState
+import csw.messages.params.states.{CurrentState, StateName}
 import csw.services.command.scaladsl.{CommandService, CurrentStateSubscription}
 
 import scala.collection.JavaConverters.iterableAsScalaIterableConverter
@@ -148,9 +148,19 @@ class JCommandService(akkaLocation: AkkaLocation, actorSystem: ActorSystem[_]) {
    * Subscribe to the current state of a component corresponding to the [[csw.messages.location.AkkaLocation]] of the component
    *
    * @param callback the action to be applied on the CurrentState element received as a result of subscription
+   * @param stateNames a list of state names that caller is interested in - only these named CurrentStates will be delivered
+   * @return a CurrentStateSubscription to stop the subscription
+   */
+  def subscribeCurrentState(callback: Consumer[CurrentState], stateNames: List[StateName]): CurrentStateSubscription =
+    sCommandService.subscribeCurrentState(callback.asScala, stateNames)
+
+  /**
+   * Subscribe to the current state of a component corresponding to the [[csw.messages.location.AkkaLocation]] of the component
+   *
+   * @param callback the action to be applied on the CurrentState element received as a result of subscription
    * @return a CurrentStateSubscription to stop the subscription
    */
   def subscribeCurrentState(callback: Consumer[CurrentState]): CurrentStateSubscription =
-    sCommandService.subscribeCurrentState(callback.asScala)
+    sCommandService.subscribeCurrentState(callback.asScala, List.empty)
 
 }

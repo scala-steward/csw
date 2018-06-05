@@ -76,8 +76,7 @@ class PubSubRemote(ignore: Int) extends LSNodeSpec(config = new OneMemberAndSeed
       enterBarrier("pubsub2")
 
       // Subscribe probe2 to only csprefix1
-      val cssubscriber = hcdCommandService.subscribeOnlyCurrentState(probe2.ref ! _,
-        (cs: CurrentState) => cs.stateName == stateName1)
+      val cssubscriber = hcdCommandService.subscribeCurrentState(probe2.ref ! _, Seq(stateName1))
 
       val response2 = hcdCommandService.submit(setup)
       whenReady(response2, PatienceConfiguration.Timeout(10.seconds)) { result =>
