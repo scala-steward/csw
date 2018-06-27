@@ -1,5 +1,6 @@
 package csw.services.location.internal
 
+import ai.x.play.json.Jsonx
 import akka.actor.{ActorSystem, CoordinatedShutdown, Scheduler}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshalling.Marshal
@@ -16,9 +17,8 @@ import csw.services.location.internal.StreamExt.RichSource
 import csw.services.location.javadsl.ILocationService
 import csw.services.location.models.{Registration, RegistrationResult}
 import csw.services.location.scaladsl.LocationService
-import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
-import io.circe.generic.auto._
-import io.circe.parser._
+import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
+import play.api.libs.json.{Format, Json}
 
 import scala.async.Async._
 import scala.concurrent.Future
@@ -26,8 +26,11 @@ import scala.concurrent.duration.FiniteDuration
 
 class LocationServiceClient(serverIp: String, serverPort: Int)(implicit actorSystem: ActorSystem, mat: Materializer)
     extends LocationService
-    with FailFastCirceSupport
-    with LocationJsonSupport { outer =>
+    with PlayJsonSupport { outer =>
+
+  import ai.x.play.json.SingletonEncoder.simpleName
+  import ai.x.play.json.implicits.formatSingleton
+  implicit val doneFormat: Format[Done] = Jsonx.formatSealed[Done]
 
   import actorSystem.dispatcher
   implicit val scheduler: Scheduler = actorSystem.scheduler
@@ -131,7 +134,7 @@ class LocationServiceClient(serverIp: String, serverPort: Int)(implicit actorSys
       await(Unmarshal(response.entity).to[Source[ServerSentEvent, NotUsed]])
     }
     val sseStream = Source.fromFuture(sseStreamFuture).flatMapConcat(identity)
-    sseStream.map(x => decode[TrackingEvent](x.data).right.get).cancellable
+    sseStream.map(x => Json.parse(x.data).as[TrackingEvent]).cancellable
   }
 
   override def subscribe(connection: Connection, callback: TrackingEvent => Unit): KillSwitch = {

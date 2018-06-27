@@ -7,13 +7,11 @@ import akka.http.scaladsl.server.Route
 import akka.stream.scaladsl.Source
 import csw.apps.clusterseed.internal.ActorRuntime
 import csw.messages.location._
-import csw.services.location.internal.LocationJsonSupport
 import csw.services.location.models.Registration
 import csw.services.location.scaladsl.LocationService
-import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
-import io.circe.generic.auto._
-import io.circe.syntax._
 import akka.http.scaladsl.marshalling.sse.EventStreamMarshalling._
+import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
+import play.api.libs.json.Json
 
 import scala.concurrent.duration.{Duration, DurationLong, FiniteDuration}
 
@@ -21,10 +19,10 @@ class LocationRoutes(
     locationService: LocationService,
     locationExceptionHandler: LocationExceptionHandler,
     actorRuntime: ActorRuntime
-) extends FailFastCirceSupport
-    with LocationJsonSupport {
+) extends PlayJsonSupport {
 
   import actorRuntime._
+  import Location.akkaLocationFormat
 
   val routes: Route = locationExceptionHandler.route {
     pathPrefix("location") {
@@ -65,7 +63,7 @@ class LocationRoutes(
           val stream: Source[ServerSentEvent, NotUsed] = locationService
             .track(connection)
             .mapMaterializedValue(_ => NotUsed)
-            .map(trackingEvent => ServerSentEvent(trackingEvent.asJson.noSpaces))
+            .map(trackingEvent => ServerSentEvent(Json.toJson(trackingEvent).toString()))
             .keepAlive(2.second, () => ServerSentEvent.heartbeat)
           complete(stream)
         }

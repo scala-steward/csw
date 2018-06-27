@@ -2,11 +2,14 @@ package csw.messages.location
 
 import java.net.URI
 
+import ai.x.play.json.Jsonx
+import akka.actor.ActorSystem
 import akka.actor.typed.ActorRef
 import csw.messages.location.Connection.{AkkaConnection, HttpConnection, TcpConnection}
 import csw.messages.scaladsl.{ComponentMessage, ContainerMessage}
 import csw.messages.TMTSerializable
 import csw.messages.params.models.Prefix
+import play.api.libs.json._
 
 import scala.reflect.ClassTag
 
@@ -29,6 +32,17 @@ sealed abstract class Location extends TMTSerializable {
    * The LogAdminActorRef for this component that handles dynamic log level changes for that component
    */
   def logAdminActorRef: ActorRef[Nothing]
+}
+
+object Location {
+  import csw.messages.params.formats.ActorRefJsonSupport._
+  implicit val uriReads: Reads[URI]   = Reads.StringReads.map(path => new URI(path))
+  implicit val uriWrites: Writes[URI] = Writes(uri => JsString(uri.toString))
+
+  implicit def locationFormat(implicit actorSystem: ActorSystem): Format[Location]          = Jsonx.formatSealed[Location]
+  implicit def akkaLocationFormat(implicit actorSystem: ActorSystem): OFormat[AkkaLocation] = Jsonx.formatCaseClass[AkkaLocation]
+  implicit def tcpLocationFormat(implicit actorSystem: ActorSystem): OFormat[TcpLocation]   = Jsonx.formatCaseClass[TcpLocation]
+  implicit def httpLocationFormat(implicit actorSystem: ActorSystem): OFormat[HttpLocation] = Jsonx.formatCaseClass[HttpLocation]
 }
 
 /**

@@ -83,8 +83,15 @@ object Connection {
     case HttpType ⇒ HttpConnection(componentId)
   }
 
-  private[messages] implicit val connectionReads: Reads[Connection]   = ConnectionInfo.connectionInfoFormat.map(Connection.from)
-  private[messages] implicit val connectionWrites: Writes[Connection] = Writes[Connection](c ⇒ Json.toJson(c.connectionInfo))
+  def makeConnectionReads[T <: Connection]: Reads[T] = Reads.StringReads.map(x => Connection.from(x).asInstanceOf[T])
+
+  implicit val akkaConnectionReads: Reads[AkkaConnection]                     = makeConnectionReads[AkkaConnection]
+  implicit val tcpConnectionReads: Reads[TcpConnection]                       = makeConnectionReads[TcpConnection]
+  implicit val httpConnectionReads: Reads[HttpConnection]                     = makeConnectionReads[HttpConnection]
+  implicit val connectionReads: Reads[Connection]                             = makeConnectionReads[Connection]
+  implicit def typedConnectionReads[T <: Location]: Reads[TypedConnection[T]] = makeConnectionReads[TypedConnection[T]]
+
+  implicit val connectionWrites: Writes[Connection] = Writes(v => JsString(v.name))
 
   /**
    * Represents a connection offered by remote Actors e.g. TromboneAssembly-assembly-akka or TromboneHcd-hcd-akka

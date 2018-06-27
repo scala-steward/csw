@@ -2,7 +2,8 @@ package csw.services.location.models
 
 import java.net.URI
 
-import akka.actor.{ActorPath, Address}
+import ai.x.play.json.Jsonx
+import akka.actor.{ActorPath, ActorSystem, Address}
 import akka.serialization.Serialization
 import akka.actor.typed.ActorRef
 import akka.actor.typed.scaladsl.adapter.TypedActorRefOps
@@ -13,6 +14,7 @@ import csw.services.location.commons.LocationServiceLogger
 import csw.services.location.exceptions.LocalAkkaActorRegistrationNotAllowed
 import csw.services.logging.messages.LogControlMessages
 import csw.services.logging.scaladsl.Logger
+import play.api.libs.json.{Format, OFormat}
 
 /**
  * Registration holds information about a connection and its live location. This model is used to register a connection with LocationService.
@@ -31,6 +33,17 @@ sealed abstract class Registration {
    * @return a location representing a live connection at provided hostname
    */
   def location(hostname: String): Location
+}
+
+object Registration {
+  import csw.messages.params.formats.ActorRefJsonSupport._
+  implicit def registrationFormat(implicit actorSystem: ActorSystem): Format[Registration] = Jsonx.formatSealed[Registration]
+  implicit def akkaRegistrationFormat(implicit actorSystem: ActorSystem): OFormat[AkkaRegistration] =
+    Jsonx.formatCaseClass[AkkaRegistration]
+  implicit def tcpRegistrationFormat(implicit actorSystem: ActorSystem): OFormat[TcpRegistration] =
+    Jsonx.formatCaseClass[TcpRegistration]
+  implicit def httpRegistrationFormat(implicit actorSystem: ActorSystem): OFormat[HttpRegistration] =
+    Jsonx.formatCaseClass[HttpRegistration]
 }
 
 /**
