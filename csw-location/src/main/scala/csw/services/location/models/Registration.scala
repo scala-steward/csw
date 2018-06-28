@@ -37,13 +37,9 @@ sealed abstract class Registration {
 
 object Registration {
   import csw.messages.params.formats.ActorRefJsonSupport._
-  implicit def registrationFormat(implicit actorSystem: ActorSystem): Format[Registration] = Jsonx.formatSealed[Registration]
-  implicit def akkaRegistrationFormat(implicit actorSystem: ActorSystem): OFormat[AkkaRegistration] =
-    Jsonx.formatCaseClass[AkkaRegistration]
-  implicit def tcpRegistrationFormat(implicit actorSystem: ActorSystem): OFormat[TcpRegistration] =
-    Jsonx.formatCaseClass[TcpRegistration]
-  implicit def httpRegistrationFormat(implicit actorSystem: ActorSystem): OFormat[HttpRegistration] =
-    Jsonx.formatCaseClass[HttpRegistration]
+  implicit def registrationFormat(implicit actorSystem: ActorSystem): Format[Registration] = {
+    Jsonx.formatSealed[Registration]
+  }
 }
 
 /**
@@ -88,6 +84,12 @@ final case class AkkaRegistration(
   override def location(hostname: String): Location = AkkaLocation(connection, prefix, uri, actorRef, logAdminActorRef)
 }
 
+object AkkaRegistration {
+  import csw.messages.params.formats.ActorRefJsonSupport._
+  implicit def akkaRegistrationFormat(implicit actorSystem: ActorSystem): OFormat[AkkaRegistration] =
+    Jsonx.formatCaseClass[AkkaRegistration]
+}
+
 /**
  * TcpRegistration holds information needed to register a Tcp service
  *
@@ -104,6 +106,12 @@ final case class TcpRegistration(connection: TcpConnection, port: Int, logAdminA
    */
   override def location(hostname: String): Location =
     TcpLocation(connection, new URI(s"tcp://$hostname:$port"), logAdminActorRef)
+}
+
+object TcpRegistration {
+  import csw.messages.params.formats.ActorRefJsonSupport._
+  implicit def tcpRegistrationFormat(implicit actorSystem: ActorSystem): OFormat[TcpRegistration] =
+    Jsonx.formatCaseClass[TcpRegistration]
 }
 
 /**
@@ -126,4 +134,10 @@ final case class HttpRegistration(
    */
   override def location(hostname: String): Location =
     HttpLocation(connection, new URI(s"http://$hostname:$port/$path"), logAdminActorRef)
+}
+
+object HttpRegistration {
+  import csw.messages.params.formats.ActorRefJsonSupport._
+  implicit def httpRegistrationFormat(implicit actorSystem: ActorSystem): OFormat[HttpRegistration] =
+    Jsonx.formatCaseClass[HttpRegistration]
 }

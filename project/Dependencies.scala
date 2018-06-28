@@ -4,6 +4,7 @@ object Dependencies {
 
   val Messages = Seq(
     Libs.`scala-java8-compat`,
+    Libs.`upickle`,
     Enumeratum.`enumeratum`,
     Libs.`play-json`,
     Libs.`play-json-extensions`,

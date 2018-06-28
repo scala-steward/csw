@@ -62,6 +62,7 @@ object Connection {
    */
   def from(input: String): Connection = input.split("-") match {
     case Array(name, componentType, connectionType) ⇒
+      println(s">>>>> $name, $componentType, $connectionType")
       from(ConnectionInfo(name, ComponentType.withName(componentType), ConnectionType.withName(connectionType)))
     case _ ⇒ throw new IllegalArgumentException(s"Unable to parse '$input' to make Connection object")
   }
@@ -83,14 +84,14 @@ object Connection {
     case HttpType ⇒ HttpConnection(componentId)
   }
 
-  def makeConnectionReads[T <: Connection]: Reads[T] = Reads.StringReads.map(x => Connection.from(x).asInstanceOf[T])
-
-  implicit val akkaConnectionReads: Reads[AkkaConnection]                     = makeConnectionReads[AkkaConnection]
-  implicit val tcpConnectionReads: Reads[TcpConnection]                       = makeConnectionReads[TcpConnection]
-  implicit val httpConnectionReads: Reads[HttpConnection]                     = makeConnectionReads[HttpConnection]
-  implicit val connectionReads: Reads[Connection]                             = makeConnectionReads[Connection]
-  implicit def typedConnectionReads[T <: Location]: Reads[TypedConnection[T]] = makeConnectionReads[TypedConnection[T]]
-
+  implicit def connectionReads[T <: Connection]: Reads[T] = {
+    Reads.StringReads.map { x =>
+      val connection = Connection.from(x)
+      println("******************************")
+      println(connection)
+      connection.asInstanceOf[T]
+    }
+  }
   implicit val connectionWrites: Writes[Connection] = Writes(v => JsString(v.name))
 
   /**

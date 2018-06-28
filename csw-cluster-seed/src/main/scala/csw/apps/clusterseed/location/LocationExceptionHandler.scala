@@ -7,8 +7,7 @@ import csw.services.location.exceptions.{OtherLocationIsRegistered, Registration
 
 class LocationExceptionHandler extends Directives with JsonRejectionHandler {
 
-  def route: Directive[Unit] =
-    handleExceptions(jsonExceptionHandler) & handleRejections(jsonRejectionHandler) & rejectEmptyResponse
+  def route: Directive[Unit] = handleExceptions(jsonExceptionHandler) & handleRejections(jsonRejectionHandler)
 
   private val jsonExceptionHandler: ExceptionHandler = ExceptionHandler {
     case ex: RegistrationFailed =>

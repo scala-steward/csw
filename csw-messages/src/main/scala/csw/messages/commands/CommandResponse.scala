@@ -97,7 +97,6 @@ object CommandResponse {
    */
   case class NotAllowed(runId: Id, issue: CommandIssue) extends CommandResponse(Negative)
 
-  implicit lazy val jsonFormatAccepted: Format[Accepted]                       = Jsonx.formatCaseClass[Accepted]
   implicit lazy val jsonFormatInvalid: Format[Invalid]                         = Jsonx.formatCaseClass[Invalid]
   implicit lazy val jsonFormatCompletedWithResult: Format[CompletedWithResult] = Jsonx.formatCaseClass[CompletedWithResult]
   implicit lazy val jsonFormatCompleted: Format[Completed]                     = Jsonx.formatCaseClass[Completed]
@@ -106,7 +105,10 @@ object CommandResponse {
   implicit lazy val jsonFormatCancelled: Format[Cancelled]                     = Jsonx.formatCaseClass[Cancelled]
   implicit lazy val jsonFormatCommandNotAvailable: Format[CommandNotAvailable] = Jsonx.formatCaseClass[CommandNotAvailable]
   implicit lazy val jsonFormatNotAllowed: Format[NotAllowed]                   = Jsonx.formatCaseClass[NotAllowed]
-  implicit lazy val jsonFormat: Format[CommandResponse]                        = Jsonx.formatSealed[CommandResponse]
+  implicit lazy val jsonFormat: Format[CommandResponse] = {
+    implicit lazy val jsonFormatAccepted: Format[Accepted] = Jsonx.formatCaseClass[Accepted]
+    Jsonx.formatSealed[CommandResponse]
+  }
 
   /**
    * Transform a given CommandResponse to a response with the provided Id

@@ -33,6 +33,7 @@ object Libs {
   val `scalatest-embedded-redis`     = "com.github.sebruck"     %% "scalatest-embedded-redis"     % "0.3.0"
   val `HdrHistogram`                 = "org.hdrhistogram"       % "HdrHistogram"                  % "2.1.10"
   val `testng`                       = "org.testng"             % "testng"                        % "6.14.3"
+  val `upickle`                      = "com.lihaoyi"            %% "upickle"                      % "0.6.6"
 }
 
 object Jackson {

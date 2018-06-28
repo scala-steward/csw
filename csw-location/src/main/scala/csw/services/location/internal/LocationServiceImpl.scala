@@ -39,10 +39,9 @@ private[location] class LocationServiceImpl(cswCluster: CswCluster) extends Loca
    * Register a 'connection -> location' entry in CRDT
    */
   def register(registration: Registration): Future[RegistrationResult] = async {
-
     //Get the location from this registration
     val location = registration.location(cswCluster.hostname)
-    log.info(s"Registering connection: [${registration.connection.name}] with location: [${location.uri.toString}]")
+    println(s"Registering connection: [${registration.connection.name}] with location: [${location.uri.toString}]")
 
     //Create a message handler for this connection
     val service = new Registry.Service(registration.connection)

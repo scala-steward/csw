@@ -1,17 +1,17 @@
 package csw.apps.clusterseed.location
 
-import akka.NotUsed
+import akka.http.scaladsl.marshalling.sse.EventStreamMarshalling._
 import akka.http.scaladsl.model.sse.ServerSentEvent
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.stream.scaladsl.Source
+import akka.{Done, NotUsed}
 import csw.apps.clusterseed.internal.ActorRuntime
 import csw.messages.location._
-import csw.services.location.models.Registration
+import csw.services.location.models.{HttpRegistration, Registration}
 import csw.services.location.scaladsl.LocationService
-import akka.http.scaladsl.marshalling.sse.EventStreamMarshalling._
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
-import play.api.libs.json.Json
+import play.api.libs.json.{JsString, Json, Writes}
 
 import scala.concurrent.duration.{Duration, DurationLong, FiniteDuration}
 
@@ -21,8 +21,10 @@ class LocationRoutes(
     actorRuntime: ActorRuntime
 ) extends PlayJsonSupport {
 
-  import actorRuntime._
   import Location.akkaLocationFormat
+  import actorRuntime._
+
+  implicit val doneWrites: Writes[Done] = Writes[Done](_ => JsString(""))
 
   val routes: Route = locationExceptionHandler.route {
     pathPrefix("location") {
@@ -46,15 +48,19 @@ class LocationRoutes(
           }
         } ~
         path("find" / Segment) { connectionName =>
-          complete(
-            locationService.find(Connection.from(connectionName).asInstanceOf[TypedConnection[Location]])
-          )
+          rejectEmptyResponse {
+            complete(
+              locationService.find(Connection.from(connectionName).asInstanceOf[TypedConnection[Location]])
+            )
+          }
         } ~
         path("resolve" / Segment) { connectionName =>
           parameter("within") { within =>
             val duration = Duration(within).asInstanceOf[FiniteDuration]
-            complete {
-              locationService.resolve(Connection.from(connectionName).asInstanceOf[TypedConnection[Location]], duration)
+            rejectEmptyResponse {
+              complete {
+                locationService.resolve(Connection.from(connectionName).asInstanceOf[TypedConnection[Location]], duration)
+              }
             }
           }
         } ~
@@ -71,6 +77,7 @@ class LocationRoutes(
       post {
         path("register") {
           entity(as[Registration]) { registration =>
+            println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
             complete(locationService.register(registration).map(_.location))
           }
         } ~

@@ -11,14 +11,17 @@ import akka.http.scaladsl.unmarshalling.sse.EventStreamUnmarshalling._
 import akka.stream.scaladsl.{Sink, Source}
 import akka.stream.{KillSwitch, Materializer}
 import akka.{Done, NotUsed}
+import csw.messages.commands.CommandResponse.Accepted
+import csw.messages.location.Connection.HttpConnection
 import csw.messages.location._
+import csw.messages.params.models.Id
 import csw.services.location.exceptions.{OtherLocationIsRegistered, RegistrationFailed}
 import csw.services.location.internal.StreamExt.RichSource
 import csw.services.location.javadsl.ILocationService
 import csw.services.location.models.{Registration, RegistrationResult}
 import csw.services.location.scaladsl.LocationService
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json.{Format, Json, Reads}
 
 import scala.async.Async._
 import scala.concurrent.Future
@@ -28,20 +31,29 @@ class LocationServiceClient(serverIp: String, serverPort: Int)(implicit actorSys
     extends LocationService
     with PlayJsonSupport { outer =>
 
-  import ai.x.play.json.SingletonEncoder.simpleName
-  import ai.x.play.json.implicits.formatSingleton
-  implicit val doneFormat: Format[Done] = Jsonx.formatSealed[Done]
+//  import ai.x.play.json.SingletonEncoder.simpleName
+//  import ai.x.play.json.implicits.formatSingleton
+//  implicit val doneFormat: Format[Done] = Jsonx.formatSealed[Done]
+
+  implicit val doneReads: Reads[Done] = Reads.StringReads.map(_ => Done)
 
   import actorSystem.dispatcher
   implicit val scheduler: Scheduler = actorSystem.scheduler
 
   private val baseUri = s"http://$serverIp:$serverPort/location"
 
+  import Registration._
+
   override def register(registration: Registration): Future[RegistrationResult] = async {
+    println(("^^^^^^^^^^^^^^^^^^^^^^^^^^^", Json.toJson(Accepted(Id("abcd")))))
+    println(("^^^^^^^^^^^^^^^^^^^^^^^^^^^", Json.toJson(registration.connection.asInstanceOf[HttpConnection]).as[HttpConnection]))
     val uri           = Uri(baseUri + "/register")
     val requestEntity = await(Marshal(registration).to[RequestEntity])
     val request       = HttpRequest(HttpMethods.POST, uri = uri, entity = requestEntity)
     val response      = await(Http().singleRequest(request))
+    println(s"request >> $request")
+    println(s"response >> $response")
+
     response.status match {
       case x @ StatusCodes.BadRequest          => throw OtherLocationIsRegistered(x.reason)
       case x @ StatusCodes.InternalServerError => throw RegistrationFailed(x.reason)
@@ -62,6 +74,7 @@ class LocationServiceClient(serverIp: String, serverPort: Int)(implicit actorSys
     val requestEntity = await(Marshal(connection).to[RequestEntity])
     val request       = HttpRequest(HttpMethods.POST, uri = uri, entity = requestEntity)
     val response      = await(Http().singleRequest(request))
+    println(response)
     await(Unmarshal(response.entity).to[Done])
   }
 

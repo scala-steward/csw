@@ -2,7 +2,7 @@ package csw.messages.framework
 
 import ai.x.play.json.Jsonx
 import csw.messages.TMTSerializable
-import csw.messages.location.{ComponentType, Connection}
+import csw.messages.location.{ComponentType, Connection, ConnectionInfo}
 import csw.messages.params.models.Prefix
 import play.api.libs.json._
 
@@ -46,6 +46,8 @@ case object ComponentInfo {
   private[csw] implicit val finiteDurationReads: Reads[FiniteDuration] = Reads[FiniteDuration](parseDuration)
   private[csw] implicit val finiteDurationWrites: Writes[FiniteDuration] =
     Writes[FiniteDuration](d ⇒ Json.toJson(d.toString))
+
+  implicit def connectionReads: Reads[Connection] = implicitly[Reads[ConnectionInfo]].map(x => Connection.from(x))
 
   private[csw] implicit val componentInfoFormat: OFormat[ComponentInfo] = Jsonx.formatCaseClassUseDefaults[ComponentInfo]
 
