@@ -9,5 +9,5 @@ case class AlarmStatus(
     latchStatus: LatchStatus = UnLatched,
     latchedSeverity: AlarmSeverity = Disconnected,
     shelveStatus: ShelveStatus = UnShelved,
-    alarmTime: Option[AlarmTime] = None
+    alarmTime: AlarmTime = AlarmTime()
 )

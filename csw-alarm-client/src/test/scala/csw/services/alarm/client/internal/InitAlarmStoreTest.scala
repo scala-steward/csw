@@ -2,10 +2,12 @@ package csw.services.alarm.client.internal
 import com.typesafe.config.{Config, ConfigFactory}
 import csw.services.alarm.api.exceptions.KeyNotFoundException
 import csw.services.alarm.api.internal.MetadataKey
+import csw.services.alarm.api.models.AcknowledgementStatus.UnAcknowledged
 import csw.services.alarm.api.models.AlarmHealth.Bad
 import csw.services.alarm.api.models.AlarmSeverity._
-import csw.services.alarm.api.models.AlarmStatus
 import csw.services.alarm.api.models.Key.GlobalKey
+import csw.services.alarm.api.models.LatchStatus.UnLatched
+import csw.services.alarm.api.models.ShelveStatus.UnShelved
 import csw.services.alarm.client.internal.helpers.AlarmServiceTestSetup
 import csw.services.alarm.client.internal.helpers.TestFutureExt.RichFuture
 
@@ -22,7 +24,12 @@ class InitAlarmStoreTest extends AlarmServiceTestSetup {
     alarmService.getMetadata(GlobalKey).await.size shouldBe 3
 
     alarmService.getMetadata(tromboneAxisHighLimitAlarmKey).await shouldBe tromboneAxisHighLimitAlarm
-    alarmService.getStatus(tromboneAxisHighLimitAlarmKey).await shouldBe AlarmStatus()
+    val status = alarmService.getStatus(tromboneAxisHighLimitAlarmKey).await
+    status.acknowledgementStatus shouldBe UnAcknowledged
+    status.latchStatus shouldBe UnLatched
+    status.latchedSeverity shouldBe Disconnected
+    status.shelveStatus shouldBe UnShelved
+
     // Severity does not get loaded in alarm store on init, but it gets interpreted as Disconnected by getSeverity API
     testSeverityApi.get(tromboneAxisHighLimitAlarmKey).await shouldBe None
     alarmService.getCurrentSeverity(tromboneAxisHighLimitAlarmKey).await shouldBe Disconnected
@@ -48,7 +55,13 @@ class InitAlarmStoreTest extends AlarmServiceTestSetup {
 
     // tromboneAxisHighLimitAlarm is present in both the files and hence rewritten in second load
     alarmService.getMetadata(tromboneAxisHighLimitAlarmKey).await shouldBe tromboneAxisHighLimitAlarm
-    alarmService.getStatus(tromboneAxisHighLimitAlarmKey).await shouldEqual AlarmStatus()
+
+    val status = alarmService.getStatus(tromboneAxisHighLimitAlarmKey).await
+    status.acknowledgementStatus shouldBe UnAcknowledged
+    status.latchStatus shouldBe UnLatched
+    status.latchedSeverity shouldBe Disconnected
+    status.shelveStatus shouldBe UnShelved
+
     alarmService.getCurrentSeverity(tromboneAxisHighLimitAlarmKey).await shouldBe Disconnected
   }
 
@@ -82,6 +95,10 @@ class InitAlarmStoreTest extends AlarmServiceTestSetup {
     alarmService.getMetadata(cpuExceededAlarmKey).await shouldBe cpuExceededAlarm
 
     // current severity will be expired at it's time and will be inferred disconnected
-    alarmService.getStatus(tromboneAxisLowLimitAlarmKey).await shouldEqual AlarmStatus()
+    val status = alarmService.getStatus(tromboneAxisLowLimitAlarmKey).await
+    status.acknowledgementStatus shouldBe UnAcknowledged
+    status.latchStatus shouldBe UnLatched
+    status.latchedSeverity shouldBe Disconnected
+    status.shelveStatus shouldBe UnShelved
   }
 }

@@ -56,12 +56,8 @@ class AlarmServiceImpl(
 
   override def setSeverity(key: AlarmKey, severity: AlarmSeverity): Future[Unit] = async {
     log.debug(s"Setting severity [${severity.name}] for alarm [${key.value}] with expire timeout [$ttlInSeconds] seconds")
-    val metadataApi = await(metadataApiF)
-    val severityApi = await(severityApiF)
-    val statusApi   = await(statusApiF)
-
     // get alarm metadata
-    val alarm = await(metadataApi.get(key)).getOrElse(logAndThrow(KeyNotFoundException(key)))
+    val alarm = await(getMetadata(key))
 
     // validate if the provided severity is supported by this alarm
     if (!alarm.allSupportedSeverities.contains(severity)) {
@@ -69,6 +65,7 @@ class AlarmServiceImpl(
     }
 
     // get the current severity of the alarm
+    val severityApi     = await(severityApiF)
     val currentSeverity = await(severityApi.get(key)).getOrElse(Disconnected)
 
     // set the severity of the alarm so that it does not transition to `Disconnected` state
@@ -76,7 +73,7 @@ class AlarmServiceImpl(
     await(severityApi.setex(key, ttlInSeconds, severity))
 
     // get alarm status
-    val status    = await(statusApi.get(key)).getOrElse(AlarmStatus())
+    val status    = await(getStatus(key))
     var newStatus = status
 
     def shouldUpdateLatchStatus: Boolean                     = alarm.isLatchable && severity.isHighRisk
@@ -87,8 +84,13 @@ class AlarmServiceImpl(
 
     if (shouldUpdateLatchStatus) newStatus = newStatus.copy(latchStatus = Latched)
 
-    if (shouldUpdateLatchedSeverityWhenLatchable || shouldUpdateLatchedSeverityWhenNotLatchable)
-      newStatus = newStatus.copy(latchedSeverity = severity, alarmTime = Some(AlarmTime()))
+    if (shouldUpdateLatchedSeverityWhenLatchable || shouldUpdateLatchedSeverityWhenNotLatchable) {
+      newStatus = newStatus.copy(latchedSeverity = severity, alarmTime = AlarmTime())
+      println("*" * 80)
+      println(newStatus.alarmTime)
+      println(severity)
+      println("*" * 80)
+    }
 
     // derive acknowledgement status
     if (severity.isHighRisk && severity != currentSeverity) {
@@ -99,6 +101,7 @@ class AlarmServiceImpl(
     // update alarm status (with recent time) only when severity changes
     if (newStatus != status) {
       log.info(s"Updating alarm status [$newStatus] in alarm store")
+      val statusApi = await(statusApiF)
       await(statusApi.set(key, newStatus))
     }
   }
@@ -138,46 +141,39 @@ class AlarmServiceImpl(
 
   override def acknowledge(key: AlarmKey): Future[Unit] = async {
     log.debug(s"Acknowledge alarm [${key.value}]")
-    val metadataApi = await(metadataApiF)
-    val statusApi   = await(statusApiF)
-
-    if (await(metadataApi.exists(key))) {
-      val status = await(statusApi.get(key)).getOrElse(AlarmStatus())
-
-      if (status.acknowledgementStatus == UnAcknowledged) // save the set call if status is already Acknowledged
-        await(statusApi.set(key, status.copy(acknowledgementStatus = Acknowledged)))
-    } else logAndThrow(KeyNotFoundException(key))
+    val status    = await(getStatus(key))
+    val statusApi = await(statusApiF)
+    // save the set call if status is already Acknowledged
+    if (status.acknowledgementStatus == UnAcknowledged)
+      await(statusApi.set(key, status.copy(acknowledgementStatus = Acknowledged)))
   }
 
   // reset is only called when severity is `Okay`
   override def reset(key: AlarmKey): Future[Unit] = async {
     log.debug(s"Reset alarm [${key.value}]")
-    val metadataApi = await(metadataApiF)
-    val statusApi   = await(statusApiF)
 
-    if (await(metadataApi.exists(key))) {
-      val currentSeverity = await(getCurrentSeverity(key))
-      if (currentSeverity != Okay) logAndThrow(ResetOperationNotAllowed(key, currentSeverity))
+    val currentSeverity = await(getCurrentSeverity(key))
+    if (currentSeverity != Okay) logAndThrow(ResetOperationNotAllowed(key, currentSeverity))
 
-      val status = await(statusApi.get(key)).getOrElse(AlarmStatus())
-      if (status.acknowledgementStatus == Acknowledged || status.latchStatus == Latched || status.latchedSeverity != Okay) {
-        val resetStatus = status.copy(
-          acknowledgementStatus = UnAcknowledged,
-          latchStatus = UnLatched,
-          latchedSeverity = Okay,
-          alarmTime = alarmTime(status)
-        )
-        await(statusApi.set(key, resetStatus))
-      }
-    } else logAndThrow(KeyNotFoundException(key))
+    val status = await(getStatus(key))
+    if (status.acknowledgementStatus == Acknowledged || status.latchStatus == Latched || status.latchedSeverity != Okay) {
+      val statusApi = await(statusApiF)
+      val resetStatus = status.copy(
+        acknowledgementStatus = UnAcknowledged,
+        latchStatus = UnLatched,
+        latchedSeverity = Okay,
+        alarmTime = alarmTime(status)
+      )
+      await(statusApi.set(key, resetStatus))
+    }
   }
 
   override def shelve(key: AlarmKey): Future[Unit] = async {
     log.debug(s"Shelve alarm [${key.value}]")
-    val statusApi = await(statusApiF)
 
-    val status = await(statusApi.get(key)).getOrElse(AlarmStatus())
+    val status = await(getStatus(key))
     if (status.shelveStatus != Shelved) {
+      val statusApi = await(statusApiF)
       await(statusApi.set(key, status.copy(shelveStatus = Shelved)))
       shelveTimeoutRef ! ScheduleShelveTimeout(key) // start shelve timeout for this alarm (default 8 AM local time)
     }
@@ -188,11 +184,11 @@ class AlarmServiceImpl(
 
   private def unShelve(key: AlarmKey, cancelShelveTimeout: Boolean): Future[Unit] = async {
     log.debug(s"Un-shelve alarm [${key.value}]")
-    val statusApi = await(statusApiF)
 
     //TODO: decide whether to  unshelve an alarm when it goes to okay
-    val status = await(statusApi.get(key)).getOrElse(AlarmStatus())
+    val status = await(getStatus(key))
     if (status.shelveStatus != UnShelved) {
+      val statusApi = await(statusApiF)
       await(statusApi.set(key, status.copy(shelveStatus = UnShelved)))
       // if in case of manual un-shelve operation, cancel the scheduled timer for this alarm
       // this method is also called when scheduled timer for shelving of an alarm goes off (i.e. default 8 AM local time) with
@@ -204,17 +200,15 @@ class AlarmServiceImpl(
 
   override def activate(key: AlarmKey): Future[Unit] = async {
     log.debug(s"Activate alarm [${key.value}]")
+    val metadata    = await(getMetadata(key))
     val metadataApi = await(metadataApiF)
-
-    val metadata = await(metadataApi.get(key)).getOrElse(logAndThrow(KeyNotFoundException(key)))
     if (!metadata.isActive) await(metadataApi.set(key, metadata.copy(activationStatus = Active)))
   }
 
   override def deActivate(key: AlarmKey): Future[Unit] = async {
     log.debug(s"Deactivate alarm [${key.value}]")
+    val metadata    = await(getMetadata(key))
     val metadataApi = await(metadataApiF)
-
-    val metadata = await(metadataApi.get(key)).getOrElse(logAndThrow(KeyNotFoundException(key)))
     if (metadata.isActive) await(metadataApi.set(key, metadata.copy(activationStatus = Inactive)))
   }
 
@@ -326,6 +320,11 @@ class AlarmServiceImpl(
   }
 
   private def alarmTime(status: AlarmStatus) = {
-    if (status.latchedSeverity != Okay) Some(AlarmTime()) else status.alarmTime
+    println(s"in reset ${status.alarmTime}")
+    if (status.latchedSeverity != Okay) {
+      println("setting new time")
+      AlarmTime()
+    } else status.alarmTime
   }
+
 }

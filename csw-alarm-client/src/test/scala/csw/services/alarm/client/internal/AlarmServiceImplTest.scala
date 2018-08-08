@@ -10,6 +10,9 @@ import csw.services.alarm.api.models.ShelveStatus.UnShelved
 import csw.services.alarm.api.models._
 import csw.services.alarm.client.internal.helpers.AlarmServiceTestSetup
 import csw.services.alarm.client.internal.helpers.TestFutureExt.RichFuture
+import csw.services.logging.scaladsl.LoggingSystemFactory
+
+import scala.util.control.NonFatal
 
 class AlarmServiceImplTest extends AlarmServiceTestSetup {
 
@@ -18,6 +21,7 @@ class AlarmServiceImplTest extends AlarmServiceTestSetup {
     alarmService.initAlarms(validAlarmsConfig, reset = true).await
   }
 
+  LoggingSystemFactory.start("", "", "", system)
   // DEOPSCSW-444: Set severity api for component
   // DEOPSCSW-459: Update severity to Disconnected if not updated within predefined time
   // DEOPSCSW-462: Capture UTC timestamp in alarm state when severity is changed
@@ -28,7 +32,7 @@ class AlarmServiceImplTest extends AlarmServiceTestSetup {
     status.latchStatus shouldBe Latched
     status.latchedSeverity shouldBe Major
     status.shelveStatus shouldBe UnShelved
-    status.alarmTime.isDefined shouldBe true
+    status.alarmTime should not be null
 
     //get severity and assert
     val alarmSeverity = testSeverityApi.get(tromboneAxisHighLimitAlarmKey).await.get
@@ -54,13 +58,13 @@ class AlarmServiceImplTest extends AlarmServiceTestSetup {
     val status = setSeverity(tromboneAxisHighLimitAlarmKey, Okay)
     status.latchStatus shouldBe UnLatched
     status.latchedSeverity shouldBe Okay
-    status.alarmTime.isDefined shouldBe true
+    status.alarmTime should not be null
 
     //set severity to indeterminant
     val status1 = setSeverity(tromboneAxisHighLimitAlarmKey, Indeterminate)
     status1.latchStatus shouldBe UnLatched
     status1.latchedSeverity shouldBe Indeterminate
-    status1.alarmTime.get.time.isAfter(status.alarmTime.get.time)
+    status1.alarmTime.time.isAfter(status.alarmTime.time)
   }
 
   // DEOPSCSW-444: Set severity api for component
@@ -71,19 +75,19 @@ class AlarmServiceImplTest extends AlarmServiceTestSetup {
     status.acknowledgementStatus shouldBe Acknowledged
     status.latchStatus shouldBe Latched
     status.latchedSeverity shouldBe Major
-    status.alarmTime.isDefined shouldBe true
+    status.alarmTime should not be null
 
     val status1 = setSeverity(tromboneAxisHighLimitAlarmKey, Warning)
     status1.acknowledgementStatus shouldBe Acknowledged
     status1.latchStatus shouldBe Latched
     status1.latchedSeverity shouldBe Major
-    status1.alarmTime.get.time shouldEqual status.alarmTime.get.time
+    status1.alarmTime.time shouldEqual status.alarmTime.time
 
     val status2 = setSeverity(tromboneAxisHighLimitAlarmKey, Okay)
     status2.acknowledgementStatus shouldBe Acknowledged
     status2.latchStatus shouldBe Latched
     status2.latchedSeverity shouldBe Major
-    status2.alarmTime.get.time shouldEqual status.alarmTime.get.time
+    status2.alarmTime.time shouldEqual status.alarmTime.time
   }
 
   // DEOPSCSW-444: Set severity api for component
@@ -94,13 +98,13 @@ class AlarmServiceImplTest extends AlarmServiceTestSetup {
     status.acknowledgementStatus shouldBe Acknowledged
     status.latchStatus shouldBe UnLatched
     status.latchedSeverity shouldBe Critical
-    status.alarmTime.isDefined shouldBe true
+    status.alarmTime should not be null
 
     val status1 = setSeverity(cpuExceededAlarm, Indeterminate)
     status1.acknowledgementStatus shouldBe Acknowledged
     status1.latchStatus shouldBe UnLatched
     status1.latchedSeverity shouldBe Indeterminate
-    status1.alarmTime.get.time.isAfter(status.alarmTime.get.time)
+    status1.alarmTime.time.isAfter(status.alarmTime.time)
   }
 
   // DEOPSCSW-444: Set severity api for component
@@ -109,7 +113,7 @@ class AlarmServiceImplTest extends AlarmServiceTestSetup {
     status.acknowledgementStatus shouldBe UnAcknowledged
     status.latchStatus shouldBe Latched
     status.latchedSeverity shouldBe Major
-    status.alarmTime.isDefined shouldBe true
+    status.alarmTime should not be null
   }
 
   // DEOPSCSW-462: Capture UTC timestamp in alarm state when severity is changed
@@ -123,7 +127,7 @@ class AlarmServiceImplTest extends AlarmServiceTestSetup {
     // set the severity again to mimic alarm refreshing
     val status1 = setSeverity(highLimitAlarmKey, Major)
 
-    status.alarmTime.get.time shouldEqual status1.alarmTime.get.time
+    status.alarmTime.time shouldEqual status1.alarmTime.time
   }
 
   // DEOPSCSW-462: Capture UTC timestamp in alarm state when severity is changed
@@ -137,7 +141,7 @@ class AlarmServiceImplTest extends AlarmServiceTestSetup {
     // set the severity again to mimic alarm refreshing
     val status1 = setSeverity(cpuExceededAlarm, Major)
 
-    status.alarmTime.get.time shouldEqual status1.alarmTime.get.time
+    status.alarmTime shouldEqual status1.alarmTime
   }
 
   //  DEOPSCSW-445: Get api for alarm metadata
@@ -222,7 +226,7 @@ class AlarmServiceImplTest extends AlarmServiceTestSetup {
     alarmService.reset(highLimitAlarmKey).await
     val statusAfterReset = alarmService.getStatus(highLimitAlarmKey).await
 
-    statusAfterReset.alarmTime.get.time.isAfter(status.alarmTime.get.time) shouldBe true
+    statusAfterReset.alarmTime.time.isAfter(status.alarmTime.time) shouldBe true
   }
 
   // DEOPSCSW-462: Capture UTC timestamp in alarm state when severity is changed
@@ -239,7 +243,7 @@ class AlarmServiceImplTest extends AlarmServiceTestSetup {
     alarmService.reset(lowLimitAlarmKey).await
     val statusAfterReset = alarmService.getStatus(lowLimitAlarmKey).await
 
-    statusAfterReset.alarmTime.get.time shouldEqual status.alarmTime.get.time
+    statusAfterReset.alarmTime.time shouldEqual status.alarmTime.time
   }
 
   // DEOPSCSW-462: Capture UTC timestamp in alarm state when severity is changed
@@ -255,7 +259,7 @@ class AlarmServiceImplTest extends AlarmServiceTestSetup {
     val statusAfterReset1 = alarmService.getStatus(cpuExceededAlarm).await
 
     // alarm time should be updated only when latched severity changes
-    statusAfterReset1.alarmTime.get.time shouldEqual status1.alarmTime.get.time
+    statusAfterReset1.alarmTime.time shouldEqual status1.alarmTime.time
   }
 
   //  test("reset should throw exception if key does not exist") {
@@ -290,6 +294,6 @@ class AlarmServiceImplTest extends AlarmServiceTestSetup {
   //
   private def setSeverity(alarmKey: AlarmKey, alarmSeverity: AlarmSeverity): AlarmStatus = {
     alarmService.setSeverity(alarmKey, alarmSeverity).await
-    testStatusApi.get(alarmKey).await.get
+    alarmService.getStatus(alarmKey).await
   }
 }

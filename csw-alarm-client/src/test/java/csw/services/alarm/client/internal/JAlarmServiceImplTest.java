@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 import static csw.services.alarm.api.models.Key.AlarmKey;
 import static org.hamcrest.CoreMatchers.isA;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 
@@ -67,7 +68,7 @@ public class JAlarmServiceImplTest {
         assertEquals(LatchStatus.Latched$.MODULE$, status.latchStatus());
         assertEquals(JAlarmSeverity.Major, status.latchedSeverity());
         assertEquals(ShelveStatus.UnShelved$.MODULE$, status.shelveStatus());
-        assertTrue(status.alarmTime().isDefined());
+        assertNotNull(status.alarmTime());
 
         //get severity and assert
         AlarmSeverity severityAfterSetting = Await.result(alarmService.getCurrentSeverity(tromboneAxisHighLimitAlarm), new FiniteDuration(2, TimeUnit.SECONDS));
@@ -97,14 +98,14 @@ public class JAlarmServiceImplTest {
         assertEquals(AcknowledgementStatus.UnAcknowledged$.MODULE$, status.acknowledgementStatus());
         assertEquals(LatchStatus.UnLatched$.MODULE$, status.latchStatus());
         assertEquals(JAlarmSeverity.Okay, status.latchedSeverity());
-        assertTrue(status.alarmTime().isDefined());
+        assertNotNull(status.alarmTime());
 
         //set severity to indeterminant
         AlarmStatus status1 = setSeverity(tromboneAxisHighLimitAlarm, JAlarmSeverity.Indeterminate);
         assertEquals(AcknowledgementStatus.UnAcknowledged$.MODULE$, status1.acknowledgementStatus());
         assertEquals(LatchStatus.UnLatched$.MODULE$, status1.latchStatus());
         assertEquals(JAlarmSeverity.Indeterminate, status1.latchedSeverity());
-        assertTrue(status1.alarmTime().get().time().isAfter(status.alarmTime().get().time()));
+        assertTrue(status1.alarmTime().time().isAfter(status.alarmTime().time()));
     }
 
     // DEOPSCSW-462: Capture UTC timestamp in alarm state when severity is changed
@@ -116,19 +117,19 @@ public class JAlarmServiceImplTest {
         assertEquals(AcknowledgementStatus.Acknowledged$.MODULE$, status.acknowledgementStatus());
         assertEquals(LatchStatus.Latched$.MODULE$, status.latchStatus());
         assertEquals(JAlarmSeverity.Major, status.latchedSeverity());
-        assertTrue(status.alarmTime().isDefined());
+        assertNotNull(status.alarmTime());
 
         AlarmStatus status1 = setSeverity(tromboneAxisHighLimitAlarm, JAlarmSeverity.Warning);
         assertEquals(AcknowledgementStatus.Acknowledged$.MODULE$, status1.acknowledgementStatus());
         assertEquals(LatchStatus.Latched$.MODULE$, status1.latchStatus());
         assertEquals(JAlarmSeverity.Major, status1.latchedSeverity());
-        assertEquals(status1.alarmTime().get().time(), status.alarmTime().get().time());
+        assertEquals(status1.alarmTime().time(), status.alarmTime().time());
 
         AlarmStatus status2 = setSeverity(tromboneAxisHighLimitAlarm, JAlarmSeverity.Okay);
         assertEquals(AcknowledgementStatus.Acknowledged$.MODULE$, status2.acknowledgementStatus());
         assertEquals(LatchStatus.Latched$.MODULE$, status2.latchStatus());
         assertEquals(JAlarmSeverity.Major, status2.latchedSeverity());
-        assertEquals(status2.alarmTime().get().time(), status.alarmTime().get().time());
+        assertEquals(status2.alarmTime().time(), status.alarmTime().time());
     }
 
     // DEOPSCSW-462: Capture UTC timestamp in alarm state when severity is changed
@@ -140,13 +141,13 @@ public class JAlarmServiceImplTest {
         assertEquals(AcknowledgementStatus.Acknowledged$.MODULE$, status.acknowledgementStatus());
         assertEquals(LatchStatus.UnLatched$.MODULE$, status.latchStatus());
         assertEquals(JAlarmSeverity.Critical, status.latchedSeverity());
-        assertTrue(status.alarmTime().isDefined());
+        assertNotNull(status.alarmTime());
 
         AlarmStatus status1 = setSeverity(cpuExceededAlarm, JAlarmSeverity.Indeterminate);
         assertEquals(AcknowledgementStatus.Acknowledged$.MODULE$, status1.acknowledgementStatus());
         assertEquals(LatchStatus.UnLatched$.MODULE$, status1.latchStatus());
         assertEquals(JAlarmSeverity.Indeterminate, status1.latchedSeverity());
-        assertTrue(status1.alarmTime().get().time().isAfter(status.alarmTime().get().time()));
+        assertTrue(status1.alarmTime().time().isAfter(status.alarmTime().time()));
     }
 
 
@@ -158,7 +159,7 @@ public class JAlarmServiceImplTest {
         assertEquals(AcknowledgementStatus.UnAcknowledged$.MODULE$, status.acknowledgementStatus());
         assertEquals(LatchStatus.Latched$.MODULE$, status.latchStatus());
         assertEquals(JAlarmSeverity.Major, status.latchedSeverity());
-        assertTrue(status.alarmTime().isDefined());
+        assertNotNull(status.alarmTime());
     }
 
     // DEOPSCSW-462: Capture UTC timestamp in alarm state when severity is changed
@@ -173,7 +174,7 @@ public class JAlarmServiceImplTest {
         // set the severity again to mimic alarm refreshing
         AlarmStatus status1 = setSeverity(highLimitAlarmKey, JAlarmSeverity.Major);
 
-        assertEquals(status.alarmTime().get().time(), status1.alarmTime().get().time());
+        assertEquals(status.alarmTime().time(), status1.alarmTime().time());
     }
 
     // DEOPSCSW-462: Capture UTC timestamp in alarm state when severity is changed
@@ -188,6 +189,6 @@ public class JAlarmServiceImplTest {
         // set the severity again to mimic alarm refreshing
         AlarmStatus status1 = setSeverity(cpuExceededAlarm, JAlarmSeverity.Major);
 
-        assertEquals(status.alarmTime().get().time(), status1.alarmTime().get().time());
+        assertEquals(status.alarmTime().time(), status1.alarmTime().time());
     }
 }
