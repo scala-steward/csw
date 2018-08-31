@@ -12,15 +12,21 @@ object Formatter {
   val Separator =
     "==============================================================================================================="
 
+  private def decorate[T](list: List[T]) = list.mkString(s"$Separator$Newline", s"\n$Separator$Newline", s"$Newline$Separator")
+
   def formatAlarms(alarms: List[Alarm], options: Options): String =
-    ((options.showMetadata, options.showStatus) match {
+    decorate((options.showMetadata, options.showStatus) match {
       case (true, false) ⇒ alarms.map(a ⇒ formatMetadata(a.metadata))
       case (false, true) ⇒ alarms.map(a ⇒ formatStatus(a.status) + Newline + formatSeverity(a.severity))
       case _             ⇒ alarms.map(formatAlarm)
-    }).mkString(s"$Separator$Newline", s"\n$Separator$Newline", s"$Newline$Separator")
+    })
 
   def formatAlarm(alarm: Alarm): String =
-    formatMetadata(alarm.metadata) + Newline + formatStatus(alarm.status) + Newline + formatSeverity(alarm.severity)
+    List(
+      formatMetadata(alarm.metadata),
+      formatStatus(alarm.status),
+      formatSeverity(alarm.severity)
+    ).mkString(Newline)
 
   def formatMetadata(metadata: AlarmMetadata): String = {
     import metadata._
@@ -51,6 +57,13 @@ object Formatter {
       s"Alarm Time: ${alarmTime.value}"
     ).mkString(Newline)
   }
+
+  def formatStatusList(status: List[(AlarmKey, AlarmStatus)]): String =
+    decorate(status.map { case (k, s) ⇒ formatKey(k) + Newline + formatStatus(s) })
+
+  def formatMetadataList(metadata: List[AlarmMetadata]): String = decorate(metadata.map(formatMetadata))
+
+  def formatKey(key: AlarmKey) = s"AlarmKey: $key"
 
   def formatSeverity(severity: FullAlarmSeverity): String = s"Current Severity: $severity"
 

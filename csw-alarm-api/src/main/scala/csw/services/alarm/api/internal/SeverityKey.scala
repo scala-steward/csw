@@ -5,11 +5,12 @@ import csw.services.alarm.api.internal.Separators.KeySeparator
 
 import scala.language.implicitConversions
 
-private[alarm] case class SeverityKey(value: String)
+private[alarm] case class SeverityKey(value: String) extends InternalKey[SeverityKey] {
+  override val prefix: String = SeverityKey.prefix
+}
 
 private[alarm] object SeverityKey {
-  implicit def fromAlarmKey(alarmKey: Key): SeverityKey = SeverityKey(s"severity$KeySeparator" + alarmKey.value)
-
-  def fromMetadataKey(metadataKey: MetadataKey): SeverityKey =
-    SeverityKey(s"severity$KeySeparator" + metadataKey.value.stripPrefix(s"metadata$KeySeparator"))
+  val prefix: String                                         = s"severity$KeySeparator"
+  implicit def fromAlarmKey(alarmKey: Key): SeverityKey      = SeverityKey(prefix + alarmKey.value)
+  def fromMetadataKey(metadataKey: MetadataKey): SeverityKey = fromAlarmKey(metadataKey.toAlarmKey)
 }

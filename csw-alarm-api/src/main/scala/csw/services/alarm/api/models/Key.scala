@@ -5,6 +5,8 @@ import csw.messages.params.models.Subsystem
 import csw.services.alarm.api.internal.RichStringExtentions.RichString
 import csw.services.alarm.api.internal.Separators.KeySeparator
 
+import scala.math.Ordering
+
 /**
  * A wrapper class representing the key for an alarm e.g. nfiraos.trombone.tromboneaxislowlimitalarm. It represents each
  * alarm uniquely. Note that an alarm key is case-insensitive which means that nfiraos.trombone.tromboneaxislowlimitalarm and
@@ -44,5 +46,11 @@ object Key {
       case Array(subsystem, component, name) ⇒ AlarmKey(Subsystem.withName(subsystem), component, name)
       case _                                 ⇒ throw new IllegalArgumentException(s"Unable to parse '$keyStr' to make AlarmKey object")
     }
+
+    implicit object ord extends KeyOrdering[AlarmKey]
   }
+}
+
+trait KeyOrdering[T <: Key] extends Ordering[T] {
+  def compare(x: T, y: T): Int = if (x.value > y.value) 1 else 0
 }

@@ -5,6 +5,7 @@ import akka.actor.typed.ActorRef
 import akka.stream.scaladsl.{Keep, Sink}
 import com.typesafe.config.ConfigFactory
 import csw.services.alarm.api.models.AlarmSeverity
+import csw.services.alarm.api.models.FullAlarmSeverity.Disconnected
 import csw.services.alarm.api.models.Key.AlarmKey
 import csw.services.alarm.api.scaladsl.AlarmSubscription
 import csw.services.alarm.cli.args.Options
@@ -16,6 +17,7 @@ import csw.services.alarm.client.internal.AlarmServiceImpl
 import csw.services.alarm.client.internal.auto_refresh.AutoRefreshSeverityMessage.AutoRefreshSeverity
 import csw.services.alarm.client.internal.auto_refresh.{AutoRefreshSeverityActorFactory, AutoRefreshSeverityMessage}
 import csw.services.alarm.client.internal.commons.Settings
+import csw.services.alarm.client.internal.models.Alarm
 import csw.services.location.scaladsl.LocationService
 
 import scala.async.Async.{async, await}
@@ -91,6 +93,23 @@ class AlarmAdminClient(
     val alarms = await(alarmService.getAlarms(options.key)).sortWith(_.key.value > _.key.value)
     if (alarms.nonEmpty) printLine(Formatter.formatAlarms(alarms, options))
     else printLine("No matching keys found.")
+  }
+
+  def list2(options: Options): Future[Unit] = async {
+    (options.showMetadata, options.showStatus) match {
+      case (true, true) ⇒
+        val alarms = await(alarmService.getAlarms2(options.key)).sortBy(_.key)
+        printLine(Formatter.formatAlarms(alarms, options))
+
+      case (true, false) ⇒
+        val metadata = await(alarmService.getMetadata(options.key)).sortBy(_.alarmKey)
+        printLine(Formatter.formatMetadataList(metadata))
+
+      case (false, true) ⇒
+        val status = await(alarmService.getStatus2(options.key)).toList.sortBy(_._1)
+        printLine(Formatter.formatStatusList(status))
+
+    }
   }
 
   def status(options: Options): Future[Unit] = async {

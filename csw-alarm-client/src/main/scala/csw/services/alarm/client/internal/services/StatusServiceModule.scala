@@ -17,6 +17,7 @@ import csw.services.alarm.client.internal.commons.Settings
 import csw.services.alarm.client.internal.extensions.TimeExtensions.RichClock
 import csw.services.alarm.client.internal.models.Alarm
 import csw.services.alarm.client.internal.redis.RedisConnectionsFactory
+import romaine.async.RedisAsyncApi
 
 import scala.async.Async.{async, await}
 import scala.compat.java8.DurationConverters.DurationOps
@@ -46,6 +47,54 @@ trait StatusServiceModule extends StatusService {
       await(shelveStatusF),
       await(alarmTimeF).getOrElse(defaultAlarmStatus.alarmTime)
     )
+  }
+
+  def get[K <: InternalKey[K], V](key: Key, defaultValue: V, api: RedisAsyncApi[K, V])(
+      implicit fromAlarmKey: Key => K
+  ): Future[Map[AlarmKey, V]] = async {
+    val keys = await(api.keys(key))
+    await(api.mget(keys))
+      .map(r ⇒ r.key.toAlarmKey → r.value.getOrElse(defaultValue))
+      .toMap
+  }
+
+  final def getStatus2(key: Key): Future[Map[AlarmKey, AlarmStatus]] = async {
+    log.debug(s"Getting status for alarm [${key.value}]")
+    val defaultStatus = AlarmStatus()
+
+    val ackStatusF         = get(key, defaultStatus.acknowledgementStatus, ackStatusApi)
+    val latchedSeveritiesF = get(key, defaultStatus.latchedSeverity, latchedSeverityApi)
+    val shelveStatusF      = get(key, defaultStatus.shelveStatus, shelveStatusApi)
+    val timesF             = get(key, defaultStatus.alarmTime, alarmTimeApi)
+
+    val statusSetF = for {
+      ackStatus         <- ackStatusF
+      latchedSeverities <- latchedSeveritiesF
+      shelveStatus      <- shelveStatusF
+      times             <- timesF
+    } yield {
+      val allAlarmKeys = ackStatus.keySet ++ latchedSeverities.keySet ++ shelveStatus.keySet ++ times.keySet
+      allAlarmKeys.map(key ⇒ key → AlarmStatus(ackStatus(key), latchedSeverities(key), shelveStatus(key), times(key))).toMap
+    }
+
+    await(statusSetF)
+  }
+
+  final def getSeverity(key: Key): Future[Map[AlarmKey, FullAlarmSeverity]] = async {
+    log.debug(s"Getting severity for alarm [${key.value}]")
+    val defaultSeverity = Disconnected
+    await(get(key, defaultSeverity, severityApi))
+  }
+
+  final def getAlarms2(key: Key): Future[List[Alarm]] = async {
+    val metadata   = await(getMetadata(key)).groupBy(_.alarmKey)
+    val status     = await(getStatus2(key))
+    val severities = await(getSeverity(key))
+
+    (metadata.keySet ++ status.keySet ++ severities.keySet)
+      .map(k ⇒ Alarm(k, metadata(k).head, status(k), severities(k)))
+      .toList
+      .sortWith(_.key.value > _.key.value)
   }
 
   final override def acknowledge(key: AlarmKey): Future[Done] = setAcknowledgementStatus(key, Acknowledged)
@@ -190,7 +239,7 @@ trait StatusServiceModule extends StatusService {
 
   def getAlarms(key: Key): Future[List[Alarm]] = metadataApi.keys(key).flatMap {
     Future.traverse(_) { metadataKey ⇒
-      val alarmKey = MetadataKey.toAlarmKey(metadataKey)
+      val alarmKey: AlarmKey = metadataKey.toAlarmKey
       for {
         metadata ← getMetadata(alarmKey)
         status   ← getStatus(alarmKey)

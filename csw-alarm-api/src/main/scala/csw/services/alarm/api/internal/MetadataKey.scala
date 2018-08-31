@@ -6,10 +6,11 @@ import csw.services.alarm.api.models.Key
 
 import scala.language.implicitConversions
 
-private[alarm] case class MetadataKey(value: String)
+private[alarm] case class MetadataKey(value: String) extends InternalKey[MetadataKey] {
+  override val prefix: String = MetadataKey.prefix
+}
 
 private[alarm] object MetadataKey {
-  private val prefix                                          = s"metadata$KeySeparator"
-  implicit def fromAlarmKey(alarmKey: Key): MetadataKey       = MetadataKey(prefix + alarmKey.value)
-  implicit def toAlarmKey(metadataKey: MetadataKey): AlarmKey = AlarmKey(metadataKey.value.stripPrefix(prefix))
+  private val prefix                                    = s"metadata$KeySeparator"
+  implicit def fromAlarmKey(alarmKey: Key): MetadataKey = MetadataKey(prefix + alarmKey.value)
 }
