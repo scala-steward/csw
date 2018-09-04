@@ -11,12 +11,12 @@ import csw.services.alarm.api.models.FullAlarmSeverity.Disconnected
 import csw.services.alarm.api.models.Key.AlarmKey
 import csw.services.alarm.api.models.{AlarmSeverity, FullAlarmSeverity, Key}
 import csw.services.alarm.api.scaladsl.AlarmSubscription
+import csw.services.alarm.client.internal.AlarmServiceLogger
 import csw.services.alarm.client.internal.commons.Settings
 import csw.services.alarm.client.internal.redis.RedisConnectionsFactory
-import csw.services.alarm.client.internal.{AlarmCodec, AlarmServiceLogger}
 import reactor.core.publisher.FluxSink.OverflowStrategy
 import romaine.extensions.SourceExtensions.RichSource
-import romaine.reactive.{RedisResult, RedisSubscription}
+import romaine.reactive.RedisResult
 
 import scala.async.Async.{async, await}
 import scala.concurrent.Future
@@ -87,9 +87,8 @@ trait SeverityServiceModule extends SeverityService {
   // channel: e.g. __keyspace@0__:status.nfiraos.trombone.tromboneAxisLowLimitAlarm,
   // message: event type as value: e.g. set, expire, expired
   private[alarm] def subscribeAggregatedSeverity(key: Key): Source[FullAlarmSeverity, AlarmSubscription] = {
-    import AlarmCodec._
-
     // create new connection for every client
+    import csw.services.alarm.client.internal.AlarmCodec._
     val keySpaceApi = redisKeySpaceApi(severityApi)
 
     val severitySourceF = async {
@@ -98,7 +97,7 @@ trait SeverityServiceModule extends SeverityService {
       val currentSeverities  = await(severityApi.mget(activeSeverityKeys)).map(result ⇒ result.key → result.value).toMap
 
       keySpaceApi
-        .watchKeyspaceValue(activeSeverityKeys.map(_.value), OverflowStrategy.LATEST)
+        .watchKeyspaceValue(activeSeverityKeys, OverflowStrategy.LATEST)
         .scan(currentSeverities) {
           case (data, RedisResult(severityKey, mayBeSeverity)) ⇒ data + (severityKey → mayBeSeverity)
         }

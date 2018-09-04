@@ -7,7 +7,7 @@ import io.lettuce.core.RedisURI
 import romaine.RomaineFactory
 import romaine.async.RedisAsyncApi
 import romaine.codec.RomaineStringCodec
-import romaine.reactive.{RedisKeySpaceApi, RedisSubscriptionApi}
+import romaine.reactive.{Keyspace0Key, RedisKeySpaceApi, RedisSubscriptionApi}
 
 import scala.concurrent.ExecutionContext
 
@@ -15,7 +15,6 @@ class RedisConnectionsFactory(alarmServiceResolver: AlarmServiceResolver, master
     implicit val ec: ExecutionContext
 ) {
   import csw.services.alarm.client.internal.AlarmCodec._
-  import romaine.codec.RomaineStringCodec.stringRomaineCodec
 
   lazy val metadataApi: RedisAsyncApi[MetadataKey, AlarmMetadata]                   = asyncApi
   lazy val severityApi: RedisAsyncApi[SeverityKey, FullAlarmSeverity]               = asyncApi
@@ -29,8 +28,9 @@ class RedisConnectionsFactory(alarmServiceResolver: AlarmServiceResolver, master
   def subscriptionApi[K: RomaineStringCodec, V: RomaineStringCodec]: RedisSubscriptionApi[K, V] =
     romaineFactory.redisSubscriptionApi[K, V](redisURI)
 
-  def redisKeySpaceApi[K: RomaineStringCodec, V: RomaineStringCodec](asyncApi: RedisAsyncApi[K, V]): RedisKeySpaceApi[K, V] =
-    new RedisKeySpaceApi(subscriptionApi, asyncApi)
+  def redisKeySpaceApi[K: RomaineStringCodec, V: RomaineStringCodec](
+      asyncApi: RedisAsyncApi[K, V]
+  ): RedisKeySpaceApi[K, V, Keyspace0Key] = new RedisKeySpaceApi(subscriptionApi, asyncApi)
 
   private def redisURI = alarmServiceResolver.uri().map { uri ⇒
     RedisURI.Builder.sentinel(uri.getHost, uri.getPort, masterId).build()

@@ -3,6 +3,9 @@ package csw.services.alarm.client.internal
 import csw.services.alarm.api.internal._
 import csw.services.alarm.api.models._
 import romaine.codec.RomaineStringCodec
+import romaine.codec.RomaineStringCodec.codec
+import romaine.reactive.RedisOperation
+import romaine.reactive.RedisOperation.{Expired, Set, Unknown}
 import upickle.default._
 
 object AlarmCodec extends AlarmRW {
@@ -24,4 +27,11 @@ object AlarmCodec extends AlarmRW {
   implicit val alarmTimeRomaineCodec: RomaineStringCodec[AlarmTime]        = viaJsonCodec
   implicit val shelveStatusRomaineCodec: RomaineStringCodec[ShelveStatus]  = viaJsonCodec
   implicit val ackStatusCodec: RomaineStringCodec[AcknowledgementStatus]   = viaJsonCodec
+
+  implicit val redisOperationCodec: RomaineStringCodec[RedisOperation] =
+    codec(_.toString, {
+      case "set"     ⇒ Set
+      case "expired" ⇒ Expired
+      case _         ⇒ Unknown
+    })
 }
