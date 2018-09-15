@@ -1,6 +1,6 @@
 package csw.command.models.framework
 
-import csw.params.TMTSerializable
+import csw.serializable.TMTSerializable
 import csw.location.api.models.{ComponentType, Connection}
 import csw.params.core.models.Prefix
 import play.api.libs.json._

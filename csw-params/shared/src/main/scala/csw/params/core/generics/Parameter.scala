@@ -3,7 +3,7 @@ package csw.params.core.generics
 import java.util
 import java.util.Optional
 
-import csw.params.TMTSerializable
+import csw.serializable.TMTSerializable
 import csw.params.extensions.OptionConverters.RichOption
 import csw.params.core.models.Units
 import play.api.libs.json._

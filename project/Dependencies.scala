@@ -253,6 +253,12 @@ object Dependencies {
     )
   )
 
+  val Kryo = Def.setting(
+    Seq(
+      Chill.`chill-akka`
+    )
+  )
+
   val Romaine = Def.setting(
     Seq(
       Libs.`lettuce`,

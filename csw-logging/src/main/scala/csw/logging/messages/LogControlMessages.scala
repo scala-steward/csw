@@ -1,7 +1,7 @@
 package csw.logging.messages
 
 import akka.actor.typed.ActorRef
-import csw.params.TMTSerializable
+import csw.serializable.TMTSerializable
 import csw.logging.internal.LoggingLevels.Level
 import csw.logging.models.LogMetadata
 

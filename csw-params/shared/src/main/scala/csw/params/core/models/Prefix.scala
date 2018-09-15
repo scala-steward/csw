@@ -1,6 +1,6 @@
 package csw.params.core.models
 
-import csw.params.TMTSerializable
+import csw.serializable.TMTSerializable
 import csw.params.core.models.Prefix.SEPARATOR
 import play.api.libs.json._
 

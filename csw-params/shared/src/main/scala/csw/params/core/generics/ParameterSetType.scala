@@ -2,7 +2,7 @@ package csw.params.core.generics
 
 import java.util
 
-import csw.params.TMTSerializable
+import csw.serializable.TMTSerializable
 import csw.params.extensions.OptionConverters.RichOption
 
 import scala.annotation.varargs

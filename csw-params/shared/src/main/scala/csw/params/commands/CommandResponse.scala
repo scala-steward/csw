@@ -1,6 +1,6 @@
 package csw.params.commands
 
-import csw.params.TMTSerializable
+import csw.serializable.TMTSerializable
 import csw.params.commands.CommandResultType.{Intermediate, Negative, Positive}
 import csw.params.core.models.Id
 import enumeratum._

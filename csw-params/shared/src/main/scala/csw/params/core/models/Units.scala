@@ -1,6 +1,6 @@
 package csw.params.core.models
 
-import csw.params.TMTSerializable
+import csw.serializable.TMTSerializable
 import enumeratum.{Enum, EnumEntry, PlayJsonEnum}
 
 import scala.collection.immutable

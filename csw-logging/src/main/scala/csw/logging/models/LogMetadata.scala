@@ -1,6 +1,6 @@
 package csw.logging.models
 
-import csw.params.TMTSerializable
+import csw.serializable.TMTSerializable
 import csw.logging.internal.LoggingLevels.Level
 
 /**

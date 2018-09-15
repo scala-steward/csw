@@ -66,22 +66,12 @@ lazy val `csw-prod` = project
 
 lazy val `csw-params` = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Full)
+  .dependsOn(`csw-serializable`)
   .enablePlugins(PublishBintray, GenJavadocPlugin)
   .settings(
     libraryDependencies ++= Dependencies.Params.value,
     Common.detectCycles := false,
     fork := false
-  )
-  .settings(
-    // Shared resource directory is ignored by sbt-crossproject, open issue: https://github.com/portable-scala/sbt-crossproject/issues/74
-    Seq(Compile, Test).flatMap(inConfig(_) {
-      unmanagedResourceDirectories ++= {
-        unmanagedSourceDirectories.value
-          .map(src => (src / ".." / "resources").getCanonicalFile)
-          .filterNot(unmanagedResourceDirectories.value.contains)
-          .distinct
-      }
-    })
   )
 
 lazy val `csw-params-js` = `csw-params`.js
@@ -114,6 +104,7 @@ lazy val `csw-location` = project
     `csw-location-api`,
     `csw-logging`,
     `csw-params-jvm`,
+    `csw-serializable-kryo`,
     `csw-commons` % "test->test"
   )
   .enablePlugins(PublishBintray, GenJavadocPlugin, AutoMultiJvm, MaybeCoverage)
@@ -124,7 +115,8 @@ lazy val `csw-location` = project
 lazy val `csw-location-api` = project
   .dependsOn(
     `csw-params-jvm`,
-    `csw-logging`
+    `csw-logging`,
+    `csw-serializable`.jvm
   )
   .enablePlugins(PublishBintray, GenJavadocPlugin, MaybeCoverage)
   .settings(
@@ -204,6 +196,7 @@ lazy val `csw-command` = project
     `csw-params-jvm`,
     `csw-location-api`,
     `csw-logging`,
+    `csw-serializable-kryo`,
     `csw-commons` % "test->test"
   )
   .enablePlugins(PublishBintray, AutoMultiJvm, GenJavadocPlugin, MaybeCoverage)
@@ -218,6 +211,7 @@ lazy val `csw-framework` = project
     `csw-event-api`,
     `csw-event-client`,
     `csw-alarm-client`,
+    `csw-serializable-kryo`,
     `csw-event-client`  % "test->test",
     `csw-location`      % "compile->compile;multi-jvm->multi-jvm",
     `csw-config-server` % "multi-jvm->test",
@@ -290,6 +284,17 @@ lazy val `csw-alarm-cli` = project
   .enablePlugins(DeployApp, MaybeCoverage)
   .settings(libraryDependencies ++= Dependencies.AlarmCli.value)
 
+lazy val `csw-serializable` = crossProject(JSPlatform, JVMPlatform)
+  .crossType(CrossType.Full)
+  .enablePlugins(PublishBintray, GenJavadocPlugin)
+  .settings(fork := false)
+
+lazy val `csw-serializable-kryo` = project
+  .dependsOn(`csw-serializable`.jvm)
+  .enablePlugins(PublishBintray, GenJavadocPlugin)
+  .settings(libraryDependencies ++= Dependencies.Kryo.value)
+
+
 lazy val `csw-commons` = project
   .enablePlugins(PublishBintray, GenJavadocPlugin)
   .settings(
@@ -307,7 +312,8 @@ lazy val `csw-benchmark` = project
     `csw-logging`,
     `csw-params-jvm`,
     `csw-framework` % "compile->compile;test->test",
-    `csw-command`
+    `csw-command`,
+    `csw-serializable-kryo`
   )
   .enablePlugins(NoPublish, JmhPlugin)
   .disablePlugins(BintrayPlugin)
