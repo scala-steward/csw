@@ -34,6 +34,24 @@ class RedisFailureTest extends FunSuite with Matchers with MockitoSugar with Bef
 
   override def afterAll(): Unit = redisTestProps.shutdown()
 
+  test("should throw EventServerNotAvailable on making new publisher or subscriber") {
+    import redisTestProps._
+
+    redisServer.stop()
+
+    Thread.sleep(1000) // wait till the publisher is shutdown successfully
+
+    intercept[EventServerNotAvailable] {
+      eventService.makeNewPublisher()
+    }
+
+    intercept[EventServerNotAvailable] {
+      eventService.makeNewSubscriber()
+    }
+
+    redisServer.start()
+  }
+
   test("should throw PublishFailed exception on publish failure") {
     import redisTestProps._
     val publisher = eventService.makeNewPublisher()

@@ -6,13 +6,14 @@ import akka.Done
 import akka.actor.Cancellable
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
-import csw.params.events.Event
-import csw.event.api.exceptions.PublishFailure
+import csw.event.api.exceptions.{EventServerNotAvailable, PublishFailure}
 import csw.event.api.scaladsl.EventPublisher
 import csw.event.client.internal.commons.EventPublisherUtil
+import csw.params.events.Event
 import io.lettuce.core.{RedisClient, RedisURI}
 import romaine.RomaineFactory
 import romaine.async.RedisAsyncApi
+import romaine.exceptions.RedisServerNotAvailable
 
 import scala.async.Async._
 import scala.concurrent.duration.FiniteDuration
@@ -27,7 +28,7 @@ import scala.util.control.NonFatal
  * @param redisClient redis client available from lettuce
  * @param mat         the materializer to be used for materializing underlying streams
  */
-class RedisPublisher(redisURI: Future[RedisURI], redisClient: RedisClient)(implicit mat: Materializer) extends EventPublisher {
+class RedisPublisher(redisURI: RedisURI, redisClient: RedisClient)(implicit mat: Materializer) extends EventPublisher {
 
   private implicit val singleThreadedEc: ExecutionContext =
     ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor())
@@ -37,9 +38,9 @@ class RedisPublisher(redisURI: Future[RedisURI], redisClient: RedisClient)(impli
   private val eventPublisherUtil = new EventPublisherUtil()
 
   private val romaineFactory = new RomaineFactory(redisClient)
-  import EventRomaineCodecs._
 
-  private val asyncApi: RedisAsyncApi[String, Event] = romaineFactory.redisAsyncApi(redisURI)
+  import EventRomaineCodecs._
+  private val asyncApi: RedisAsyncApi[String, Event] = createAsyncApi()
 
   override def publish(event: Event): Future[Done] =
     async {
@@ -75,4 +76,11 @@ class RedisPublisher(redisURI: Future[RedisURI], redisClient: RedisClient)(impli
 
   private def set(event: Event, commands: RedisAsyncApi[String, Event]): Future[Done] =
     commands.set(event.eventKey.key, event).recover { case NonFatal(_) ⇒ Done }
+
+  private def createAsyncApi(): RedisAsyncApi[String, Event] =
+    try {
+      romaineFactory.redisAsyncApi[String, Event](redisURI)
+    } catch {
+      case RedisServerNotAvailable(ex) => throw EventServerNotAvailable(ex)
+    }
 }

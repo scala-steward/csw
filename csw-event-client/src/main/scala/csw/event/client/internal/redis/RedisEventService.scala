@@ -5,7 +5,8 @@ import csw.event.api.scaladsl.EventService
 import csw.event.client.internal.commons.serviceresolver.EventServiceResolver
 import io.lettuce.core.{RedisClient, RedisURI}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.DurationLong
+import scala.concurrent.{Await, ExecutionContext}
 
 /**
  * Implementation of [[csw.event.api.scaladsl.EventService]] which provides handle to [[csw.event.api.scaladsl.EventPublisher]]
@@ -27,7 +28,9 @@ class RedisEventService(eventServiceResolver: EventServiceResolver, masterId: St
   override def makeNewSubscriber(): RedisSubscriber = new RedisSubscriber(redisURI(), redisClient)
 
   // resolve event service every time before creating a new publisher or subscriber
-  private def redisURI(): Future[RedisURI] =
-    eventServiceResolver.uri().map(uri ⇒ RedisURI.Builder.sentinel(uri.getHost, uri.getPort, masterId).build())
-
+  private def redisURI(): RedisURI = {
+    val eventualRedisURI =
+      eventServiceResolver.uri().map(uri ⇒ RedisURI.Builder.sentinel(uri.getHost, uri.getPort, masterId).build())
+    Await.result(eventualRedisURI, 5.seconds)
+  }
 }

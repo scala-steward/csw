@@ -10,7 +10,8 @@ import romaine.codec.RomaineStringCodec
 import romaine.keyspace.RedisKeySpaceApi
 import romaine.reactive.RedisSubscriptionApi
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.DurationLong
+import scala.concurrent.{Await, ExecutionContext}
 
 class RedisConnectionsFactory(alarmServiceResolver: AlarmServiceResolver, masterId: String, romaineFactory: RomaineFactory)(
     implicit val ec: ExecutionContext
@@ -32,7 +33,10 @@ class RedisConnectionsFactory(alarmServiceResolver: AlarmServiceResolver, master
   def redisKeySpaceApi[K: RomaineStringCodec, V: RomaineStringCodec](asyncApi: RedisAsyncApi[K, V]): RedisKeySpaceApi[K, V] =
     new RedisKeySpaceApi(subscriptionApi, asyncApi)
 
-  private def redisURI = alarmServiceResolver.uri().map { uri ⇒
-    RedisURI.Builder.sentinel(uri.getHost, uri.getPort, masterId).build()
+  private def redisURI = {
+    val eventualURI = alarmServiceResolver.uri().map { uri ⇒
+      RedisURI.Builder.sentinel(uri.getHost, uri.getPort, masterId).build()
+    }
+    Await.result(eventualURI, 5.seconds)
   }
 }

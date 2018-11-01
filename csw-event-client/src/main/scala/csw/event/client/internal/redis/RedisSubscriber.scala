@@ -4,11 +4,11 @@ import akka.actor.typed.ActorRef
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Keep, Source}
 import akka.{Done, NotUsed}
-import csw.params.events._
-import csw.params.core.models.Subsystem
 import csw.event.api.exceptions.EventServerNotAvailable
 import csw.event.api.scaladsl.{EventSubscriber, EventSubscription, SubscriptionMode}
 import csw.event.client.internal.commons.{EventServiceLogger, EventSubscriberUtil}
+import csw.params.core.models.Subsystem
+import csw.params.events._
 import io.lettuce.core.{RedisClient, RedisURI}
 import reactor.core.publisher.FluxSink.OverflowStrategy
 import romaine.RomaineFactory
@@ -30,10 +30,8 @@ import scala.concurrent.{ExecutionContext, Future}
  * @param ec          the execution context to be used for performing asynchronous operations
  * @param mat         the materializer to be used for materializing underlying streams
  */
-class RedisSubscriber(redisURI: Future[RedisURI], redisClient: RedisClient)(
-    implicit ec: ExecutionContext,
-    mat: Materializer
-) extends EventSubscriber {
+class RedisSubscriber(redisURI: RedisURI, redisClient: RedisClient)(implicit ec: ExecutionContext, mat: Materializer)
+    extends EventSubscriber {
 
   import EventRomaineCodecs._
 
@@ -41,11 +39,7 @@ class RedisSubscriber(redisURI: Future[RedisURI], redisClient: RedisClient)(
   private val eventSubscriberUtil = new EventSubscriberUtil()
 
   private val romaineFactory = new RomaineFactory(redisClient)
-
-  private val asyncApi: RedisAsyncApi[EventKey, Event] = romaineFactory.redisAsyncApi[EventKey, Event](redisURI)
-
-  private def subscriptionApi[T: RomaineStringCodec](): RedisSubscriptionApi[T, Event] =
-    romaineFactory.redisSubscriptionApi[T, Event](redisURI)
+  private val asyncApi       = createAsyncApi()
 
   override def subscribe(eventKeys: Set[EventKey]): Source[Event, EventSubscription] = {
     log.info(s"Subscribing to event keys: $eventKeys")
@@ -57,6 +51,9 @@ class RedisSubscriber(redisURI: Future[RedisURI], redisClient: RedisClient)(
 
     latestEventStream.concatMat(eventStream(eventKeys, redisStream))(Keep.right)
   }
+
+  private def subscriptionApi[T: RomaineStringCodec](): RedisSubscriptionApi[T, Event] =
+    romaineFactory.redisSubscriptionApi[T, Event](redisURI)
 
   override def subscribe(
       eventKeys: Set[EventKey],
@@ -129,5 +126,12 @@ class RedisSubscriber(redisURI: Future[RedisURI], redisClient: RedisClient)(
           case RedisServerNotAvailable(ex) => throw EventServerNotAvailable(ex)
         }
       }
+    }
+
+  private def createAsyncApi(): RedisAsyncApi[EventKey, Event] =
+    try {
+      romaineFactory.redisAsyncApi[EventKey, Event](redisURI)
+    } catch {
+      case RedisServerNotAvailable(ex) => throw EventServerNotAvailable(ex)
     }
 }
