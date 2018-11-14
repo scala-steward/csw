@@ -28,29 +28,26 @@ class KafkaPublisher(producerSettings: Future[ProducerSettings[String, Array[Byt
                                                                                       mat: Materializer)
     extends EventPublisher {
 
-  private val parallelism        = 1
-  private val kafkaProducer      = producerSettings.map(_.createKafkaProducer())
-  private val eventPublisherUtil = new EventPublisherUtil()
+  private val parallelism   = 1
+  private val kafkaProducer = producerSettings.map(_.createKafkaProducer())
 
-  private val streamTermination: Future[Done] = eventPublisherUtil.streamTermination(publishInternal)
-
-  override def publish(event: Event): Future[Done] = {
-    eventPublisherUtil.publish(event, streamTermination.isCompleted)
-  }
-
-  private def publishInternal(event: Event): Future[Done] = {
-    val p = Promise[Done]
-    kafkaProducer.map(_.send(eventToProducerRecord(event), completePromise(event, p))).recover {
-      case NonFatal(ex) ⇒ p.failure(PublishFailure(event, ex))
+  private val eventPublisherUtil = new EventPublisherUtil {
+    override def publishInternal(event: Event): Future[Done] = {
+      val p = Promise[Done]
+      kafkaProducer.map(_.send(eventToProducerRecord(event), completePromise(event, p))).recover {
+        case NonFatal(ex) ⇒ p.failure(PublishFailure(event, ex))
+      }
+      p.future
     }
-    p.future
   }
+
+  override def publish(event: Event): Future[Done] = eventPublisherUtil.publish(event)
 
   override def publish[Mat](source: Source[Event, Mat]): Mat =
-    eventPublisherUtil.publishFromSource(source, parallelism, publishInternal, None)
+    eventPublisherUtil.publishFromSource(source, parallelism, None)
 
   override def publish[Mat](stream: Source[Event, Mat], onError: PublishFailure ⇒ Unit): Mat =
-    eventPublisherUtil.publishFromSource(stream, parallelism, publishInternal, Some(onError))
+    eventPublisherUtil.publishFromSource(stream, parallelism, Some(onError))
 
   override def publish(eventGenerator: ⇒ Event, every: FiniteDuration): Cancellable =
     publish(eventPublisherUtil.eventSource(eventGenerator, every))

@@ -29,37 +29,34 @@ class RedisPublisher(redisURI: Future[RedisURI], redisClient: RedisClient)(impli
     extends EventPublisher {
 
   // inorder to preserve the order of publishing events, the parallelism level is maintained to 1
-  private val parallelism        = 1
-  private val eventPublisherUtil = new EventPublisherUtil()
-
+  private val parallelism    = 1
   private val romaineFactory = new RomaineFactory(redisClient)
-  import EventRomaineCodecs._
 
+  import EventRomaineCodecs._
   private val asyncApi: RedisAsyncApi[String, Event] = romaineFactory.redisAsyncApi(redisURI)
 
-  private val streamTermination: Future[Done] = eventPublisherUtil.streamTermination(publishInternal)
-
-  override def publish(event: Event): Future[Done] = {
-    eventPublisherUtil.publish(event, streamTermination.isCompleted)
+  private val eventPublisherUtil = new EventPublisherUtil {
+    override def publishInternal(event: Event): Future[Done] = {
+      async {
+        await(asyncApi.publish(event.eventKey.key, event))
+        set(event, asyncApi) // set will run independent of publish
+        Done
+      } recover {
+        case NonFatal(ex) ⇒
+          val failure = PublishFailure(event, ex)
+          logError(failure)
+          throw failure
+      }
+    }
   }
 
-  private def publishInternal(event: Event): Future[Done] =
-    async {
-      await(asyncApi.publish(event.eventKey.key, event))
-      set(event, asyncApi) // set will run independent of publish
-      Done
-    } recover {
-      case NonFatal(ex) ⇒
-        val failure = PublishFailure(event, ex)
-        eventPublisherUtil.logError(failure)
-        throw failure
-    }
+  override def publish(event: Event): Future[Done] = eventPublisherUtil.publish(event)
 
   override def publish[Mat](source: Source[Event, Mat]): Mat =
-    eventPublisherUtil.publishFromSource(source, parallelism, publishInternal, None)
+    eventPublisherUtil.publishFromSource(source, parallelism, None)
 
   override def publish[Mat](source: Source[Event, Mat], onError: PublishFailure ⇒ Unit): Mat =
-    eventPublisherUtil.publishFromSource(source, parallelism, publishInternal, Some(onError))
+    eventPublisherUtil.publishFromSource(source, parallelism, Some(onError))
 
   override def publish(eventGenerator: ⇒ Event, every: FiniteDuration): Cancellable =
     publish(eventPublisherUtil.eventSource(eventGenerator, every))
