@@ -14,19 +14,17 @@ import scala.util.control.NonFatal
 /**
  * Utility class to provided common functionalities to different implementations of EventPublisher
  */
-abstract class EventPublisherUtil(implicit ec: ExecutionContext, mat: Materializer) {
+class EventPublisherUtil(publishApi: PublishApi)(implicit ec: ExecutionContext, mat: Materializer) {
 
   private val logger = EventServiceLogger.getLogger
 
   lazy val (actorRef, stream) = Source.actorRef[(Event, Promise[Done])](1024, OverflowStrategy.dropHead).preMaterialize()
 
-  def publishInternal(event: Event): Future[Done]
-
   private val streamTermination: Future[Done] =
     stream
       .mapAsync(1) {
         case (e, p) =>
-          publishInternal(e).map(p.trySuccess).recover {
+          publishApi.publish(e).map(p.trySuccess).recover {
             case ex => p.tryFailure(ex)
           }
       }
@@ -60,7 +58,7 @@ abstract class EventPublisherUtil(implicit ec: ExecutionContext, mat: Materializ
       .run()
 
   private def publishWithRecovery(event: Event, maybeOnError: Option[PublishFailure ⇒ Unit]) =
-    publishInternal(event).recover[Done] {
+    publishApi.publish(event).recover[Done] {
       case failure @ PublishFailure(_, _) ⇒
         maybeOnError.foreach(onError ⇒ onError(failure))
         Done

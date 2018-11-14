@@ -1,4 +1,4 @@
-package csw.event.client.internal.redis
+package csw.event.client.internal.commons
 
 import akka.Done
 import akka.actor.Cancellable
@@ -6,49 +6,20 @@ import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import csw.event.api.exceptions.PublishFailure
 import csw.event.api.scaladsl.EventPublisher
-import csw.event.client.internal.commons.EventPublisherUtil
 import csw.params.events.Event
-import io.lettuce.core.{RedisClient, RedisURI}
-import romaine.RomaineFactory
-import romaine.async.RedisAsyncApi
 
-import scala.async.Async._
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.control.NonFatal
 
 /**
  * An implementation of [[csw.event.api.scaladsl.EventPublisher]] API which uses Redis as the provider for publishing
  * and subscribing events.
- *
- * @param redisURI    future containing connection details for the Redis/Sentinel connections.
- * @param redisClient redis client available from lettuce
- * @param mat         the materializer to be used for materializing underlying streams
  */
-class RedisPublisher(redisURI: Future[RedisURI], redisClient: RedisClient)(implicit mat: Materializer, ec: ExecutionContext)
-    extends EventPublisher {
-
+class EventPublisherImpl(publishApi: PublishApi)(implicit mat: Materializer, ec: ExecutionContext) extends EventPublisher {
   // inorder to preserve the order of publishing events, the parallelism level is maintained to 1
-  private val parallelism    = 1
-  private val romaineFactory = new RomaineFactory(redisClient)
+  private val parallelism = 1
 
-  import EventRomaineCodecs._
-  private val asyncApi: RedisAsyncApi[String, Event] = romaineFactory.redisAsyncApi(redisURI)
-
-  private val eventPublisherUtil = new EventPublisherUtil {
-    override def publishInternal(event: Event): Future[Done] = {
-      async {
-        await(asyncApi.publish(event.eventKey.key, event))
-        set(event, asyncApi) // set will run independent of publish
-        Done
-      } recover {
-        case NonFatal(ex) ⇒
-          val failure = PublishFailure(event, ex)
-          logError(failure)
-          throw failure
-      }
-    }
-  }
+  private val eventPublisherUtil = new EventPublisherUtil(publishApi)
 
   override def publish(event: Event): Future[Done] = eventPublisherUtil.publish(event)
 
@@ -72,9 +43,6 @@ class RedisPublisher(redisURI: Future[RedisURI], redisClient: RedisClient)(impli
 
   override def shutdown(): Future[Done] = {
     eventPublisherUtil.shutdown()
-    asyncApi.quit().map(_ ⇒ Done)
+    publishApi.shutdown()
   }
-
-  private def set(event: Event, commands: RedisAsyncApi[String, Event]): Future[Done] =
-    commands.set(event.eventKey.key, event).recover { case NonFatal(_) ⇒ Done }
 }

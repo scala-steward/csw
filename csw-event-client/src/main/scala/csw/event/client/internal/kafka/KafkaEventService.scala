@@ -5,7 +5,8 @@ import java.util.UUID
 import akka.actor.ActorSystem
 import akka.kafka.{ConsumerSettings, ProducerSettings}
 import akka.stream.Materializer
-import csw.event.api.scaladsl.EventService
+import csw.event.api.scaladsl.{EventPublisher, EventService, EventSubscriber}
+import csw.event.client.internal.commons.EventPublisherImpl
 import csw.event.client.internal.commons.serviceresolver.EventServiceResolver
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -23,8 +24,8 @@ class KafkaEventService(eventServiceResolver: EventServiceResolver)(implicit act
 
   implicit val executionContext: ExecutionContext = actorSystem.dispatcher
 
-  override def makeNewPublisher(): KafkaPublisher   = new KafkaPublisher(producerSettings)
-  override def makeNewSubscriber(): KafkaSubscriber = new KafkaSubscriber(consumerSettings)
+  override def makeNewPublisher(): EventPublisher   = new EventPublisherImpl(new KafkaPublishApi(producerSettings))
+  override def makeNewSubscriber(): EventSubscriber = new KafkaSubscriber(consumerSettings)
 
   // resolve event service every time before creating a new publisher
   private def producerSettings: Future[ProducerSettings[String, Array[Byte]]] = eventServiceResolver.uri().map { uri ⇒
