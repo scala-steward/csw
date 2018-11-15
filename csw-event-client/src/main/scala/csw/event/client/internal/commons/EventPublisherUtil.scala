@@ -68,8 +68,9 @@ class EventPublisherUtil(publishApi: PublishApi)(implicit ec: ExecutionContext, 
     logger.error(failure.getMessage, ex = failure)
   }
 
-  def shutdown(): Unit = {
+  def shutdown(): Future[Done] = {
     actorRef ! PoisonPill
+    publishApi.shutdown()
   }
 
   // log error for any exception from provided eventGenerator

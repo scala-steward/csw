@@ -41,8 +41,5 @@ class EventPublisherImpl(publishApi: PublishApi)(implicit mat: Materializer, ec:
   override def publishAsync(eventGenerator: ⇒ Future[Event], every: FiniteDuration, onError: PublishFailure ⇒ Unit): Cancellable =
     publish(eventPublisherUtil.eventSourceAsync(eventGenerator, every), onError)
 
-  override def shutdown(): Future[Done] = {
-    eventPublisherUtil.shutdown()
-    publishApi.shutdown()
-  }
+  override def shutdown(): Future[Done] = eventPublisherUtil.shutdown()
 }
