@@ -18,7 +18,7 @@ class EventPublisherUtil(publishApi: PublishApi)(implicit ec: ExecutionContext, 
 
   private val logger = EventServiceLogger.getLogger
 
-  lazy val (actorRef, stream) = Source.actorRef[(Event, Promise[Done])](1024, OverflowStrategy.dropHead).preMaterialize()
+  private val (actorRef, stream) = Source.actorRef[(Event, Promise[Done])](1024, OverflowStrategy.dropHead).preMaterialize()
 
   private val streamTermination: Future[Done] =
     stream
@@ -30,11 +30,23 @@ class EventPublisherUtil(publishApi: PublishApi)(implicit ec: ExecutionContext, 
       }
       .runForeach(_ => ())
 
-  def publish(event: Event): Future[Done] = {
-    val p = Promise[Done]
-    if (streamTermination.isCompleted) p.tryFailure(PublishFailure(event, new RuntimeException("Publisher is shutdown")))
-    else actorRef ! ((event, p))
-    p.future
+  def publishSingle(event: Event): Future[Done] = {
+    if (streamTermination.isCompleted) {
+      Future.failed(PublishFailure(event, new RuntimeException("Publisher is shutdown")))
+    } else {
+      val p = Promise[Done]
+      actorRef ! ((event, p))
+      p.future
+    }
+  }
+
+  def publishSource[Mat](source: Source[Event, Mat], parallelism: Int, maybeOnError: Option[PublishFailure ⇒ Unit]): Mat = {
+    source
+      .mapAsync(parallelism) { event ⇒
+        publishWithRecovery(event, maybeOnError)
+      }
+      .to(Sink.ignore)
+      .run()
   }
 
   // create an akka stream source out of eventGenerator function
@@ -43,19 +55,7 @@ class EventPublisherUtil(publishApi: PublishApi)(implicit ec: ExecutionContext, 
 
   // create an akka stream source out of eventGenerator function
   def eventSourceAsync(eventGenerator: => Future[Event], every: FiniteDuration): Source[Event, Cancellable] =
-    Source.tick(0.millis, every, ()).mapAsync(1)(x => withErrorLogging(eventGenerator))
-
-  def publishFromSource[Mat](
-      source: Source[Event, Mat],
-      parallelism: Int,
-      maybeOnError: Option[PublishFailure ⇒ Unit]
-  ): Mat =
-    source
-      .mapAsync(parallelism) { event ⇒
-        publishWithRecovery(event, maybeOnError)
-      }
-      .to(Sink.ignore)
-      .run()
+    Source.tick(0.millis, every, ()).mapAsync(1)(_ => withErrorLogging(eventGenerator))
 
   private def publishWithRecovery(event: Event, maybeOnError: Option[PublishFailure ⇒ Unit]) =
     publishApi.publish(event).recover[Done] {
@@ -63,10 +63,6 @@ class EventPublisherUtil(publishApi: PublishApi)(implicit ec: ExecutionContext, 
         maybeOnError.foreach(onError ⇒ onError(failure))
         Done
     }
-
-  def logError(failure: PublishFailure): Unit = {
-    logger.error(failure.getMessage, ex = failure)
-  }
 
   def shutdown(): Future[Done] = {
     actorRef ! PoisonPill

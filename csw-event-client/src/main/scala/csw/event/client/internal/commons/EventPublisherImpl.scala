@@ -21,13 +21,13 @@ class EventPublisherImpl(publishApi: PublishApi)(implicit mat: Materializer, ec:
 
   private val eventPublisherUtil = new EventPublisherUtil(publishApi)
 
-  override def publish(event: Event): Future[Done] = eventPublisherUtil.publish(event)
+  override def publish(event: Event): Future[Done] = eventPublisherUtil.publishSingle(event)
 
   override def publish[Mat](source: Source[Event, Mat]): Mat =
-    eventPublisherUtil.publishFromSource(source, parallelism, None)
+    eventPublisherUtil.publishSource(source, parallelism, None)
 
   override def publish[Mat](source: Source[Event, Mat], onError: PublishFailure ⇒ Unit): Mat =
-    eventPublisherUtil.publishFromSource(source, parallelism, Some(onError))
+    eventPublisherUtil.publishSource(source, parallelism, Some(onError))
 
   override def publish(eventGenerator: ⇒ Event, every: FiniteDuration): Cancellable =
     publish(eventPublisherUtil.eventSource(eventGenerator, every))
