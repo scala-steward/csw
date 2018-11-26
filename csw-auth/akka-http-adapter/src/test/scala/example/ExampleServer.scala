@@ -11,38 +11,14 @@ object ExampleServer extends HttpApp with App with GenericUnmarshallers with Pla
 
   import directives._
   private val HOST = "localhost"
-  private val PORT = 9002
+  private val PORT = 9004
 
-  override protected def routes: Route = path("config") {
-    secure { implicit token ⇒
-      {
-        get {
-          permission("read", "config") {
-            user(u ⇒ {
-              complete(u.preferredUsername)
-            })
-          }
-        } ~ put {
-          permission("write", "config") {
-            complete("OK")
-          }
-        } ~ post {
-          entity(as[Person]) { person =>
-            customPolicy(
-              at =>
-                person.country == "US"
-                && at.email.getOrElse("").endsWith("gmail.com")
-            ) {
-              complete("OK")
-            }
-          }
-        } ~
-        patch {
-          resourceRole("example-service-admin") {
-            complete("OK")
-          }
-        }
-      }
+  override protected def routes: Route = path("test") {
+    secure { _ ⇒
+      get { complete("secure get ok") }
+    } ~
+    post {
+      complete("unsecure post ok")
     }
   }
 
