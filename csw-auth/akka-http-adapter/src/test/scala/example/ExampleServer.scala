@@ -13,9 +13,15 @@ object ExampleServer extends HttpApp with App with GenericUnmarshallers with Pla
   private val HOST = "localhost"
   private val PORT = 9004
 
+  //Try with secure1 directive
   override protected def routes: Route = path("test") {
-    secure { _ ⇒
+    secure1 { _ ⇒
       get { complete("secure get ok") }
+    } ~
+    patch {
+      secure1 { _ ⇒
+        complete("secure patch ok")
+      }
     } ~
     post {
       complete("unsecure post ok")

@@ -32,6 +32,13 @@ class SecurityDirectives(authentication: Authentication) {
     authenticateOAuth2(realm, authentication.authenticator)
   }
 
+  def secure1(f: AccessToken ⇒ Route): Route = {
+    authenticateOAuth2(realm, authentication.authenticator) match {
+      case accessToken: AccessToken ⇒ f(accessToken)
+      case _                        ⇒ Directives.reject(Rejections.authorizationFailed)
+    }
+  }
+
   def user(f: User ⇒ Route)(implicit accessToken: AccessToken): Route = {
     User(accessToken) match {
       case Some(user) ⇒ f(user)
