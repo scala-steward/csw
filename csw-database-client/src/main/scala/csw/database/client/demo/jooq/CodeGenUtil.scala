@@ -11,7 +11,7 @@ class CodeGenUtil {
         new Jdbc()
           .withDriver("org.postgresql.Driver")
           .withUrl("jdbc:postgresql:postgres")
-          .withUser("<username>")
+          .withUser("mushtaq")
       )
       .withGenerator(
         new Generator()
@@ -33,6 +33,7 @@ class CodeGenUtil {
 
 object Main {
   def main(args: Array[String]): Unit = {
+    println(new CodeGenUtil().configuration)
     GenerationTool.generate(new CodeGenUtil().configuration)
   }
 }
