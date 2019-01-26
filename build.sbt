@@ -541,7 +541,8 @@ lazy val `csw-aas` = project
   .aggregate(
     `csw-aas-core`,
     `csw-aas-http`,
-    `csw-aas-native`
+    `csw-aas-native`,
+    `csw-aas-native-example`
   )
 
 lazy val `csw-aas-core` = project
@@ -566,4 +567,12 @@ lazy val `csw-aas-http` = project
   .dependsOn(`csw-aas-core`, `csw-location-client` % "test->compile")
   .settings(
     libraryDependencies ++= Dependencies.AuthNativeClientAdapter.value
+  )
+
+lazy val `csw-aas-native-example` = project
+  .in(file("csw-aas/csw-aas-native-example"))
+  .enablePlugins(DeployApp)
+  .dependsOn(`csw-aas-native`, `csw-location-client`)
+  .settings(
+    libraryDependencies ++= Dependencies.AuthNativeClientExample.value
   )

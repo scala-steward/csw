@@ -324,6 +324,14 @@ object Dependencies {
     )
   )
 
+  val AuthNativeClientExample = Def.setting(
+    Seq(
+      "org.backuity.clist" %% "clist-core"   % "3.4.0",
+      "org.backuity.clist" %% "clist-macros" % "3.4.0" % "provided",
+      Akka.`akka-actor`,
+    )
+  )
+
   val CswAasCore = Def.setting(
     Seq(
       Libs.`jwt-play-json`,
