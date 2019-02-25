@@ -2,34 +2,27 @@ package csw.event.client.temp
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import csw.event.api.scaladsl.{EventPublisher, EventSubscriber}
 import csw.event.client.EventServiceFactory
-import csw.event.client.helpers.TestFutureExt.RichFuture
 import csw.event.client.helpers.Utils
 import csw.location.api.scaladsl.LocationService
 import csw.location.client.scaladsl.HttpLocationServiceFactory
 import csw.params.events.Event
 import org.scalatest.FunSuite
 
-class PerfTest extends FunSuite {
+class InitialPublishLatencyTest extends FunSuite {
 
   private implicit val system: ActorSystem    = ActorSystem()
   private implicit val mat: ActorMaterializer = ActorMaterializer()
   private val ls: LocationService             = HttpLocationServiceFactory.makeLocalClient
   private val factory                         = new EventServiceFactory().make(ls)
-  private val id                              = 0
-  private val event                           = Utils.makeEvent(id)
+  private val event                           = Utils.makeEvent(0)
+  import factory._
 
-  val subscriber: EventSubscriber = factory.defaultSubscriber
-  val publisher: EventPublisher   = factory.defaultPublisher
+  ignore("should not incurr high latencies for initially published events") {
+    defaultSubscriber.subscribeCallback(Set(event.eventKey), report)
 
-  ignore("asd") {
-    publisher.publish(Utils.makeEvent(10)).await
-
-    subscriber.subscribeCallback(Set(event.eventKey), report)
-
-    while (true) {
-      publisher.publish(Utils.makeEvent(id))
+    (0 to 50).foreach { id ⇒
+      defaultPublisher.publish(Utils.makeEvent(id))
       Thread.sleep(10)
     }
   }

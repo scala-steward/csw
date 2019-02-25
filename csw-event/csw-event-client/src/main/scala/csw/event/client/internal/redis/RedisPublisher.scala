@@ -7,7 +7,9 @@ import akka.stream.scaladsl.Source
 import csw.event.api.exceptions.PublishFailure
 import csw.event.api.scaladsl.EventPublisher
 import csw.event.client.internal.commons.EventPublisherUtil
-import csw.params.events.Event
+import csw.params.core.generics.KeyType.StringKey
+import csw.params.core.models.Subsystem
+import csw.params.events.{Event, EventKey, SystemEvent}
 import csw.time.core.models.TMTTime
 import csw.time.core.util.TMTTimeUtil.delayFrom
 import io.lettuce.core.{RedisClient, RedisURI}
@@ -16,7 +18,7 @@ import romaine.async.RedisAsyncApi
 
 import scala.async.Async._
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.control.NonFatal
 
 /**
@@ -40,6 +42,8 @@ class RedisPublisher(redisURI: Future[RedisURI], redisClient: RedisClient)(impli
   private val asyncApi: RedisAsyncApi[String, Event] = romaineFactory.redisAsyncApi(redisURI)
 
   private val streamTermination: Future[Done] = eventPublisherUtil.streamTermination(publishInternal)
+
+  publishInitializationEvent()
 
   override def publish(event: Event): Future[Done] = eventPublisherUtil.publish(event, streamTermination.isCompleted)
 
@@ -104,5 +108,12 @@ class RedisPublisher(redisURI: Future[RedisURI], redisClient: RedisClient)(impli
 
   private def set(event: Event, commands: RedisAsyncApi[String, Event]): Future[Done] =
     commands.set(event.eventKey.key, event).recover { case NonFatal(_) ⇒ Done }
+
+  private def publishInitializationEvent() = {
+    val initParam = StringKey.make("InitKey").set("IGNORE: Redis publisher initialization")
+    val key       = EventKey(s"${Subsystem.TEST}.init")
+    val event     = SystemEvent(key.source, key.eventName, Set(initParam))
+    Await.result(publish(event), 10.seconds)
+  }
 
 }
