@@ -3,9 +3,13 @@ package csw.event.client.internal.redis
 import akka.stream.Materializer
 import csw.event.api.scaladsl.EventService
 import csw.event.client.internal.commons.serviceresolver.EventServiceResolver
+import csw.params.events.{Event, EventKey}
 import io.lettuce.core.{RedisClient, RedisURI}
+import romaine.RomaineFactory
+import romaine.async.RedisAsyncApi
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.DurationLong
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 /**
  * Implementation of [[csw.event.api.scaladsl.EventService]] which provides handle to [[csw.event.api.scaladsl.EventPublisher]]
@@ -22,12 +26,29 @@ class RedisEventService(eventServiceResolver: EventServiceResolver, masterId: St
     mat: Materializer
 ) extends EventService {
 
-  override def makeNewPublisher(): RedisPublisher = new RedisPublisher(redisURI(), redisClient)
+  private val awaitDuration = 10.seconds
 
-  override def makeNewSubscriber(): RedisSubscriber = new RedisSubscriber(redisURI(), redisClient)
+  import EventRomaineCodecs._
+  private val romaineFactory = new RomaineFactory(redisClient)
+
+  override def makeNewPublisher(): RedisPublisher = {
+    import EventRomaineCodecs._
+    val uri                                    = redisURI()
+    val romaineFactory                         = new RomaineFactory(redisClient)
+    val asyncApi: RedisAsyncApi[String, Event] = Await.result(romaineFactory.redisAsyncApi(uri), awaitDuration)
+
+    new RedisPublisher(uri, redisClient, asyncApi)
+  }
+
+  override def makeNewSubscriber(): RedisSubscriber = {
+    val uri                                      = redisURI()
+    val asyncApi: RedisAsyncApi[EventKey, Event] = Await.result(romaineFactory.redisAsyncApi(uri), awaitDuration)
+    new RedisSubscriber(uri, redisClient, asyncApi, romaineFactory)
+  }
 
   // resolve event service every time before creating a new publisher or subscriber
-  private def redisURI(): Future[RedisURI] =
-    eventServiceResolver.uri().map(uri ⇒ RedisURI.Builder.sentinel(uri.getHost, uri.getPort, masterId).build())
-
+  private def redisURI(): RedisURI = {
+    val uri = Await.result(eventServiceResolver.uri(), awaitDuration)
+    RedisURI.Builder.sentinel(uri.getHost, uri.getPort, masterId).build()
+  }
 }

@@ -11,7 +11,6 @@ import csw.params.events.Event
 import csw.time.core.models.TMTTime
 import csw.time.core.util.TMTTimeUtil.delayFrom
 import io.lettuce.core.{RedisClient, RedisURI}
-import romaine.RomaineFactory
 import romaine.async.RedisAsyncApi
 
 import scala.async.Async._
@@ -27,17 +26,15 @@ import scala.util.control.NonFatal
  * @param redisClient redis client available from lettuce
  * @param mat         the materializer to be used for materializing underlying streams
  */
-class RedisPublisher(redisURI: Future[RedisURI], redisClient: RedisClient)(implicit mat: Materializer, ec: ExecutionContext)
-    extends EventPublisher {
+class RedisPublisher(redisURI: RedisURI, redisClient: RedisClient, asyncApi: RedisAsyncApi[String, Event])(
+    implicit mat: Materializer,
+    ec: ExecutionContext
+) extends EventPublisher {
 
   // inorder to preserve the order of publishing events, the parallelism level is maintained to 1
   private val parallelism                         = 1
   private val defaultInitialDelay: FiniteDuration = 0.millis
   private val eventPublisherUtil                  = new EventPublisherUtil()
-  private val romaineFactory                      = new RomaineFactory(redisClient)
-  import EventRomaineCodecs._
-
-  private val asyncApi: RedisAsyncApi[String, Event] = romaineFactory.redisAsyncApi(redisURI)
 
   private val streamTermination: Future[Done] = eventPublisherUtil.streamTermination(publishInternal)
 

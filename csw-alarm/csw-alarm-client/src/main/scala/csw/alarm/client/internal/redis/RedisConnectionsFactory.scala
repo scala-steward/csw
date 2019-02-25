@@ -11,7 +11,8 @@ import romaine.codec.RomaineStringCodec
 import romaine.keyspace.RedisKeySpaceApi
 import romaine.reactive.RedisSubscriptionApi
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.DurationDouble
+import scala.concurrent.{Await, ExecutionContext}
 
 class RedisConnectionsFactory(alarmServiceResolver: AlarmServiceResolver, masterId: String, romaineFactory: RomaineFactory)(
     implicit val ec: ExecutionContext
@@ -25,7 +26,8 @@ class RedisConnectionsFactory(alarmServiceResolver: AlarmServiceResolver, master
   lazy val ackStatusApi: RedisAsyncApi[AckStatusKey, AcknowledgementStatus]         = asyncApi
   lazy val shelveStatusApi: RedisAsyncApi[ShelveStatusKey, ShelveStatus]            = asyncApi
 
-  def asyncApi[K: RomaineStringCodec, V: RomaineStringCodec]: RedisAsyncApi[K, V] = romaineFactory.redisAsyncApi[K, V](redisURI)
+  def asyncApi[K: RomaineStringCodec, V: RomaineStringCodec]: RedisAsyncApi[K, V] =
+    Await.result(romaineFactory.redisAsyncApi[K, V](redisURI), 5.seconds)
 
   def subscriptionApi[K: RomaineStringCodec, V: RomaineStringCodec]: RedisSubscriptionApi[K, V] =
     romaineFactory.redisSubscriptionApi[K, V](redisURI)
@@ -33,7 +35,8 @@ class RedisConnectionsFactory(alarmServiceResolver: AlarmServiceResolver, master
   def redisKeySpaceApi[K: RomaineStringCodec, V: RomaineStringCodec](asyncApi: RedisAsyncApi[K, V]): RedisKeySpaceApi[K, V] =
     new RedisKeySpaceApi(subscriptionApi, asyncApi)
 
-  private def redisURI = alarmServiceResolver.uri().map { uri ⇒
-    RedisURI.Builder.sentinel(uri.getHost, uri.getPort, masterId).build()
-  }
+  private def redisURI =
+    Await.result(alarmServiceResolver.uri().map { uri ⇒
+      RedisURI.Builder.sentinel(uri.getHost, uri.getPort, masterId).build()
+    }, 5.seconds)
 }

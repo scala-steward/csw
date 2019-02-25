@@ -15,18 +15,25 @@ class PerfTest extends FunSuite {
 
   private implicit val system: ActorSystem    = ActorSystem()
   private implicit val mat: ActorMaterializer = ActorMaterializer()
-  private val ls: LocationService             = HttpLocationServiceFactory.makeLocalClient
-  private val factory                         = new EventServiceFactory().make(ls)
-  private val id                              = 0
-  private val event                           = Utils.makeEvent(id)
+//  LoggingSystemFactory.start("perf", "", " ", system)
+
+  private val ls: LocationService = HttpLocationServiceFactory.makeLocalClient
+  private val factory             = new EventServiceFactory().make(ls)
+  private val id                  = 0
+  private val event               = Utils.makeEvent(id)
 
   val subscriber: EventSubscriber = factory.defaultSubscriber
   val publisher: EventPublisher   = factory.defaultPublisher
 
-  ignore("asd") {
-    publisher.publish(Utils.makeEvent(10)).await
+  test("asd") {
+    println("@" * 80)
+//    publisher.publish(Utils.makeDistinctEvent(1000)).await
+    println("@" * 80)
 
-    subscriber.subscribeCallback(Set(event.eventKey), report)
+//    Thread.sleep(1000000)
+    val subscription = subscriber.subscribeCallback(Set(event.eventKey), report)
+    subscription.ready().await
+//    Thread.sleep(5000)
 
     while (true) {
       publisher.publish(Utils.makeEvent(id))
