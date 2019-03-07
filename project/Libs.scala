@@ -9,13 +9,14 @@ object Libs {
 
   val `scalatest` = dep("org.scalatest" %%% "scalatest" % "3.0.5") //Apache License 2.0
 
-  val `scala-java8-compat` = "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.0" //BSD 3-clause "New" or "Revised" License
-  val `scala-async`        = dep("org.scala-lang.modules" %% "scala-async" % "0.9.7") //BSD 3-clause "New" or "Revised" License
-  val `scopt`              = "com.github.scopt" %% "scopt" % "3.7.1" //MIT License
-  val `acyclic`            = "com.lihaoyi" %% "acyclic" % AcyclicVersion % Provided //MIT License
-  val `junit`              = "junit" % "junit" % "4.12" //Eclipse Public License 1.0
-  val `junit-interface`    = "com.novocode" % "junit-interface" % "0.11" //BSD 2-clause "Simplified" License
-  val `mockito-scala`      = "org.mockito" %% "mockito-scala" % "1.1.4"
+  val `scala-java8-compat`             = "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.0" //BSD 3-clause "New" or "Revised" License
+  val `scala-async`                    = dep("org.scala-lang.modules" %% "scala-async" % "0.9.7") //BSD 3-clause "New" or "Revised" License
+  val `scopt`                          = "com.github.scopt" %% "scopt" % "3.7.1" //MIT License
+  val `acyclic`                        = "com.lihaoyi" %% "acyclic" % AcyclicVersion % Provided //MIT License
+  val `junit-jupiter-engine`           = "org.junit.jupiter" % "junit-jupiter-engine" % "5.4.0" //Eclipse Public License 1.0
+  val `junit-jupiter-migrationsupport` = "org.junit.jupiter" % "junit-jupiter-migrationsupport" % "5.4.0" //Eclipse Public License 1.0
+  val `junit-interface`                = "com.novocode" % "junit-interface" % "0.11" //BSD 2-clause "Simplified" License
+  val `mockito-scala`                  = "org.mockito" %% "mockito-scala" % "1.1.4"
   //MIT License
   val `embedded-keycloak`            = "com.github.tmtsoftware" % "embedded-keycloak"             % "dfa0076dff6c" //Apache 2.0
   val `logback-classic`              = "ch.qos.logback"         % "logback-classic"               % "1.2.3"        //Dual license: Either, Eclipse Public License v1.0 or GNU Lesser General Public License version 2.1

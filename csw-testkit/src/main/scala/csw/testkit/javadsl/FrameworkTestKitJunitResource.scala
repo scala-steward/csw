@@ -12,6 +12,7 @@ import csw.location.api.javadsl.ILocationService
 import csw.location.client.extensions.LocationServiceExt
 import csw.testkit._
 import csw.testkit.scaladsl.CSWService
+import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport
 import org.junit.rules.ExternalResource
 
 import scala.collection.JavaConverters.iterableAsScalaIterableConverter
@@ -38,6 +39,7 @@ import scala.collection.JavaConverters.iterableAsScalaIterableConverter
  * }}}
  *
  */
+@EnableRuleMigrationSupport
 final class FrameworkTestKitJunitResource(val frameworkTestKit: FrameworkTestKit, services: java.util.List[CSWService])
     extends ExternalResource {
 

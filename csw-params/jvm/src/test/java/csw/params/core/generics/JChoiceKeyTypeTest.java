@@ -6,6 +6,7 @@ import csw.params.core.models.Choices;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.junit.rules.ExpectedException;
 import org.scalatest.junit.JUnitSuite;
 
@@ -75,14 +76,9 @@ public class JChoiceKeyTypeTest extends JUnitSuite {
         Assert.assertEquals(Arrays.asList(choicesArr), choiceParameter.jValues());
     }
 
-    @Rule
-    public final ExpectedException exception = ExpectedException.none();
-
     @Test
     public void shouldThrowExceptionForInvalidChoice() {
         Choice invalidChoice = new Choice("D");
-        exception.expect(AssertionError.class);
-        choiceKey.set(invalidChoice);
+        Assertions.assertThrows(AssertionError.class, () -> choiceKey.set(invalidChoice));
     }
-
 }

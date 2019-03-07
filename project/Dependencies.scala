@@ -53,7 +53,7 @@ object Dependencies {
       Chill.`chill-akka`,
       Akka.`akka-actor-testkit-typed` % Test,
       Libs.`scalatest`.value          % Test,
-      Libs.`junit`                    % Test,
+      Libs.`junit-jupiter-engine`     % Test,
       Libs.`junit-interface`          % Test,
       Libs.`mockito-scala`            % Test,
       Akka.`akka-stream-testkit`      % Test,
@@ -137,7 +137,7 @@ object Dependencies {
       Libs.`scala-async`.value,
       Libs.`scala-java8-compat`,
       Libs.`scalatest`.value         % Test,
-      Libs.`junit`                   % Test,
+      Libs.`junit-jupiter-engine`    % Test,
       Libs.`junit-interface`         % Test,
       Libs.`mockito-scala`           % Test,
       Akka.`akka-multi-node-testkit` % Test,
@@ -168,10 +168,10 @@ object Dependencies {
       Enumeratum.`enumeratum`.value,
       Akka.`akka-actor`,
       Akka.`akka-actor-typed`,
-      Libs.`scalatest`.value % Test,
-      Libs.`junit`           % Test,
-      Libs.`junit-interface` % Test,
-      Libs.`gson`            % Test
+      Libs.`scalatest`.value      % Test,
+      Libs.`junit-jupiter-engine` % Test,
+      Libs.`junit-interface`      % Test,
+      Libs.`gson`                 % Test
     )
   )
 
@@ -187,9 +187,9 @@ object Dependencies {
 
   val ParamsJvm = Def.setting(
     Seq(
-      Chill.`chill-bijection` % Test,
-      Libs.`junit`            % Test,
-      Libs.`junit-interface`  % Test
+      Chill.`chill-bijection`     % Test,
+      Libs.`junit-jupiter-engine` % Test,
+      Libs.`junit-interface`      % Test
     )
   )
 
@@ -208,7 +208,7 @@ object Dependencies {
       Akka.`akka-actor-testkit-typed` % Test,
       Akka.`akka-stream-testkit`      % Test,
       Libs.`scalatest`.value          % Test,
-      Libs.`junit`                    % Test,
+      Libs.`junit-jupiter-engine`     % Test,
       Libs.`junit-interface`          % Test,
       Libs.`mockito-scala`            % Test
     )
@@ -229,7 +229,7 @@ object Dependencies {
       Akka.`akka-actor-testkit-typed` % Test,
       Akka.`akka-stream-testkit`      % Test,
       Libs.`scalatest`.value          % Test,
-      Libs.`junit`                    % Test,
+      Libs.`junit-jupiter-engine`     % Test,
       Libs.`junit-interface`          % Test,
       Libs.`mockito-scala`            % Test
     )
@@ -269,7 +269,7 @@ object Dependencies {
       Akka.`akka-actor-testkit-typed` % Test,
       Akka.`akka-stream-testkit`      % Test,
       Libs.`scalatest`.value          % Test,
-      Libs.`junit`                    % Test,
+      Libs.`junit-jupiter-engine`     % Test,
       Libs.`junit-interface`          % Test,
       Libs.`mockito-scala`            % Test,
       Libs.`embedded-redis`           % Test,
@@ -322,10 +322,10 @@ object Dependencies {
       Akka.`akka-actor-typed`,
       Akka.`akka-stream`,
       Akka.`akka-stream-typed`,
-      Libs.`junit`           % Test,
-      Libs.`junit-interface` % Test,
-      Libs.`scalatest`.value % Test,
-      Libs.`mockito-scala`   % Test
+      Libs.`junit-jupiter-engine` % Test,
+      Libs.`junit-interface`      % Test,
+      Libs.`scalatest`.value      % Test,
+      Libs.`mockito-scala`        % Test
     )
   )
 
@@ -359,7 +359,8 @@ object Dependencies {
       //TODO: make this as provided deps
       Libs.`scalatest`.value,
       Libs.`embedded-redis`,
-      Libs.`junit`,
+      Libs.`junit-jupiter-engine`,
+      Libs.`junit-jupiter-migrationsupport`,
       Libs.`mockito-scala`
     )
   )
@@ -402,11 +403,11 @@ object Dependencies {
       Jooq.`jooq`,
       Jooq.`jooq-meta`,
       Jooq.`jooq-codegen`,
-      Libs.`scalatest`.value % Test,
-      Akka.`akka-actor`      % Test,
-      Libs.`junit`           % Test,
-      Libs.`junit-interface` % Test,
-      Libs.`otj-pg-embedded` % Test
+      Libs.`scalatest`.value      % Test,
+      Akka.`akka-actor`           % Test,
+      Libs.`junit-jupiter-engine` % Test,
+      Libs.`junit-interface`      % Test,
+      Libs.`otj-pg-embedded`      % Test
     )
   )
 
@@ -500,9 +501,9 @@ object Dependencies {
       AkkaHttp.`akka-http`,
       AkkaHttp.`akka-http-cors`,
       Akka.`akka-actor-testkit-typed`,
-      Libs.`scalatest`.value % Test,
-      Libs.`junit`           % Test,
-      Libs.`junit-interface` % Test
+      Libs.`scalatest`.value      % Test,
+      Libs.`junit-jupiter-engine` % Test,
+      Libs.`junit-interface`      % Test
     )
   )
 
@@ -531,7 +532,7 @@ object Dependencies {
       Akka.`akka-actor-typed`,
       AkkaHttp.`akka-http`,
       Akka.`akka-actor-testkit-typed`,
-      Libs.`scalatest`.value,
+      Libs.`scalatest`.value
     )
   )
 

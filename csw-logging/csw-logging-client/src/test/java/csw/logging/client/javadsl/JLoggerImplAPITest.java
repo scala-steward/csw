@@ -34,7 +34,7 @@ public class JLoggerImplAPITest extends JUnitSuite {
     private String exceptionMessage = "Sample exception message";
     private RuntimeException runtimeException = new RuntimeException(exceptionMessage);
     private RequestId requestId = JRequestId.id();
-    private Map<String, Object> data = new HashMap<>() {
+    private Map<String, Object> data = new HashMap<String, Object>() {
         {
             put(JKeys.OBS_ID, "foo_obs_id");
             put("key1", "value1");
