@@ -54,7 +54,7 @@ object Dependencies {
       Akka.`akka-actor-testkit-typed` % Test,
       Libs.`scalatest`.value          % Test,
       Libs.`junit-jupiter-engine`     % Test,
-      Libs.`junit-interface`          % Test,
+      Libs.`jupiter-interface`        % Test,
       Libs.`mockito-scala`            % Test,
       Akka.`akka-stream-testkit`      % Test,
       Akka.`akka-multi-node-testkit`  % Test

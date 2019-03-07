@@ -22,6 +22,9 @@ addSbtPlugin("org.portable-scala"                % "sbt-scalajs-crossproject"   
 addSbtPlugin("org.scala-js"                      % "sbt-scalajs"                % "0.6.26")
 addSbtPlugin("com.github.cb372"                  % "sbt-explicit-dependencies"  % "0.2.8")
 
+resolvers += Resolver.jcenterRepo
+addSbtPlugin("net.aichler" % "sbt-jupiter-interface" % "0.8.1")
+
 resolvers += "Jenkins repo" at "http://repo.jenkins-ci.org/public/"
 addSbtPlugin("ohnosequences" % "sbt-github-release" % "0.7.0")
 

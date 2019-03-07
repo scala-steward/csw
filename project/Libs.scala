@@ -13,8 +13,9 @@ object Libs {
   val `scala-async`                    = dep("org.scala-lang.modules" %% "scala-async" % "0.9.7") //BSD 3-clause "New" or "Revised" License
   val `scopt`                          = "com.github.scopt" %% "scopt" % "3.7.1" //MIT License
   val `acyclic`                        = "com.lihaoyi" %% "acyclic" % AcyclicVersion % Provided //MIT License
-  val `junit-jupiter-engine`           = "org.junit.jupiter" % "junit-jupiter-engine" % "5.4.0" //Eclipse Public License 1.0
-  val `junit-jupiter-migrationsupport` = "org.junit.jupiter" % "junit-jupiter-migrationsupport" % "5.4.0" //Eclipse Public License 1.0
+  val `junit-jupiter-engine`           = "org.junit.jupiter" % "junit-jupiter-engine" % "5.1.0" //Apache License 2.0
+  val `junit-jupiter-migrationsupport` = "org.junit.jupiter" % "junit-jupiter-migrationsupport" % "5.1.0" //Apache License 2.0
+  val `jupiter-interface`              = "net.aichler" % "jupiter-interface" % "0.8.1" //Apache License 2.0
   val `junit-interface`                = "com.novocode" % "junit-interface" % "0.11" //BSD 2-clause "Simplified" License
   val `mockito-scala`                  = "org.mockito" %% "mockito-scala" % "1.1.4"
   //MIT License

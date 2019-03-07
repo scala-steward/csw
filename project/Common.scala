@@ -1,4 +1,5 @@
 import Libs._
+import net.aichler.jupiter.sbt.Import.jupiterTestFramework
 import org.scalafmt.sbt.ScalafmtPlugin.autoImport.scalafmtOnCompile
 import sbt.Keys.{testOptions, _}
 import sbt._
@@ -46,7 +47,8 @@ object Common extends AutoPlugin {
     ),
     testOptions in Test ++= Seq(
       // show full stack traces and test case durations
-      Tests.Argument("-oDF")
+      Tests.Argument("-oDF"),
+      Tests.Argument(jupiterTestFramework, "-q", "-v", "-a")
     ),
     publishArtifact in (Test, packageBin) := true,
     version := {
