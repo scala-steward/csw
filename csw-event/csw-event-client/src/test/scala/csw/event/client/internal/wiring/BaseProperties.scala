@@ -44,7 +44,7 @@ trait BaseProperties {
 }
 
 object BaseProperties {
-  def createInfra(serverPort: Int, httpPort: Int): (LocationService, actor.ActorSystem) = {
+  def createInfra(serverPort: Int, httpPort: Int): (LocationServiceClient, actor.ActorSystem) = {
 
     implicit val system: actor.ActorSystem = actor.ActorSystem("event-server")
     implicit val mat: ActorMaterializer    = ActorMaterializer()

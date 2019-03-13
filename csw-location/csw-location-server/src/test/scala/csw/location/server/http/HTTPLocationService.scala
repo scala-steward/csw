@@ -1,10 +1,11 @@
 package csw.location.server.http
 
 import akka.actor.CoordinatedShutdown.UnknownReason
+import csw.location.server.commons.{ClusterSettings, NetworksUtil}
 import csw.location.server.commons.TestFutureExtension.RichFuture
 import csw.location.server.internal.ServerWiring
-import org.scalatest.concurrent.ScalaFutures
 import org.mockito.MockitoSugar
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, FunSuiteLike, Matchers}
 
 trait HTTPLocationService
@@ -19,7 +20,7 @@ trait HTTPLocationService
   var locationWiring: Option[ServerWiring] = None
 
   def start(clusterPort: Option[Int] = Some(locationPort), httpPort: Option[Int] = None): Unit = {
-    locationWiring = Some(ServerWiring.make(clusterPort, httpPort))
+    locationWiring = Some(ServerWiring.make(ClusterAwareSettings, clusterPort, httpPort))
     locationWiring.map(_.locationHttpService.start().await)
   }
 
@@ -32,4 +33,8 @@ class JHTTPLocationService extends HTTPLocationService
 
 class HTTPLocationServiceOnPorts(clusterPort: Int, httpPort: Int) extends HTTPLocationService {
   override def beforeAll(): Unit = start(Some(clusterPort), Some(httpPort))
+}
+
+object ClusterAwareSettings extends ClusterSettings {
+  override def hostname: String = NetworksUtil.apply().hostname
 }

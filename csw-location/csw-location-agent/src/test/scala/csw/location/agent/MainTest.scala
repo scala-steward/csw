@@ -10,7 +10,7 @@ import csw.location.agent.common.TestFutureExtension.RichFuture
 import csw.location.api.models.Connection.{HttpConnection, TcpConnection}
 import csw.location.api.models.{ComponentId, ComponentType}
 import csw.location.client.scaladsl.HttpLocationServiceFactory
-import csw.network.utils.Networks
+import csw.location.server.commons.NetworksUtil
 import csw.testkit.scaladsl.ScalaTestFrameworkTestKit
 import org.scalatest.FunSuiteLike
 
@@ -64,7 +64,7 @@ class MainTest extends ScalaTestFrameworkTestKit with FunSuiteLike {
     val resolvedLocation = locationService.resolve(connection, 5.seconds).await.get
 
     resolvedLocation.connection shouldBe connection
-    resolvedLocation.uri shouldBe new URI(s"tcp://${Networks().hostname}:$port")
+    resolvedLocation.uri shouldBe new URI(s"tcp://${NetworksUtil.apply().hostname}:$port")
 
     process.destroy()
     eventually(locationService.list.await shouldBe List.empty)
@@ -77,7 +77,7 @@ class MainTest extends ScalaTestFrameworkTestKit with FunSuiteLike {
     val resolvedLocation = locationService.resolve(connection, 5.seconds).await.get
 
     resolvedLocation.connection shouldBe connection
-    resolvedLocation.uri shouldBe new URI(s"http://${Networks().hostname}:$port/$path")
+    resolvedLocation.uri shouldBe new URI(s"http://${NetworksUtil.apply().hostname}:$port/$path")
 
     process.destroy()
     eventually(locationService.list.await shouldBe List.empty)

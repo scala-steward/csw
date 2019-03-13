@@ -1,6 +1,6 @@
 package csw.event.client.internal.kafka
 
-import akka.Done
+import akka.{actor, Done}
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.kafka.ProducerSettings
@@ -13,6 +13,7 @@ import csw.event.client.internal.wiring.BaseProperties.createInfra
 import csw.event.client.models.EventStores.KafkaStore
 import csw.location.api.scaladsl.LocationService
 import csw.location.client.extensions.LocationServiceExt.RichLocationService
+import csw.location.server.commons.NetworksUtil
 import csw.location.server.http.HTTPLocationServiceOnPorts
 import csw.network.utils.Networks
 import csw.network.utils.SocketUtils.getFreePort
@@ -30,14 +31,14 @@ class KafkaTestProps(
     additionalBrokerProps: Map[String, String]
 )(implicit val actorSystem: ActorSystem)
     extends BaseProperties {
-  private val brokers          = s"PLAINTEXT://${Networks().hostname}:$kafkaPort"
+  private val brokers          = s"PLAINTEXT://${NetworksUtil().hostname}:$kafkaPort"
   private val brokerProperties = Map("listeners" → brokers, "advertised.listeners" → brokers) ++ additionalBrokerProps
   val config                   = EmbeddedKafkaConfig(customBrokerProperties = brokerProperties, zooKeeperPort = getFreePort)
 
   private val eventServiceFactory = new EventServiceFactory(KafkaStore)
   private lazy val producerSettings: ProducerSettings[String, String] =
     ProducerSettings(actorSystem, new StringSerializer, new StringSerializer)
-      .withBootstrapServers(s"${Networks().hostname}:$kafkaPort")
+      .withBootstrapServers(s"${NetworksUtil().hostname}:$kafkaPort")
 
   private lazy val kafkaProducer = producerSettings.createKafkaProducer()
 

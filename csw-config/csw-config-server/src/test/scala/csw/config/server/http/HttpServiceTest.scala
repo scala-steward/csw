@@ -12,6 +12,7 @@ import csw.config.server.commons.TestFutureExtension.RichFuture
 import csw.location.api.exceptions.OtherLocationIsRegistered
 import csw.location.api.models.HttpRegistration
 import csw.location.client.scaladsl.HttpLocationServiceFactory
+import csw.location.server.commons.NetworksUtil
 import csw.location.server.http.HTTPLocationService
 import csw.network.utils.Networks
 
@@ -40,7 +41,7 @@ class HttpServiceTest extends HTTPLocationService {
     locationService.find(ConfigServiceConnection.value).await.get.connection shouldBe ConfigServiceConnection.value
 
     val location = registrationResult.location
-    location.uri.getHost shouldBe Networks().hostname
+    location.uri.getHost shouldBe NetworksUtil().hostname
     location.connection shouldBe ConfigServiceConnection.value
     actorRuntime.shutdown(UnknownReason).await
   }

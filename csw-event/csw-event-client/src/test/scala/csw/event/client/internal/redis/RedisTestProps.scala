@@ -1,6 +1,6 @@
 package csw.event.client.internal.redis
 
-import akka.Done
+import akka.{actor, Done}
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import com.typesafe.config.ConfigFactory

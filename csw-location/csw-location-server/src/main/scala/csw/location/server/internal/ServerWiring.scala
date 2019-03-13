@@ -47,5 +47,16 @@ private[csw] object ServerWiring {
     new ServerWiring {
       override lazy val actorSystem: ActorSystem = _actorSystem
     }
+
+  def make(_clusterSettings: ClusterSettings, maybeClusterPort: Option[Int], mayBeHttpPort: Option[Int]): ServerWiring =
+    new ServerWiring {
+      override lazy val settings: Settings = {
+        new Settings(config) {
+          override val clusterPort: Int = maybeClusterPort.getOrElse(super.clusterPort)
+          override val httpPort: Int    = mayBeHttpPort.getOrElse(super.httpPort)
+        }
+      }
+      override lazy val clusterSettings: ClusterSettings = _clusterSettings
+    }
 }
 // $COVERAGE-ON$

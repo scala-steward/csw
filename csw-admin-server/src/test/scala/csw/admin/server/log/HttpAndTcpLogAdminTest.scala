@@ -16,6 +16,7 @@ import csw.config.server.mocks.MockedAuthentication
 import csw.config.server.{ServerWiring, Settings}
 import csw.location.api.models.Connection.TcpConnection
 import csw.location.api.models.{ComponentId, ComponentType}
+import csw.location.server.commons.NetworksUtil
 import csw.logging.client.internal._
 import csw.logging.client.scaladsl.LoggingSystemFactory
 import csw.network.utils.Networks
@@ -65,7 +66,7 @@ class HttpAndTcpLogAdminTest extends AdminLogTestSuite with HttpSupport with Moc
     // send http get metadata request and verify the response has correct log levels
     val getLogMetadataUri = Uri.from(
       scheme = "http",
-      host = Networks().hostname,
+      host = NetworksUtil().hostname,
       port = 7888,
       path = s"/admin/logging/${ConfigServiceConnection.value.name}/level"
     )
@@ -84,7 +85,7 @@ class HttpAndTcpLogAdminTest extends AdminLogTestSuite with HttpSupport with Moc
     // send http get metadata request and verify the response has correct log levels
     val getLogMetadataUri = Uri.from(
       scheme = "http",
-      host = Networks().hostname,
+      host = NetworksUtil().hostname,
       port = 7888,
       path = s"/admin/logging/${ConfigServiceConnection.value.name}/level",
       queryString = Some("value=debug")
@@ -106,7 +107,7 @@ class HttpAndTcpLogAdminTest extends AdminLogTestSuite with HttpSupport with Moc
     // send http get metadata request and verify the response has correct log levels
     val getLogMetadataUri = Uri.from(
       scheme = "http",
-      host = Networks().hostname,
+      host = NetworksUtil().hostname,
       port = 7888,
       path = s"/admin/logging/${tcpConnection.name}/level"
     )
@@ -127,7 +128,7 @@ class HttpAndTcpLogAdminTest extends AdminLogTestSuite with HttpSupport with Moc
     // send http get metadata request and verify the response has correct log levels
     val getLogMetadataUri = Uri.from(
       scheme = "http",
-      host = Networks().hostname,
+      host = NetworksUtil().hostname,
       port = 7888,
       path = s"/admin/logging/${tcpConnection.name}/level",
       queryString = Some("value=debug")

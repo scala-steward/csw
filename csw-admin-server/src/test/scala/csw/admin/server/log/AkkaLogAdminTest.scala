@@ -23,6 +23,7 @@ import csw.location.api.models.ComponentId
 import csw.location.api.models.ComponentType.{Assembly, HCD}
 import csw.location.api.models.Connection.AkkaConnection
 import csw.location.client.ActorSystemFactory
+import csw.location.server.commons.NetworksUtil
 import csw.logging.api.models.LoggingLevels
 import csw.logging.api.models.LoggingLevels.{ERROR, Level, WARN}
 import csw.logging.client.internal.JsonExtensions.RichJsObject
@@ -114,7 +115,7 @@ class AkkaLogAdminTest extends AdminLogTestSuite with HttpSupport {
     // send http get metadata request and verify the response has correct log levels
     val getLogMetadataUri = Uri.from(
       scheme = "http",
-      host = Networks().hostname,
+      host = NetworksUtil().hostname,
       port = 7879,
       path = s"/admin/logging/${motionControllerConnection.name}/level"
     )
@@ -171,7 +172,7 @@ class AkkaLogAdminTest extends AdminLogTestSuite with HttpSupport {
     // set log level of laser component to error through http endpoint
     val uri = Uri.from(
       scheme = "http",
-      host = Networks().hostname,
+      host = NetworksUtil().hostname,
       port = 7879,
       path = s"/admin/logging/${laserConnection.name}/level",
       queryString = Some("value=error")
@@ -216,7 +217,7 @@ class AkkaLogAdminTest extends AdminLogTestSuite with HttpSupport {
     // send http get metadata request for invalid component
     val getLogMetadataUri = Uri.from(
       scheme = "http",
-      host = Networks().hostname,
+      host = NetworksUtil().hostname,
       port = 7879,
       path = s"/admin/logging/abcd-hcd-akka/level"
     )
@@ -231,7 +232,7 @@ class AkkaLogAdminTest extends AdminLogTestSuite with HttpSupport {
     // send http set request for invalid log level
     val uri = Uri.from(
       scheme = "http",
-      host = Networks().hostname,
+      host = NetworksUtil().hostname,
       port = 7879,
       path = s"/admin/logging/${laserConnection.name}/level",
       queryString = Some("value=error1")

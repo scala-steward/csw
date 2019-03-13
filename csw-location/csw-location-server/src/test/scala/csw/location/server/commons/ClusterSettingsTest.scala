@@ -27,7 +27,7 @@ class ClusterSettingsTest extends FunSuite with Matchers with BeforeAndAfterAll 
     val config          = clusterSettings.config
 
     clusterSettings.clusterName shouldBe Constants.ClusterName
-    config.getString("akka.remote.artery.canonical.hostname") shouldBe Networks().hostname
+    config.getString("akka.remote.artery.canonical.hostname") shouldBe NetworksUtil().hostname
     config.getInt("akka.remote.artery.canonical.port") shouldBe 0
     config.getList("akka.cluster.seed-nodes").size shouldBe 0
   }
@@ -47,7 +47,7 @@ class ClusterSettingsTest extends FunSuite with Matchers with BeforeAndAfterAll 
   test("cluster settings with join Local") {
     val port     = 9010
     val portList = List(9000, 9001, 9002, 9003)
-    val hostname = Networks().hostname
+    val hostname = NetworksUtil().hostname
     val clusterSettings: ClusterSettings =
       ClusterSettings().onPort(port).joinLocal(portList(0), portList(1), portList(2), portList(3))
 

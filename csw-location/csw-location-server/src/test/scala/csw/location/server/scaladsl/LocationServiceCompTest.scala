@@ -14,7 +14,7 @@ import csw.location.api.models.{HttpRegistration, TcpRegistration, _}
 import csw.location.api.scaladsl.LocationService
 import csw.location.client.ActorSystemFactory
 import csw.location.client.scaladsl.HttpLocationServiceFactory
-import csw.location.server.commons.ClusterAwareSettings
+import csw.location.server.commons.{ClusterAwareSettings, NetworksUtil}
 import csw.location.server.commons.TestFutureExtension.RichFuture
 import csw.location.server.internal.LocationServiceFactory
 import csw.network.utils.Networks
@@ -68,8 +68,8 @@ class LocationServiceCompTest(mode: String)
 
     // register, resolve & list tcp connection for the first time
     locationService.register(tcpRegistration).await
-    locationService.resolve(connection, 2.seconds).await.get shouldBe tcpRegistration.location(Networks().hostname)
-    locationService.list.await shouldBe List(tcpRegistration.location(Networks().hostname))
+    locationService.resolve(connection, 2.seconds).await.get shouldBe tcpRegistration.location(NetworksUtil().hostname)
+    locationService.list.await shouldBe List(tcpRegistration.location(NetworksUtil().hostname))
 
     // unregister, resolve & list tcp connection
     locationService.unregister(connection).await
@@ -79,9 +79,9 @@ class LocationServiceCompTest(mode: String)
     // re-register, resolve & list tcp connection
     locationService.register(tcpRegistration).await
     locationService.resolve(connection, 2.seconds).await.get shouldBe tcpRegistration.location(
-      Networks().hostname
+      NetworksUtil().hostname
     )
-    locationService.list.await shouldBe List(tcpRegistration.location(Networks().hostname))
+    locationService.list.await shouldBe List(tcpRegistration.location(NetworksUtil().hostname))
   }
 
   test("should able to register, resolve, list and unregister http location") {
@@ -94,9 +94,9 @@ class LocationServiceCompTest(mode: String)
     // register, resolve & list http connection for the first time
     locationService.register(httpRegistration).await.location.connection shouldBe httpConnection
     locationService.resolve(httpConnection, 2.seconds).await.get shouldBe httpRegistration.location(
-      Networks().hostname
+      NetworksUtil().hostname
     )
-    locationService.list.await shouldBe List(httpRegistration.location(Networks().hostname))
+    locationService.list.await shouldBe List(httpRegistration.location(NetworksUtil().hostname))
 
     // unregister, resolve & list http connection
     locationService.unregister(httpConnection).await
@@ -106,9 +106,9 @@ class LocationServiceCompTest(mode: String)
     // re-register, resolve & list http connection
     locationService.register(httpRegistration).await.location.connection shouldBe httpConnection
     locationService.resolve(httpConnection, 2.seconds).await.get shouldBe httpRegistration.location(
-      Networks().hostname
+      NetworksUtil().hostname
     )
-    locationService.list.await shouldBe List(httpRegistration.location(Networks().hostname))
+    locationService.list.await shouldBe List(httpRegistration.location(NetworksUtil().hostname))
   }
 
   test("should able to register, resolve, list and unregister akka location") {
@@ -120,9 +120,9 @@ class LocationServiceCompTest(mode: String)
     // register, resolve & list akka connection for the first time
     locationService.register(akkaRegistration).await.location.connection shouldBe connection
     locationService.resolve(connection, 2.seconds).await.get shouldBe akkaRegistration.location(
-      Networks().hostname
+      NetworksUtil().hostname
     )
-    locationService.list.await shouldBe List(akkaRegistration.location(Networks().hostname))
+    locationService.list.await shouldBe List(akkaRegistration.location(NetworksUtil().hostname))
 
     // unregister, resolve & list akka connection
     locationService.unregister(connection).await
@@ -132,9 +132,9 @@ class LocationServiceCompTest(mode: String)
     // re-register, resolve & list akka connection
     locationService.register(akkaRegistration).await.location.connection shouldBe connection
     locationService.resolve(connection, 2.seconds).await.get shouldBe akkaRegistration.location(
-      Networks().hostname
+      NetworksUtil().hostname
     )
-    locationService.list.await shouldBe List(akkaRegistration.location(Networks().hostname))
+    locationService.list.await shouldBe List(akkaRegistration.location(NetworksUtil().hostname))
   }
 
   test("akka location death watch actor should unregister services whose actorRef is terminated") {
@@ -151,7 +151,7 @@ class LocationServiceCompTest(mode: String)
     Thread.sleep(10)
 
     locationService.list.await shouldBe List(
-      AkkaRegistration(connection, prefix, actorRef).location(Networks().hostname)
+      AkkaRegistration(connection, prefix, actorRef).location(NetworksUtil().hostname)
     )
 
     actorRef ! PoisonPill
@@ -175,7 +175,7 @@ class LocationServiceCompTest(mode: String)
 
     val result  = locationService.register(redis1Registration).await
     val result2 = locationService.register(redis2registration).await
-    probe.expectMessage(LocationUpdated(redis1Registration.location(Networks().hostname)))
+    probe.expectMessage(LocationUpdated(redis1Registration.location(NetworksUtil().hostname)))
 
     result.unregister().await
     result2.unregister().await
@@ -185,7 +185,7 @@ class LocationServiceCompTest(mode: String)
   }
 
   test("should be able to subscribe a tcp connection and receive notifications via callback") {
-    val hostname           = Networks().hostname
+    val hostname           = NetworksUtil().hostname
     val Port               = 1234
     val redis1Connection   = TcpConnection(ComponentId("redis1", ComponentType.Service))
     val redis1Registration = TcpRegistration(redis1Connection, Port)
@@ -206,7 +206,7 @@ class LocationServiceCompTest(mode: String)
   }
 
   test("should able to track http and akka connection registered before tracking started") {
-    val hostname = Networks().hostname
+    val hostname = NetworksUtil().hostname
     //create http registration
     val port             = 9595
     val prefix           = "/trombone/hcd"
@@ -246,7 +246,7 @@ class LocationServiceCompTest(mode: String)
   }
 
   test("should able to stop tracking") {
-    val hostname = Networks().hostname
+    val hostname = NetworksUtil().hostname
     //create http registration
     val port             = 9595
     val prefix           = "/trombone/hcd"
@@ -389,9 +389,9 @@ class LocationServiceCompTest(mode: String)
 
     locationService.register(AkkaRegistration(akkaConnection, prefix, actorRef)).await
 
-    locationService.list(Networks().hostname).await.map(_.connection).toSet shouldBe Set(tcpConnection,
-                                                                                         httpConnection,
-                                                                                         akkaConnection)
+    locationService.list(NetworksUtil().hostname).await.map(_.connection).toSet shouldBe Set(tcpConnection,
+                                                                                             httpConnection,
+                                                                                             akkaConnection)
 
     locationService.list("Invalid_hostname").await shouldBe List.empty
   }
