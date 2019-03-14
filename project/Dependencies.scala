@@ -224,7 +224,7 @@ object Dependencies {
       Akka.`akka-stream-typed`,
       Akka.`akka-actor`,
       Akka.`akka-actor-typed`,
-      Chill.`chill-akka`,
+      Libs.`akka-kryo-serialization`,
       Libs.`caffeine`,
       Akka.`akka-actor-testkit-typed` % Test,
       Akka.`akka-stream-testkit`      % Test,

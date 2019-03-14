@@ -55,6 +55,8 @@ object Libs {
   val `config`          = "com.typesafe"                  % "config"          % "1.3.3"
   val `os-lib`          = "com.lihaoyi"                   %% "os-lib"         % "0.2.8"
   val `caffeine`        = "com.github.ben-manes.caffeine" % "caffeine"        % "2.7.0"
+
+  val `akka-kryo-serialization` = "com.github.romix.akka" %% "akka-kryo-serialization" % "0.5.1"
 }
 
 object Jackson {

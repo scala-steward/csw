@@ -2,6 +2,7 @@ package csw.params.core.models
 
 import java.util
 
+import csw.serializable.TMTSerializable
 import play.api.libs.json.{Format, Json}
 
 import scala.collection.JavaConverters._
@@ -14,7 +15,7 @@ import scala.reflect.ClassTag
  *
  * @param data input array
  */
-case class ArrayData[T](data: mutable.WrappedArray[T]) {
+case class ArrayData[T](data: mutable.WrappedArray[T]) extends TMTSerializable {
 
   /**
    * An Array of values this parameter holds
