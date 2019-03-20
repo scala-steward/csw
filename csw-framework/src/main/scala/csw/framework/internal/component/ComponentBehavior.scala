@@ -1,7 +1,7 @@
 package csw.framework.internal.component
 
-import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
-import akka.actor.typed.{ActorRef, Behavior, PostStop, Signal}
+import akka.actor.typed.scaladsl.Behaviors
+import akka.actor.typed.{ActorRef, Behavior, PostStop}
 import csw.command.client.messages.CommandMessage.{Oneway, Submit, Validate}
 import csw.command.client.messages.CommandResponseManagerMessage.AddOrUpdateCommand
 import csw.command.client.messages.FromComponentLifecycleMessage.Running
@@ -41,32 +41,14 @@ private[framework] object ComponentBehavior {
       import cswCtx._
       import ctx.executionContext
 
-      val log: Logger = loggerFactory.getLogger(ctx)
-
-      val shutdownTimeout: FiniteDuration = 10.seconds
+      val log: Logger     = loggerFactory.getLogger(ctx)
+      val handlersWrapper = new HandlersWrapper(lifecycleHandlers, log)
 
       var lifecycleState: ComponentLifecycleState = ComponentLifecycleState.Idle
 
       ctx.self ! Initialize
 
-      /**
-       * Defines processing for a [[akka.actor.typed.Signal]] received by the actor instance
-       *
-       * @return the existing behavior
-       */
-      def onSignal: PartialFunction[(ActorContext[TopLevelActorMessage], Signal), Behavior[TopLevelActorMessage]] = {
-        case (_, PostStop) ⇒
-          log.warn("Component TLA is shutting down")
-          try {
-            log.info("Invoking lifecycle handler's onShutdown hook")
-            Await.result(lifecycleHandlers.onShutdown(), shutdownTimeout)
-          } catch {
-            case NonFatal(throwable) ⇒ log.error(throwable.getMessage, ex = throwable)
-          }
-          Behaviors.same
-      }
-
-      /**
+      /*
        * Defines action for messages which can be received in any [[ComponentLifecycleState]] state
        *
        * @param commonMessage message representing a message received in any lifecycle state
@@ -79,7 +61,7 @@ private[framework] object ComponentBehavior {
           lifecycleHandlers.onLocationTrackingEvent(trackingEvent)
       }
 
-      /**
+      /*
        * Defines action for messages which can be received in [[ComponentLifecycleState.Idle]] state
        *
        * @param idleMessage message representing a message received in [[ComponentLifecycleState.Idle]] state
@@ -87,11 +69,7 @@ private[framework] object ComponentBehavior {
       def onIdle(idleMessage: TopLevelActorIdleMessage): Unit = idleMessage match {
         case Initialize ⇒
           async {
-            log.info("Invoking lifecycle handler's initialize hook")
-            await(lifecycleHandlers.initialize())
-            log.debug(
-              s"Component TLA is changing lifecycle state from [$lifecycleState] to [${ComponentLifecycleState.Initialized}]"
-            )
+            await(handlersWrapper.initialize(lifecycleState))
             lifecycleState = ComponentLifecycleState.Initialized
             // track all connections in component info for location updates
             if (componentInfo.locationServiceUsage == RegisterAndTrackServices) {
@@ -107,7 +85,7 @@ private[framework] object ComponentBehavior {
           }.failed.foreach(throwable ⇒ ctx.self ! UnderlyingHookFailed(throwable))
       }
 
-      /**
+      /*
        * Defines action for messages which can be received in [[ComponentLifecycleState.Running]] state
        *
        * @param runningMessage message representing a message received in [[ComponentLifecycleState.Running]] state
@@ -118,32 +96,18 @@ private[framework] object ComponentBehavior {
         case msg                ⇒ log.error(s"Component TLA cannot handle message :[$msg]")
       }
 
-      /**
+      /*
        * Defines action for messages which alter the [[ComponentLifecycleState]] state
        *
        * @param toComponentLifecycleMessage message representing a lifecycle message sent by the supervisor to the component
        */
       def onLifecycle(toComponentLifecycleMessage: ToComponentLifecycleMessage): Unit =
         toComponentLifecycleMessage match {
-          case GoOnline ⇒
-            // process only if the component is offline currently
-            if (!lifecycleHandlers.isOnline) {
-              lifecycleHandlers.isOnline = true
-              log.info("Invoking lifecycle handler's onGoOnline hook")
-              lifecycleHandlers.onGoOnline()
-              log.debug(s"Component TLA is Online")
-            }
-          case GoOffline ⇒
-            // process only if the component is online currently
-            if (lifecycleHandlers.isOnline) {
-              lifecycleHandlers.isOnline = false
-              log.info("Invoking lifecycle handler's onGoOffline hook")
-              lifecycleHandlers.onGoOffline()
-              log.debug(s"Component TLA is Offline")
-            }
+          case GoOnline  ⇒ handlersWrapper.goOnline()
+          case GoOffline ⇒ handlersWrapper.goOffline()
         }
 
-      /**
+      /*
        * Defines action for messages which represent a [[csw.params.commands.Command]]
        *
        * @param commandMessage message encapsulating a [[csw.params.commands.Command]]
@@ -155,34 +119,26 @@ private[framework] object ComponentBehavior {
       }
 
       def handleValidate(commandMessage: CommandMessage, replyTo: ActorRef[ValidateResponse]): Unit = {
-        log.info(s"Invoking lifecycle handler's validateCommand hook with msg :[$commandMessage]")
-        val validationResponse = lifecycleHandlers.validateCommand(commandMessage.command)
+        val validationResponse = handlersWrapper.validateCommand(commandMessage)
         replyTo ! validationResponse.asInstanceOf[ValidateResponse]
       }
 
       def handleOneway(commandMessage: CommandMessage, replyTo: ActorRef[OnewayResponse]): Unit = {
-        log.info(s"Invoking lifecycle handler's validateCommand hook with msg :[$commandMessage]")
-        val validationResponse = lifecycleHandlers.validateCommand(commandMessage.command)
+        val validationResponse = handlersWrapper.validateCommand(commandMessage)
         replyTo ! validationResponse.asInstanceOf[OnewayResponse]
 
         validationResponse match {
-          case Accepted(_) ⇒
-            log.info(s"Invoking lifecycle handler's onOneway hook with msg :[$commandMessage]")
-            lifecycleHandlers.onOneway(commandMessage.command)
+          case Accepted(_) ⇒ handlersWrapper.oneway(commandMessage)
           case invalid: Invalid ⇒
             log.debug(s"Command not forwarded to TLA post validation. ValidationResponse was [$invalid]")
         }
       }
 
       def handleSubmit(commandMessage: CommandMessage, replyTo: ActorRef[SubmitResponse]): Unit = {
-        log.info(s"Invoking lifecycle handler's validateCommand hook with msg :[$commandMessage]")
-        lifecycleHandlers.validateCommand(commandMessage.command) match {
+        handlersWrapper.validateCommand(commandMessage) match {
           case Accepted(runId) =>
             commandResponseManager.commandResponseManagerActor ! AddOrUpdateCommand(Started(runId))
-
-            log.info(s"Invoking lifecycle handler's onSubmit hook with msg :[$commandMessage]")
-            val submitResponse = lifecycleHandlers.onSubmit(commandMessage.command)
-
+            val submitResponse = handlersWrapper.submit(commandMessage)
             // The response is used to update the CRM, it may still be `Started` if is a long running command
             commandResponseManager.commandResponseManagerActor ! AddOrUpdateCommand(submitResponse)
 
@@ -193,7 +149,20 @@ private[framework] object ComponentBehavior {
         }
       }
 
-      /**
+      /*
+       * Defines processing for a [[akka.actor.typed.PostStop]] Signal received by the actor instance
+       */
+      def onPostStop(): Unit = {
+        val shutdownTimeout: FiniteDuration = 10.seconds
+        log.warn("Component TLA is shutting down")
+        try {
+          Await.result(handlersWrapper.shutdown(), shutdownTimeout)
+        } catch {
+          case NonFatal(throwable) ⇒ log.error(throwable.getMessage, ex = throwable)
+        }
+      }
+
+      /*
        * Defines processing for a [[TopLevelActorMessage]] received by the actor instance.
        *
        * @param msg componentMessage received from supervisor
@@ -212,8 +181,11 @@ private[framework] object ComponentBehavior {
             }
             Behaviors.same
         }
-        .receiveSignal(onSignal)
+        .receiveSignal {
+          case (_, PostStop) ⇒
+            onPostStop()
+            Behaviors.same
+        }
 
     })
-
 }
