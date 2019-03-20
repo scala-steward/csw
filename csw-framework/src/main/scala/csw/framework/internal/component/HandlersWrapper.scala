@@ -10,7 +10,7 @@ import scala.concurrent.{ExecutionContext, Future}
 /**
  * Wrapper for lifecycleHandlers which logs and calls appropriate handler method
  */
-class HandlersWrapper(componentHandlers: ComponentHandlers, log: Logger) {
+class HandlersWrapper(componentHandlers: ComponentHandlers, val log: Logger) {
 
   def initialize(lifecycleState: ComponentLifecycleState)(implicit ec: ExecutionContext): Future[Unit] = async {
     log.info("Invoking lifecycle handler's initialize hook")
