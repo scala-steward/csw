@@ -40,14 +40,13 @@ private[command] class CommandServiceImpl(componentLocation: AkkaLocation)(impli
     component ? (Validate(controlCommand, _))
   }
 
-  override def submit(controlCommand: ControlCommand)(implicit timeout: Timeout): Future[SubmitResponse] =
-    submitOnly(controlCommand).flatMap {
+  override def submit(controlCommand: ControlCommand)(implicit timeout: Timeout): Future[SubmitResponse] = {
+    val eventualResponse: Future[SubmitResponse] = component ? (Submit(controlCommand, _))
+    eventualResponse.flatMap {
       case s: Started ⇒ component ? (CommandResponseManagerMessage.Subscribe(s.runId, _))
       case x          ⇒ Future.successful(x)
     }
-
-  override def submitOnly(controlCommand: ControlCommand)(implicit timeout: Timeout): Future[SubmitResponse] =
-    component ? (Submit(controlCommand, _))
+  }
 
   override def submitAll(
       submitCommands: List[ControlCommand]
@@ -104,13 +103,6 @@ private[command] class CommandServiceImpl(componentLocation: AkkaLocation)(impli
   // components coming via this api will be removed from  subscriber's list after timeout
   override def queryFinal(commandRunId: Id)(implicit timeout: Timeout): Future[SubmitResponse] =
     component ? (CommandResponseManagerMessage.Subscribe(commandRunId, _))
-
-  // components coming via this api will be removed from  subscriber's list after timeout
-  override def whenFinal(submit: Future[SubmitResponse])(implicit timeout: Timeout): Future[SubmitResponse] = {
-    submit.flatMap(x => queryFinal(x.runId))
-  }
-
-    //component ? (CommandResponseManagerMessage.Subscribe(commandRunId, _))
 
   override def subscribeCurrentState(callback: CurrentState ⇒ Unit): CurrentStateSubscription =
     new CurrentStateSubscriptionImpl(component, None, callback)
