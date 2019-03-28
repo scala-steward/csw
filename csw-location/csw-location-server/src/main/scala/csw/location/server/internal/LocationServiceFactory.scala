@@ -10,7 +10,7 @@ import csw.location.server.commons.{ClusterSettings, CswCluster}
  *
  * @note hence, it is recommended to create a single instance of LocationService and use it throughout the application
  */
-private[location] object LocationServiceFactory {
+object LocationServiceFactory {
 
   /**
    * Create a LocationService instance to manage registrations

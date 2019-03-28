@@ -9,7 +9,7 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.sse.ServerSentEvent
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.http.scaladsl.unmarshalling.sse.EventStreamUnmarshalling._
-import akka.stream.scaladsl.{Keep, Sink, Source}
+import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
 import akka.stream.{KillSwitch, KillSwitches, Materializer}
 import akka.{Done, NotUsed}
 import csw.location.api.exceptions.{OtherLocationIsRegistered, RegistrationFailed}
@@ -22,6 +22,7 @@ import play.api.libs.json.Json
 import scala.async.Async.{async, await}
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
+import scala.util.{Failure, Random, Success, Try}
 
 private[csw] class LocationServiceClient(serverIp: String, serverPort: Int)(implicit val actorSystem: ActorSystem,
                                                                             mat: Materializer)
@@ -33,6 +34,8 @@ private[csw] class LocationServiceClient(serverIp: String, serverPort: Int)(impl
   implicit val scheduler: Scheduler = actorSystem.scheduler
 
   private val baseUri = s"http://$serverIp:$serverPort/location"
+
+  val poolClientFlow = Http().cachedHostConnectionPool[Int](serverIp, serverPort)
 
   override def register(registration: Registration): Future[RegistrationResult] = async {
     val uri           = Uri(baseUri + "/register")
@@ -102,6 +105,26 @@ private[csw] class LocationServiceClient(serverIp: String, serverPort: Int)(impl
     await(Unmarshal(response.entity).to[List[Location]])
   }
 
+  def list1: Future[Done] = async {
+    val uri     = Uri(baseUri + "/list")
+    val request = HttpRequest(HttpMethods.GET, uri = uri) → Random.nextInt()
+
+    val eventualDone = Source[(HttpRequest, Int)](List(request))
+      .via(poolClientFlow)
+      .runForeach {
+        case (Success(response), _) =>
+          response.status match {
+            case StatusCodes.OK ⇒
+              async {
+                println(await(Unmarshal(response.entity).to[List[Location]]))
+                response.discardEntityBytes() // don't forget this
+              }
+          }
+
+      }
+    await(eventualDone)
+  }
+
   override def list(componentType: ComponentType): Future[List[Location]] = async {
     val uri      = Uri(s"$baseUri/list?componentType=$componentType")
     val request  = HttpRequest(HttpMethods.GET, uri = uri)
@@ -147,7 +170,7 @@ private[csw] class LocationServiceClient(serverIp: String, serverPort: Int)(impl
   private def throwExOnInvalidResponse[T](request: HttpRequest, response: HttpResponse): Future[T] =
     Future.failed(
       new IOException(s"""Request failed with response status: [${response.status}]
-           |Requested URI: [${request.uri}] and 
+           |Requested URI: [${request.uri}] and
            |Response body: ${response.entity}""".stripMargin)
     )
 }
