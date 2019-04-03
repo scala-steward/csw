@@ -20,9 +20,9 @@ import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
 import play.api.libs.json.Json
 
 import scala.async.Async.{async, await}
-import scala.concurrent.Future
+import scala.concurrent.{Future, Promise}
 import scala.concurrent.duration.FiniteDuration
-import scala.util.{Random, Success, Try}
+import scala.util.{Failure, Random, Success, Try}
 
 private[csw] class LocationServiceClient(serverIp: String, serverPort: Int)(implicit val actorSystem: ActorSystem,
                                                                             mat: Materializer)
@@ -35,13 +35,40 @@ private[csw] class LocationServiceClient(serverIp: String, serverPort: Int)(impl
 
   private val baseUri = s"http://$serverIp:$serverPort/location"
 
-  def hostPoolClientFlow(): Graph[FlowShape[(HttpRequest, Int), (Try[HttpResponse], Int)], Http.HostConnectionPool] =
-    Http().cachedHostConnectionPool[Int](serverIp, serverPort)
-
-  val hostConnectionPool = hostPoolClientFlow()
+  val hostPoolClientFlow
+    : Flow[(HttpRequest, Promise[HttpResponse]), (Try[HttpResponse], Promise[HttpResponse]), Http.HostConnectionPool] =
+    Http().cachedHostConnectionPool[Promise[HttpResponse]](serverIp, serverPort)
 
   val connectionFlow: Flow[HttpRequest, HttpResponse, Future[Http.OutgoingConnection]] =
     Http().outgoingConnection(serverIp, serverPort)
+
+  lazy val sourceHostConnection = Source
+    .queue(1024, OverflowStrategy.backpressure)
+    .via(hostPoolClientFlow)
+    .runForeach {
+      case (Success(r), _) ⇒
+    }
+
+  val queue =
+    Source
+      .queue[(HttpRequest, Promise[HttpResponse])](1024, OverflowStrategy.backpressure)
+      .via(hostPoolClientFlow)
+      .toMat(Sink.foreach({
+        case ((Success(resp), p)) => p.success(resp)
+        case ((Failure(e), p))    => p.failure(e)
+      }))(Keep.left)
+      .run()
+
+  def queueRequest(request: HttpRequest): Future[HttpResponse] = {
+    val responsePromise = Promise[HttpResponse]()
+    queue.offer(request -> responsePromise).flatMap {
+      case QueueOfferResult.Enqueued    => responsePromise.future
+      case QueueOfferResult.Dropped     => Future.failed(new RuntimeException("Queue overflowed. Try again later."))
+      case QueueOfferResult.Failure(ex) => Future.failed(ex)
+      case QueueOfferResult.QueueClosed =>
+        Future.failed(new RuntimeException("Queue was closed (pool shut down) while running the request. Try again later."))
+    }
+  }
 
   override def register(registration: Registration): Future[RegistrationResult] = async {
     val uri           = Uri(baseUri + "/register")
@@ -111,6 +138,14 @@ private[csw] class LocationServiceClient(serverIp: String, serverPort: Int)(impl
     await(Unmarshal(response.entity).to[List[Location]])
   }
 
+  def list1: Future[List[Location]] = async {
+    val uri     = Uri(baseUri + "/list")
+    val request = HttpRequest(HttpMethods.GET, uri = uri)
+
+    val response = await(queueRequest(request))
+    await(Unmarshal(response.entity).to[List[Location]])
+  }
+
   override def list(componentType: ComponentType): Future[List[Location]] = async {
     val uri      = Uri(s"$baseUri/list?componentType=$componentType")
     val request  = HttpRequest(HttpMethods.GET, uri = uri)
@@ -148,42 +183,6 @@ private[csw] class LocationServiceClient(serverIp: String, serverPort: Int)(impl
     }
     val sseStream = Source.fromFuture(sseStreamFuture).flatMapConcat(identity)
     sseStream.map(x ⇒ Json.parse(x.data).as[TrackingEvent]).viaMat(KillSwitches.single)(Keep.right)
-  }
-
-  def track1(connection: Connection): Source[TrackingEvent, KillSwitch] = {
-    val uri     = Uri(s"$baseUri/track/${connection.name}")
-    val request = HttpRequest(HttpMethods.GET, uri = uri) → Random.nextInt()
-
-    val eventualTuple = Source
-      .single(request)
-      .via(hostConnectionPool)
-      .flatMapConcat {
-        case (Success(response), x) ⇒
-          val sseStreamFuture: Future[Source[ServerSentEvent, NotUsed]] =
-            Unmarshal(response.entity).to[Source[ServerSentEvent, NotUsed]]
-          val sseStream = Source.fromFuture(sseStreamFuture).flatMapConcat(identity)
-          sseStream
-      }
-
-    eventualTuple.map(x ⇒ Json.parse(x.data).as[TrackingEvent]).viaMat(KillSwitches.single)(Keep.right)
-  }
-
-  def track2(connection: Connection): Source[TrackingEvent, KillSwitch] = {
-    val uri     = Uri(s"$baseUri/track/${connection.name}")
-    val request = HttpRequest(HttpMethods.GET, uri = uri) → Random.nextInt()
-
-    val eventualTuple = Source
-      .single(request)
-      .via(hostPoolClientFlow())
-      .flatMapConcat {
-        case (Success(response), x) ⇒
-          val sseStreamFuture: Future[Source[ServerSentEvent, NotUsed]] =
-            Unmarshal(response.entity).to[Source[ServerSentEvent, NotUsed]]
-          val sseStream = Source.fromFuture(sseStreamFuture).flatMapConcat(identity)
-          sseStream
-      }
-
-    eventualTuple.map(x ⇒ Json.parse(x.data).as[TrackingEvent]).viaMat(KillSwitches.single)(Keep.right)
   }
 
   def track3(connection: Connection): Source[TrackingEvent, KillSwitch] = {

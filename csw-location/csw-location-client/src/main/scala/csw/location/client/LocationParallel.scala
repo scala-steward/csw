@@ -1,5 +1,10 @@
 package csw.location.client
+import java.time.LocalDateTime
+
 import akka.actor.ActorSystem
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.{HttpRequest, Uri}
+import akka.stream.scaladsl.{Sink, Source}
 import akka.stream.{ActorMaterializer, Materializer}
 import com.typesafe.config.{Config, ConfigFactory}
 import csw.location.api.models.Connection.HttpConnection
@@ -9,6 +14,7 @@ import csw.location.client.internal.{LocationServiceClient, Settings}
 import csw.location.client.scaladsl.HttpLocationServiceFactory
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 object LocationParallel {
   lazy val config: Config                              = ConfigFactory.load()
@@ -21,12 +27,24 @@ object LocationParallel {
 
   def main(args: Array[String]): Unit = {
     Future
-      .traverse((1 to 5).toList) { x ⇒
-        val connection = HttpConnection(ComponentId(s"$x@TestServer", ComponentType.Service))
-        locationService.track3(connection).runForeach(xx ⇒ println(s"++++++++++++ $xx"))
+      .traverse((1 to 64).toList) { x ⇒
+        val dd = locationService.list1
+        dd.onComplete(y ⇒ println(x + "=>" + y))
+        dd
       }
       .onComplete(println)
     Thread.sleep(1000)
+
+//    val connection = Http().cachedHostConnectionPool[Int]("localhost", 7654)
+//
+//    Source(1 to 64)
+//      .map(i => (HttpRequest(uri = Uri("https://localhost:7654/location/list")), i))
+//      .via(connection)
+//      .runWith(Sink.foreach {
+//        case (Success(_), i) => println(s"[${LocalDateTime.now}] $i succeeded")
+//        case (Failure(e), i) => println(s"[${LocalDateTime.now}] $i failed: $e")
+//      })
+
   }
 
 }
