@@ -7,6 +7,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshalling.Marshal
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.sse.ServerSentEvent
+import akka.http.scaladsl.settings.ConnectionPoolSettings
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.http.scaladsl.unmarshalling.sse.EventStreamUnmarshalling._
 import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
@@ -38,6 +39,13 @@ private[csw] class LocationServiceClient(serverIp: String, serverPort: Int)(impl
   val hostPoolClientFlow
     : Flow[(HttpRequest, Promise[HttpResponse]), (Try[HttpResponse], Promise[HttpResponse]), Http.HostConnectionPool] =
     Http().cachedHostConnectionPool[Promise[HttpResponse]](serverIp, serverPort)
+
+  val hostPoolClientFlowForTrack: Flow[(HttpRequest, Int), (Try[HttpResponse], Int), Http.HostConnectionPool] =
+    Http().cachedHostConnectionPool[Int](
+      serverIp,
+      serverPort,
+      settings = ConnectionPoolSettings(actorSystem).withMaxConnections(4)
+    )
 
   val connectionFlow: Flow[HttpRequest, HttpResponse, Future[Http.OutgoingConnection]] =
     Http().outgoingConnection(serverIp, serverPort)
@@ -146,6 +154,14 @@ private[csw] class LocationServiceClient(serverIp: String, serverPort: Int)(impl
     await(Unmarshal(response.entity).to[List[Location]])
   }
 
+  def list2: Future[List[Location]] = async {
+    val uri     = Uri(baseUri + "/list")
+    val request = HttpRequest(HttpMethods.GET, uri = uri)
+
+    val response = await(queueRequest(request))
+    await(Unmarshal(response.entity).to[List[Location]])
+  }
+
   override def list(componentType: ComponentType): Future[List[Location]] = async {
     val uri      = Uri(s"$baseUri/list?componentType=$componentType")
     val request  = HttpRequest(HttpMethods.GET, uri = uri)
@@ -183,6 +199,24 @@ private[csw] class LocationServiceClient(serverIp: String, serverPort: Int)(impl
     }
     val sseStream = Source.fromFuture(sseStreamFuture).flatMapConcat(identity)
     sseStream.map(x ⇒ Json.parse(x.data).as[TrackingEvent]).viaMat(KillSwitches.single)(Keep.right)
+  }
+
+  def track2(connection: Connection): Source[TrackingEvent, KillSwitch] = {
+    val uri     = Uri(s"$baseUri/track/${connection.name}")
+    val request = HttpRequest(HttpMethods.GET, uri = uri) → Random.nextInt()
+
+    val eventualTuple = Source
+      .single(request)
+      .via(hostPoolClientFlowForTrack)
+      .flatMapConcat {
+        case (Success(response), _) ⇒
+          val sseStreamFuture: Future[Source[ServerSentEvent, NotUsed]] =
+            Unmarshal(response.entity).to[Source[ServerSentEvent, NotUsed]]
+          val sseStream = Source.fromFuture(sseStreamFuture).flatMapConcat(identity)
+          sseStream
+      }
+
+    eventualTuple.map(x ⇒ Json.parse(x.data).as[TrackingEvent]).viaMat(KillSwitches.single)(Keep.right)
   }
 
   def track3(connection: Connection): Source[TrackingEvent, KillSwitch] = {

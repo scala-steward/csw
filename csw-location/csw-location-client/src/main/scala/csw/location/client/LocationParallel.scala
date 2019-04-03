@@ -27,10 +27,12 @@ object LocationParallel {
 
   def main(args: Array[String]): Unit = {
     Future
-      .traverse((1 to 64).toList) { x ⇒
-        val dd = locationService.list1
+      .traverse((1 to 5).toList) { x ⇒
+        val dd = locationService.list
         dd.onComplete(y ⇒ println(x + "=>" + y))
         dd
+        val connection = HttpConnection(ComponentId(s"$x@TestServer", ComponentType.Service))
+        locationService.track2(connection).runForeach(dd ⇒ println("+++++++++++++++++++++++++" + dd))
       }
       .onComplete(println)
     Thread.sleep(1000)
