@@ -22,17 +22,10 @@ object LocationParallel {
   def main(args: Array[String]): Unit = {
     Future
       .traverse((1 to 5).toList) { x ⇒
-        locationService.asInstanceOf[LocationServiceClient].list1.map { _ ⇒
-          println(x)
-          x
-        }
+        val connection = HttpConnection(ComponentId(s"$x@TestServer", ComponentType.Service))
+        locationService.track(connection).runForeach(xx ⇒ println(s"++++++++++++ $xx"))
       }
       .onComplete(println)
-//    (1 to 3).foreach { x ⇒
-//      val connection = HttpConnection(ComponentId(s"$x@TestServer", ComponentType.Service))
-//      locationService.track(connection).runForeach(xx ⇒ println(s"++++++++++++ $xx"))
-//
-//    }
     Thread.sleep(1000)
   }
 

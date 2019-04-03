@@ -105,26 +105,6 @@ private[csw] class LocationServiceClient(serverIp: String, serverPort: Int)(impl
     await(Unmarshal(response.entity).to[List[Location]])
   }
 
-  def list1: Future[Done] = async {
-    val uri     = Uri(baseUri + "/list")
-    val request = HttpRequest(HttpMethods.GET, uri = uri) → Random.nextInt()
-
-    val eventualDone = Source[(HttpRequest, Int)](List(request))
-      .via(poolClientFlow)
-      .runForeach {
-        case (Success(response), _) =>
-          response.status match {
-            case StatusCodes.OK ⇒
-              async {
-                println(await(Unmarshal(response.entity).to[List[Location]]))
-                response.discardEntityBytes() // don't forget this
-              }
-          }
-
-      }
-    await(eventualDone)
-  }
-
   override def list(componentType: ComponentType): Future[List[Location]] = async {
     val uri      = Uri(s"$baseUri/list?componentType=$componentType")
     val request  = HttpRequest(HttpMethods.GET, uri = uri)
