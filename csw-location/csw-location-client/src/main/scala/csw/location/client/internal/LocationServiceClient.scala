@@ -35,10 +35,13 @@ private[csw] class LocationServiceClient(serverIp: String, serverPort: Int)(impl
 
   private val baseUri = s"http://$serverIp:$serverPort/location"
 
-  def poolClientFlow(): Graph[FlowShape[(HttpRequest, Int), (Try[HttpResponse], Int)], Http.HostConnectionPool] =
+  def hostPoolClientFlow(): Graph[FlowShape[(HttpRequest, Int), (Try[HttpResponse], Int)], Http.HostConnectionPool] =
     Http().cachedHostConnectionPool[Int](serverIp, serverPort)
 
-  val connectionPool = poolClientFlow()
+  val hostConnectionPool = hostPoolClientFlow()
+
+  val connectionFlow: Flow[HttpRequest, HttpResponse, Future[Http.OutgoingConnection]] =
+    Http().outgoingConnection(serverIp, serverPort)
 
   override def register(registration: Registration): Future[RegistrationResult] = async {
     val uri           = Uri(baseUri + "/register")
@@ -153,7 +156,7 @@ private[csw] class LocationServiceClient(serverIp: String, serverPort: Int)(impl
 
     val eventualTuple = Source
       .single(request)
-      .via(connectionPool)
+      .via(hostConnectionPool)
       .flatMapConcat {
         case (Success(response), x) ⇒
           val sseStreamFuture: Future[Source[ServerSentEvent, NotUsed]] =
@@ -171,13 +174,30 @@ private[csw] class LocationServiceClient(serverIp: String, serverPort: Int)(impl
 
     val eventualTuple = Source
       .single(request)
-      .via(poolClientFlow())
+      .via(hostPoolClientFlow())
       .flatMapConcat {
         case (Success(response), x) ⇒
           val sseStreamFuture: Future[Source[ServerSentEvent, NotUsed]] =
             Unmarshal(response.entity).to[Source[ServerSentEvent, NotUsed]]
           val sseStream = Source.fromFuture(sseStreamFuture).flatMapConcat(identity)
           sseStream
+      }
+
+    eventualTuple.map(x ⇒ Json.parse(x.data).as[TrackingEvent]).viaMat(KillSwitches.single)(Keep.right)
+  }
+
+  def track3(connection: Connection): Source[TrackingEvent, KillSwitch] = {
+    val uri     = Uri(s"$baseUri/track/${connection.name}")
+    val request = HttpRequest(HttpMethods.GET, uri = uri)
+
+    val eventualTuple = Source
+      .single(request)
+      .via(connectionFlow)
+      .flatMapConcat { response ⇒
+        val sseStreamFuture: Future[Source[ServerSentEvent, NotUsed]] =
+          Unmarshal(response.entity).to[Source[ServerSentEvent, NotUsed]]
+        val sseStream = Source.fromFuture(sseStreamFuture).flatMapConcat(identity)
+        sseStream
       }
 
     eventualTuple.map(x ⇒ Json.parse(x.data).as[TrackingEvent]).viaMat(KillSwitches.single)(Keep.right)
