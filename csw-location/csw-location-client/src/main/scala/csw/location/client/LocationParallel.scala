@@ -17,13 +17,13 @@ object LocationParallel {
   lazy implicit val materializer: Materializer         = ActorMaterializer()
   lazy implicit val executionContext: ExecutionContext = system.dispatcher
 
-  lazy val locationService: LocationService = HttpLocationServiceFactory.makeLocalClient
+  lazy val locationService: LocationServiceClient = HttpLocationServiceFactory.makeLocalClient.asInstanceOf[LocationServiceClient]
 
   def main(args: Array[String]): Unit = {
     Future
       .traverse((1 to 5).toList) { x ⇒
         val connection = HttpConnection(ComponentId(s"$x@TestServer", ComponentType.Service))
-        locationService.track(connection).runForeach(xx ⇒ println(s"++++++++++++ $xx"))
+        locationService.track1(connection).runForeach(xx ⇒ println(s"++++++++++++ $xx"))
       }
       .onComplete(println)
     Thread.sleep(1000)

@@ -10,7 +10,7 @@ import akka.http.scaladsl.model.sse.ServerSentEvent
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.http.scaladsl.unmarshalling.sse.EventStreamUnmarshalling._
 import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
-import akka.stream.{KillSwitch, KillSwitches, Materializer}
+import akka.stream._
 import akka.{Done, NotUsed}
 import csw.location.api.exceptions.{OtherLocationIsRegistered, RegistrationFailed}
 import csw.location.api.formats.LocationJsonSupport
@@ -22,7 +22,7 @@ import play.api.libs.json.Json
 import scala.async.Async.{async, await}
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
-import scala.util.{Failure, Random, Success, Try}
+import scala.util.{Random, Success, Try}
 
 private[csw] class LocationServiceClient(serverIp: String, serverPort: Int)(implicit val actorSystem: ActorSystem,
                                                                             mat: Materializer)
@@ -35,7 +35,10 @@ private[csw] class LocationServiceClient(serverIp: String, serverPort: Int)(impl
 
   private val baseUri = s"http://$serverIp:$serverPort/location"
 
-  val poolClientFlow = Http().cachedHostConnectionPool[Int](serverIp, serverPort)
+  def poolClientFlow(): Graph[FlowShape[(HttpRequest, Int), (Try[HttpResponse], Int)], Http.HostConnectionPool] =
+    Http().cachedHostConnectionPool[Int](serverIp, serverPort)
+
+  val connectionPool = poolClientFlow()
 
   override def register(registration: Registration): Future[RegistrationResult] = async {
     val uri           = Uri(baseUri + "/register")
@@ -142,6 +145,42 @@ private[csw] class LocationServiceClient(serverIp: String, serverPort: Int)(impl
     }
     val sseStream = Source.fromFuture(sseStreamFuture).flatMapConcat(identity)
     sseStream.map(x ⇒ Json.parse(x.data).as[TrackingEvent]).viaMat(KillSwitches.single)(Keep.right)
+  }
+
+  def track1(connection: Connection): Source[TrackingEvent, KillSwitch] = {
+    val uri     = Uri(s"$baseUri/track/${connection.name}")
+    val request = HttpRequest(HttpMethods.GET, uri = uri) → Random.nextInt()
+
+    val eventualTuple = Source
+      .single(request)
+      .via(connectionPool)
+      .flatMapConcat {
+        case (Success(response), x) ⇒
+          val sseStreamFuture: Future[Source[ServerSentEvent, NotUsed]] =
+            Unmarshal(response.entity).to[Source[ServerSentEvent, NotUsed]]
+          val sseStream = Source.fromFuture(sseStreamFuture).flatMapConcat(identity)
+          sseStream
+      }
+
+    eventualTuple.map(x ⇒ Json.parse(x.data).as[TrackingEvent]).viaMat(KillSwitches.single)(Keep.right)
+  }
+
+  def track2(connection: Connection): Source[TrackingEvent, KillSwitch] = {
+    val uri     = Uri(s"$baseUri/track/${connection.name}")
+    val request = HttpRequest(HttpMethods.GET, uri = uri) → Random.nextInt()
+
+    val eventualTuple = Source
+      .single(request)
+      .via(poolClientFlow())
+      .flatMapConcat {
+        case (Success(response), x) ⇒
+          val sseStreamFuture: Future[Source[ServerSentEvent, NotUsed]] =
+            Unmarshal(response.entity).to[Source[ServerSentEvent, NotUsed]]
+          val sseStream = Source.fromFuture(sseStreamFuture).flatMapConcat(identity)
+          sseStream
+      }
+
+    eventualTuple.map(x ⇒ Json.parse(x.data).as[TrackingEvent]).viaMat(KillSwitches.single)(Keep.right)
   }
 
   override def subscribe(connection: Connection, callback: TrackingEvent ⇒ Unit): KillSwitch =
