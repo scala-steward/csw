@@ -1,20 +1,18 @@
 package csw.location.client
-import java.time.LocalDateTime
-
 import akka.actor.ActorSystem
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{HttpRequest, Uri}
-import akka.stream.scaladsl.{Sink, Source}
 import akka.stream.{ActorMaterializer, Materializer}
 import com.typesafe.config.{Config, ConfigFactory}
 import csw.location.api.models.Connection.HttpConnection
 import csw.location.api.models.{ComponentId, ComponentType}
-import csw.location.api.scaladsl.LocationService
 import csw.location.client.internal.{LocationServiceClient, Settings}
 import csw.location.client.scaladsl.HttpLocationServiceFactory
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
+
+/*
+Link of document where observations of spike are summarized
+https://docs.google.com/document/d/1o5ObXcD5lzNzW68jwyjFDnpy5CsY_iMtx-ljiZx4HFY/edit?ts=5ca4db81
+ */
 
 object LocationParallel {
   lazy val config: Config                              = ConfigFactory.load()
