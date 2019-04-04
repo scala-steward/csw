@@ -15,7 +15,7 @@ import csw.logging.api.scaladsl.Logger
  *
  * @param locationService is used to unregister Actors that are no more alive
  */
-private[location] class DeathwatchActor(locationService: LocationService) {
+private[location] class DeathwatchActor(locationService: LocationService, hostname: String) {
   import DeathwatchActor.Msg
 
   /**
@@ -24,45 +24,33 @@ private[location] class DeathwatchActor(locationService: LocationService) {
    *
    * @see [[akka.actor.Terminated]]
    */
-  private[location] def behavior(watchedLocations: Set[Location]): Behavior[Msg] =
-    Behaviors.receive[Msg] { (context, changeMsg) ⇒
-      val log: Logger = LocationServiceLogger.getLogger(context)
+  private[location] def behavior(watchedLocations: LocalAkkaLocations): Behavior[Msg] =
+    Behaviors.setup { ctx ⇒
+      val log: Logger = LocationServiceLogger.getLogger(ctx)
 
-      val allLocations = changeMsg.get(AllServices.Key).entries.values.toSet
+      Behaviors.receiveMessage[Msg] { changeMsg ⇒
+        val allLocalAkkaLocations   = LocalAkkaLocations(changeMsg.get(AllServices.Key).entries.values.toSet, hostname)
+        val unwatchedLocalLocations = allLocalAkkaLocations diff watchedLocations
 
-      // Find out the ones that are not being watched and watch them
-      val unwatchedLocations = allLocations diff watchedLocations
+        unwatchedLocalLocations.all.foreach { akkaLocation ⇒
+          log.debug(s"Started watching actor: ${akkaLocation.actorRef.toString}")
+          ctx.watch(akkaLocation.actorRef)
+        }
 
-      // Ignore HttpLocation or TcpLocation (Do not watch)
-      unwatchedLocations.foreach {
-        case AkkaLocation(_, _, _, actorRef) ⇒
-          log.debug(s"Started watching actor: ${actorRef.toString}")
-          context.watch(actorRef)
-        case _ ⇒ // ignore http and tcp location
+        //all local Actor locations (AkkaLocations) are now watched
+        behavior(watchedLocations union unwatchedLocalLocations)
+
+      } receiveSignal {
+        case (_, Terminated(deadActorRef)) ⇒
+          log.warn(s"Un-watching terminated actor: ${deadActorRef.toString}")
+          //stop watching the terminated actor
+          ctx.unwatch(deadActorRef)
+          //Unregister the dead location and remove it from the list of watched locations
+
+          val maybeLocation = watchedLocations.locationOf(deadActorRef)
+          maybeLocation.map(location ⇒ locationService.unregister(location.connection))
+          behavior(watchedLocations.remove(maybeLocation))
       }
-      //all locations are now watched
-      behavior(allLocations)
-    } receiveSignal {
-      case (ctx, Terminated(deadActorRef)) ⇒
-        val log: Logger = LocationServiceLogger.getLogger(ctx)
-
-        log.warn(s"Un-watching terminated actor: ${deadActorRef.toString}")
-        //stop watching the terminated actor
-        ctx.unwatch(deadActorRef)
-        //Unregister the dead location and remove it from the list of watched locations
-        val maybeLocation = watchedLocations.find {
-          case AkkaLocation(_, _, _, actorRef) ⇒ deadActorRef == actorRef
-          case _                               ⇒ false
-        }
-        maybeLocation match {
-          case Some(location) =>
-            //if deadActorRef is mapped to a location, unregister it and remove it from watched locations
-            locationService.unregister(location.connection)
-            behavior(watchedLocations - location)
-          case None ⇒
-            //if deadActorRef does not match any location, don't change a thing!
-            Behaviors.same
-        }
     }
 }
 
@@ -83,7 +71,7 @@ private[location] object DeathwatchActor {
     log.debug("Starting Deathwatch actor")
     val actorRef = cswCluster.actorSystem.spawn(
       //span the actor with empty set of watched locations
-      new DeathwatchActor(locationService).behavior(Set.empty),
+      new DeathwatchActor(locationService, cswCluster.hostname).behavior(LocalAkkaLocations.empty),
       name = "location-service-death-watch-actor"
     )
 
