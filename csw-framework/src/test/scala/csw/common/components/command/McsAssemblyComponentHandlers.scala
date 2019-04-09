@@ -62,17 +62,12 @@ class McsAssemblyComponentHandlers(ctx: ActorContext[TopLevelActorMessage], cswC
         val parentId = runId
 
         // DEOPSCSW-371: Provide an API for CommandResponseManager that hides actor based interaction
-        //#addSubCommand
         // When receiving the command, onSubmit adds three subCommands
         shortSetup = Setup(prefix, shortRunning, controlCommand.maybeObsId)
-        // commandResponseManager.addSubCommand(parentId, shortId)
 
         mediumSetup = Setup(prefix, mediumRunning, controlCommand.maybeObsId)
-        //commandResponseManager.addSubCommand(parentId, mediumId)
 
         longSetup = Setup(prefix, longRunning, controlCommand.maybeObsId)
-        //commandResponseManager.addSubCommand(parentId, longId)
-        //#addSubCommand
 
         // this is to simulate that assembly is splitting command into three sub commands and forwarding same to hcd
         // longSetup takes 5 seconds to finish
@@ -120,32 +115,28 @@ class McsAssemblyComponentHandlers(ctx: ActorContext[TopLevelActorMessage], cswC
 
   private def processCommand(parentId: Id, controlCommand: ControlCommand) = {
     println(s"Sending: $controlCommand")
-    val xx = hcdComponent.submitOnly(controlCommand)
-    xx map { cr =>
-      println(s"GOT: $cr")
+    hcdComponent.submitOnly(controlCommand) map { cr =>
+      //#addSubCommand
       commandResponseManager.addSubCommand(parentId, cr.runId)
-    }
+      //#addSubCommand
 
       // DEOPSCSW-371: Provide an API for CommandResponseManager that hides actor based interaction
       //#updateSubCommand
       // An original command is split into sub-commands and sent to a component.
       // The current state publishing is not relevant to the updateSubCommand usage.
-      hcdComponent.whenFinal(xx) match {
+      hcdComponent.queryFinal(cr.runId) match {
         case _: Completed ⇒
           controlCommand.commandName match {
             case cn if cn == shortRunning ⇒
-              println("It's short running")
               currentStatePublisher
                 .publish(CurrentState(shortSetup.source, StateName("testStateName"), Set(choiceKey.set(shortCmdCompleted))))
               // As the commands get completed, the results are updated in the commandResponseManager
-              commandResponseManager.updateSubCommand(Completed(xx.runId))
+              commandResponseManager.updateSubCommand(Completed(cr.runId))
             case cn if cn == mediumRunning ⇒
-              println("It's medium running")
               currentStatePublisher
                 .publish(CurrentState(mediumSetup.source, StateName("testStateName"), Set(choiceKey.set(mediumCmdCompleted))))
               commandResponseManager.updateSubCommand(Completed(cr.runId))
             case cn if cn == longRunning ⇒
-              println("It's long running")
               currentStatePublisher
                 .publish(CurrentState(longSetup.source, StateName("testStateName"), Set(choiceKey.set(longCmdCompleted))))
               commandResponseManager.updateSubCommand(Completed(cr.runId))
@@ -154,13 +145,15 @@ class McsAssemblyComponentHandlers(ctx: ActorContext[TopLevelActorMessage], cswC
         case _ ⇒ // Do nothing
       }
 
+    }
+
   }
 
-  override def onOneway(runId: Id, controlCommand: ControlCommand): Unit = ???
+  override def onOneway(runId: Id, controlCommand: ControlCommand): Unit = {}
 
   override def onShutdown(): Future[Unit] = Future.successful(Unit)
 
-  override def onGoOffline(): Unit = ???
+  override def onGoOffline(): Unit = {}
 
-  override def onGoOnline(): Unit = ???
+  override def onGoOnline(): Unit = {}
 }

@@ -46,7 +46,7 @@ class JsonContractTest extends FunSpec with Matchers {
           Source
             .fromResource("json/setup_command.json")
             .mkString
-            //.replace("test-runId", setup.runId.id)
+          //.replace("test-runId", setup.runId.id)
         )
 
       setupToJson shouldEqual expectedSetupJson
@@ -250,7 +250,7 @@ class JsonContractTest extends FunSpec with Matchers {
       val expectedSetupJson = Source
         .fromResource("json/setup_with_all_keys.json")
         .mkString
-        //.replace("test-runId", setup.runId.id)
+      //.replace("test-runId", setup.runId.id)
       setupToJson shouldBe Json.parse(expectedSetupJson)
     }
   }
