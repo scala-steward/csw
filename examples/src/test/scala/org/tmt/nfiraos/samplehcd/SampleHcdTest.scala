@@ -93,7 +93,7 @@ class SampleHcdTest extends ScalaTestFrameworkTestKit(AlarmServer, EventServer) 
     // submit command and handle response
     val responseF = hcd.submit(setupCommand)
 
-    Await.result(responseF, 10000.millis) shouldBe a[CommandResponse.Completed]  //(setupCommand.runId)
+    Await.result(responseF, 10000.millis) shouldBe a[CommandResponse.Completed] //(setupCommand.runId)
   }
   //#submit
 

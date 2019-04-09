@@ -17,14 +17,15 @@ import csw.params.commands.CommandResponse._
 import csw.params.commands.{CommandName, Observe, Setup}
 import csw.params.core.generics.KeyType
 import csw.params.core.models.{Id, ObsId, Prefix}
-import org.mockito.{ArgumentMatchersSugar, MockitoSugar}
+import org.mockito.captor.ArgCaptor
+import org.mockito.{ArgumentMatchersSugar, IdiomaticMockito}
 
 import scala.concurrent.Future
 import scala.concurrent.duration.DurationDouble
 
 // DEOPSCSW-177-Hooks for lifecycle management
 // DEOPSCSW-179-Unique Action for a component
-class ComponentLifecycleTest extends FrameworkTestSuite with MockitoSugar with ArgumentMatchersSugar {
+class ComponentLifecycleTest extends FrameworkTestSuite with ArgumentMatchersSugar with IdiomaticMockito {
 
   class RunningComponent(
       supervisorProbe: TestProbe[FromComponentLifecycleMessage],
@@ -32,11 +33,11 @@ class ComponentLifecycleTest extends FrameworkTestSuite with MockitoSugar with A
   ) {
 
     val commandResponseManager: CommandResponseManager = mock[CommandResponseManager]
-    when(commandResponseManager.commandResponseManagerActor).thenReturn(commandStatusServiceProbe.ref)
+    commandResponseManager.commandResponseManagerActor shouldReturn commandStatusServiceProbe.ref
 
     val sampleHcdHandler: ComponentHandlers = mock[ComponentHandlers]
-    when(sampleHcdHandler.initialize()).thenReturn(Future.unit)
-    when(sampleHcdHandler.onShutdown()).thenReturn(Future.unit)
+    sampleHcdHandler.initialize() shouldReturn Future.unit
+    sampleHcdHandler.onShutdown() shouldReturn Future.unit
     val factory = new TestComponentBehaviorFactory(sampleHcdHandler)
 
     val cswCtx: CswContext = new CswContext(
@@ -62,11 +63,11 @@ class ComponentLifecycleTest extends FrameworkTestSuite with MockitoSugar with A
     val commandStatusServiceProbe = TestProbe[CommandResponseManagerMessage]
     val runningComponent          = new RunningComponent(supervisorProbe, commandStatusServiceProbe)
     import runningComponent._
-    when(sampleHcdHandler.isOnline).thenReturn(true)
+    sampleHcdHandler.isOnline shouldReturn true
 
     componentBehaviorTestKit.run(Lifecycle(GoOffline))
-    verify(sampleHcdHandler).onGoOffline()
-    verify(sampleHcdHandler).isOnline
+    sampleHcdHandler.onGoOffline() was called
+    sampleHcdHandler.isOnline was called
   }
 
   test("running component should not accept RunOffline lifecycle message when it is already offline") {
@@ -74,10 +75,10 @@ class ComponentLifecycleTest extends FrameworkTestSuite with MockitoSugar with A
     val commandStatusServiceProbe = TestProbe[CommandResponseManagerMessage]
     val runningComponent          = new RunningComponent(supervisorProbe, commandStatusServiceProbe)
     import runningComponent._
-    when(sampleHcdHandler.isOnline).thenReturn(false)
+    sampleHcdHandler.isOnline shouldReturn false
 
     componentBehaviorTestKit.run(Lifecycle(GoOffline))
-    verify(sampleHcdHandler, never).onGoOffline()
+    sampleHcdHandler.onGoOffline wasNever called
   }
 
   test("running component should handle RunOnline lifecycle message when it is Offline") {
@@ -85,10 +86,10 @@ class ComponentLifecycleTest extends FrameworkTestSuite with MockitoSugar with A
     val commandStatusServiceProbe = TestProbe[CommandResponseManagerMessage]
     val runningComponent          = new RunningComponent(supervisorProbe, commandStatusServiceProbe)
     import runningComponent._
-    when(sampleHcdHandler.isOnline).thenReturn(false)
+    sampleHcdHandler.isOnline shouldReturn false
 
     componentBehaviorTestKit.run(Lifecycle(GoOnline))
-    verify(sampleHcdHandler).onGoOnline()
+    sampleHcdHandler.onGoOnline() was called
   }
 
   test("running component should not accept RunOnline lifecycle message when it is already Online") {
@@ -97,10 +98,10 @@ class ComponentLifecycleTest extends FrameworkTestSuite with MockitoSugar with A
     val runningComponent          = new RunningComponent(supervisorProbe, commandStatusServiceProbe)
     import runningComponent._
 
-    when(sampleHcdHandler.isOnline).thenReturn(true)
+    sampleHcdHandler.isOnline shouldReturn true
 
     componentBehaviorTestKit.run(Lifecycle(GoOnline))
-    verify(sampleHcdHandler, never).onGoOnline()
+    sampleHcdHandler.onGoOnline wasNever called
   }
 
   test("running component should clean up using onShutdown handler before stopping") {
@@ -110,7 +111,7 @@ class ComponentLifecycleTest extends FrameworkTestSuite with MockitoSugar with A
     import runningComponent._
 
     componentBehaviorTestKit.signal(PostStop)
-    verify(sampleHcdHandler).onShutdown()
+    sampleHcdHandler.onShutdown was called
   }
 
   test("running component should handle Submit command") {
@@ -124,19 +125,19 @@ class ComponentLifecycleTest extends FrameworkTestSuite with MockitoSugar with A
     val sc1 = Setup(Prefix("wfos.prog.cloudcover"), CommandName("wfos.prog.cloudcover"), Some(obsId))
       .add(KeyType.IntKey.make("encoder").set(22))
 
-    // FIXME ---- DONT KNOW HOW TO DO THI IN MOCKITO
-    val newId = Id()
-    when(sampleHcdHandler.validateCommand(any[Id], any[Setup])).thenReturn(Accepted(newId))
-    when(sampleHcdHandler.onSubmit(any[Id], any[Setup])).thenReturn(Completed(newId))
+    sampleHcdHandler.validateCommand(*, *) shouldAnswer ((id: Id, setup: Setup) => Accepted(id))
+    sampleHcdHandler.onSubmit(*, *) shouldAnswer ((id: Id, setup: Setup) => Completed(id))
 
     componentBehaviorTestKit.run(Submit(sc1, submitResponseProbe.ref))
 
-    verify(sampleHcdHandler).validateCommand(newId, sc1)
-    verify(sampleHcdHandler).onSubmit(newId, sc1)
-    submitResponseProbe.expectMessageType[Completed] //(Completed(sc1.runId))
+    val newId = ArgCaptor[Id]
+
+    sampleHcdHandler.validateCommand(newId, sc1) was called
+    sampleHcdHandler.onSubmit(newId, sc1) was called
+    submitResponseProbe.expectMessageType[Completed]
     // First receives a Started and then Completed
-    commandStatusServiceProbe.expectMessage(AddOrUpdateCommand(Started(newId)))
-    commandStatusServiceProbe.expectMessage(AddOrUpdateCommand(Completed(newId)))
+    commandStatusServiceProbe.expectMessage(AddOrUpdateCommand(Started(newId.value)))
+    commandStatusServiceProbe.expectMessage(AddOrUpdateCommand(Completed(newId.value)))
   }
 
   test("running component should handle Oneway command") {
@@ -150,15 +151,17 @@ class ComponentLifecycleTest extends FrameworkTestSuite with MockitoSugar with A
     val sc1 = Observe(Prefix("wfos.prog.cloudcover"), CommandName("wfos.prog.cloudcover"), Some(obsId))
       .add(KeyType.IntKey.make("encoder").set(22))
     // A one way returns validation but is not entered into command response manager
-    when(sampleHcdHandler.validateCommand(any[Id], any[Setup])).thenReturn(Accepted(any[Id]))
-    doNothing.when(sampleHcdHandler).onOneway(any[Id], any[Setup])
+    sampleHcdHandler.validateCommand(*, *) shouldAnswer ((id: Id, obs: Observe) => Accepted(id))
+    // doNothing is the default...
+//    doNothing.when(sampleHcdHandler).onOneway(any[Id], any[Setup])
 
     componentBehaviorTestKit.run(Oneway(sc1, onewayResponseProbe.ref))
 
-    val newId = Id()
-    verify(sampleHcdHandler).validateCommand(newId, sc1)
-    verify(sampleHcdHandler).onOneway(_, sc1)
-    onewayResponseProbe.expectMessage(Accepted(newId))
+    val newId = ArgCaptor[Id]
+
+    sampleHcdHandler.validateCommand(newId, sc1) was called
+    sampleHcdHandler.onOneway(*, sc1) was called
+    onewayResponseProbe.expectMessage(Accepted(newId.value))
     commandStatusServiceProbe.expectNoMessage(3.seconds)
   }
 
@@ -174,18 +177,19 @@ class ComponentLifecycleTest extends FrameworkTestSuite with MockitoSugar with A
     val sc1 = Setup(Prefix("wfos.prog.cloudcover"), CommandName("wfos.prog.cloudcover"), Some(obsId))
       .add(KeyType.IntKey.make("encoder").set(22))
     // validate returns Accepted and onSubmit returns Completed
-    val newId = Id()
-    when(sampleHcdHandler.validateCommand(any[Id], any[Setup])).thenReturn(Accepted(newId))
-    when(sampleHcdHandler.onSubmit(any[Id], any[Setup])).thenReturn(Completed(newId))
+
+    sampleHcdHandler.validateCommand(*, *) shouldAnswer ((id: Id, setup: Setup) => Accepted(id))
+    sampleHcdHandler.onSubmit(*, *) shouldAnswer ((id: Id, setup: Setup) => Completed(id))
 
     componentBehaviorTestKit.run(Submit(sc1, submitResponseProbe.ref))
 
-    verify(sampleHcdHandler).validateCommand(newId, sc1)
-    verify(sampleHcdHandler).onSubmit(newId, sc1)
-    submitResponseProbe.expectMessage(Completed(newId))
+    val newId = ArgCaptor[Id]
+    sampleHcdHandler.validateCommand(newId, sc1) was called
+    sampleHcdHandler.onSubmit(newId, sc1) was called
+    submitResponseProbe.expectMessage(Completed(newId.value))
     // Started is received from ComponentBehavior onSubmit
-    commandStatusServiceProbe.expectMessage(AddOrUpdateCommand(Started(newId)))
-    commandStatusServiceProbe.expectMessage(AddOrUpdateCommand(Completed(newId)))
+    commandStatusServiceProbe.expectMessage(AddOrUpdateCommand(Started(newId.value)))
+    commandStatusServiceProbe.expectMessage(AddOrUpdateCommand(Completed(newId.value)))
   }
 
   // Demonstrate oneway failure
@@ -200,18 +204,21 @@ class ComponentLifecycleTest extends FrameworkTestSuite with MockitoSugar with A
     val sc1 = Observe(Prefix("wfos.prog.cloudcover"), CommandName("wfos.prog.cloudcover"), Some(obsId))
       .add(KeyType.IntKey.make("encoder").set(22))
 
-    val newId   = Id()
-    val invalid = Invalid(newId, OtherIssue("error from the test command"))
-    when(sampleHcdHandler.validateCommand(newId, any[Setup])).thenReturn(invalid)
-    doNothing.when(sampleHcdHandler).onOneway(newId, any[Setup])
+    sampleHcdHandler.validateCommand(*, *) shouldAnswer ((id: Id,
+                                                          obs: Observe) => Invalid(id, OtherIssue("error from the test command")))
+
+    // doNothing is the default...
+//    doNothing.when(sampleHcdHandler).onOneway(newId, any[Setup])
 
     componentBehaviorTestKit.run(Oneway(sc1, onewayResponseProbe.ref))
 
+    val newId = ArgCaptor[Id]
+
     // onValidate called
-    verify(sampleHcdHandler).validateCommand(newId, sc1)
+    sampleHcdHandler.validateCommand(newId, sc1) was called
     // onOneway called
-    verify(sampleHcdHandler, never).onOneway(newId, sc1)
-    onewayResponseProbe.expectMessage(invalid)
+    sampleHcdHandler.onOneway(*, sc1) wasNever called
+    onewayResponseProbe.expectMessage(Invalid(newId.value, OtherIssue("error from the test command")))
     // No contact on command response manager
     commandStatusServiceProbe.expectNoMessage(3.seconds)
   }

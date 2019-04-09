@@ -32,12 +32,12 @@ trait CommandService {
   def submit(controlCommand: ControlCommand)(implicit timeout: Timeout): Future[SubmitResponse]
 
   /**
-    * Submit a command and Subscribe for the result if it was successfully validated as `Started` to get a
-    * final [[csw.params.commands.CommandResponse.SubmitResponse]] as a Future
-    *
-    * @param controlCommand the [[csw.params.commands.ControlCommand]] payload
-    * @return a CommandResponse as a Future value
-    */
+   * Submit a command and Subscribe for the result if it was successfully validated as `Started` to get a
+   * final [[csw.params.commands.CommandResponse.SubmitResponse]] as a Future
+   *
+   * @param controlCommand the [[csw.params.commands.ControlCommand]] payload
+   * @return a CommandResponse as a Future value
+   */
   def submitOnly(controlCommand: ControlCommand)(implicit timeout: Timeout): Future[SubmitResponse]
 
   /**
@@ -88,7 +88,7 @@ trait CommandService {
    */
   def queryFinal(commandRunId: Id)(implicit timeout: Timeout): Future[SubmitResponse]
 
-  def whenFinal(submit: Future[SubmitResponse])(implicit timeout: Timeout): Future[SubmitResponse]
+//  def whenFinal(submit: Future[SubmitResponse])(implicit timeout: Timeout): Future[SubmitResponse]
 
   /**
    * Subscribe to the current state of a component corresponding to the [[csw.location.api.models.AkkaLocation]] of the component
