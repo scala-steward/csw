@@ -282,7 +282,7 @@ class CommandsTest extends FunSpec with Matchers {
               Some(obsId),
               Set(encParam1, encParam2, encParam3, filterParam1, filterParam2, filterParam3))
       //four duplicate keys are removed; now contains one Encoder and one Filter key
-      val uniqueKeys1 = setup.paramSet.toList.map(_.keyName)
+      val uniqueKeys1 = setup.paramSet.toList.map(_.keyName).distinct
 
       //try adding duplicate keys via add + madd
       val changedSetup: Setup = setup
@@ -293,12 +293,12 @@ class CommandsTest extends FunSpec with Matchers {
           filterParam3
         )
       //duplicate keys will not be added. Should contain one Encoder and one Filter key
-      val uniqueKeys2: List[String] = changedSetup.paramSet.toList.map(_.keyName)
+      val uniqueKeys2: List[String] = changedSetup.paramSet.toList.map(_.keyName).distinct
 
       //miscKey(unique) will be added; encoderKey(duplicate) will not be added
       val finalSetUp: Setup = setup.madd(Set(miscParam1, encParam1))
       //now contains encoderKey, filterKey, miscKey
-      val uniqueKeys3: List[String] = finalSetUp.paramSet.toList.map(_.keyName)
+      val uniqueKeys3: List[String] = finalSetUp.paramSet.toList.map(_.keyName).distinct
       //#unique-key
 
       //validations
