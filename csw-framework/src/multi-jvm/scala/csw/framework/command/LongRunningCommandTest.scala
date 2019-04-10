@@ -105,7 +105,7 @@ class LongRunningCommandTest(ignore: Int)
       //#query-response
       val setupForQuery = Setup(prefix, longRunning, Some(obsId))
       val submitResponseF = assemblyCommandService.submit(setupForQuery)
-      val submitResponse = Await.result(submitResponseF, 5.seconds)
+      val submitResponse = Await.result(submitResponseF, 20.seconds)
 
       //do some work before querying for the result of above command as needed
       val eventualResponse: Future[QueryResponse] = assemblyCommandService.query(submitResponse.runId)
