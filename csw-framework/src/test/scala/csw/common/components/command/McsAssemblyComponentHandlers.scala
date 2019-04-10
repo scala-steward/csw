@@ -124,7 +124,7 @@ class McsAssemblyComponentHandlers(ctx: ActorContext[TopLevelActorMessage], cswC
       //#updateSubCommand
       // An original command is split into sub-commands and sent to a component.
       // The current state publishing is not relevant to the updateSubCommand usage.
-      hcdComponent.queryFinal(cr.runId) match {
+      hcdComponent.queryFinal(cr.runId).map {
         case _: Completed ⇒
           controlCommand.commandName match {
             case cn if cn == shortRunning ⇒
