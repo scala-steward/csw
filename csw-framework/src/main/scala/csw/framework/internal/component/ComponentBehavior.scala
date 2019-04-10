@@ -144,7 +144,7 @@ private[framework] object ComponentBehavior {
             }
         }
 
-      /**
+      /*
        * Defines action for messages which represent a [[csw.params.commands.Command]]
        *
        * @param commandMessage message encapsulating a [[csw.params.commands.Command]]
