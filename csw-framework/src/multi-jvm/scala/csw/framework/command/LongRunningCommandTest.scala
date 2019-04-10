@@ -105,6 +105,7 @@ class LongRunningCommandTest(ignore: Int)
       //#query-response
       val setupForQuery = Setup(prefix, longRunning, Some(obsId))
       val submitResponseF = assemblyCommandService.submit(setupForQuery)
+      // FIXME: Need to wait in order to get the runId from the response
       val submitResponse = Await.result(submitResponseF, 20.seconds)
 
       //do some work before querying for the result of above command as needed
@@ -124,7 +125,7 @@ class LongRunningCommandTest(ignore: Int)
       val assemblyInitSetup = Setup(prefix, initCmd, Some(obsId))
       val assemblyMoveSetup = Setup(prefix, moveCmd, Some(obsId))
 
-      // FIXNE FIX  Is this a problem, submitAll has no way to tie responses to Setups except order
+      // FIXME: Is this a problem, submitAll has no way to tie responses to Setups except order
       val multiResponse1: Future[List[SubmitResponse]] =
         assemblyCommandService.submitAll(List(assemblyInitSetup, assemblyMoveSetup))
       //#submitAll
@@ -139,7 +140,7 @@ class LongRunningCommandTest(ignore: Int)
       val multiResponse2 = assemblyCommandService.submitAll(List(assemblyInitSetup, assemblyMoveSetup, assemblyInvalidSetup))
       whenReady(multiResponse2, PatienceConfiguration.Timeout(5.seconds)) { result =>
         result.length shouldBe 3
-        result(0) shouldBe a[Completed] //(assemblyInitSetup.runId)
+        result.head shouldBe a[Completed] //(assemblyInitSetup.runId)
         result(1) shouldBe a[Completed] // (assemblyMoveSetup.runId)
         result(2) shouldBe a[Invalid] // (assemblyInvalidSetup.runId, OtherIssue("Invalid"))
         val inv:Invalid = result(2).asInstanceOf[Invalid]
@@ -150,7 +151,7 @@ class LongRunningCommandTest(ignore: Int)
       val multiResponse3 = assemblyCommandService.submitAll(List(assemblyInitSetup, assemblyInvalidSetup, assemblyMoveSetup))
       whenReady(multiResponse3, PatienceConfiguration.Timeout(5.seconds)) { result =>
         result.length shouldBe 2
-        result(0) shouldBe a[Completed] // (assemblyInitSetup.runId)
+        result.head shouldBe a[Completed] // (assemblyInitSetup.runId)
         result(1) shouldBe a[Invalid] // (assemblyInvalidSetup.runId, OtherIssue("Invalid"))
       }
 
@@ -158,7 +159,7 @@ class LongRunningCommandTest(ignore: Int)
       val multiResponse4 = assemblyCommandService.submitAll(List(assemblyInitSetup, assemblyLongSetup))
       whenReady(multiResponse4, PatienceConfiguration.Timeout(10.seconds)) { result =>
         result.length shouldBe 2
-        result(0) shouldBe a[Completed] // (assemblyInitSetup.runId)
+        result.head shouldBe a[Completed] // (assemblyInitSetup.runId)
         result(1) shouldBe a[Completed] // (assemblyLongSetup.runId)
       }
 
