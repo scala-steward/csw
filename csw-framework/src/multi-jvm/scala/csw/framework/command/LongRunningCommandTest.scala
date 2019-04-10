@@ -105,7 +105,7 @@ class LongRunningCommandTest(ignore: Int)
       //#query-response
       val setupForQuery = Setup(prefix, longRunning, Some(obsId))
       val submitResponseF = assemblyCommandService.submit(setupForQuery)
-      // FIXME: Need to wait in order to get the runId from the response
+      // Need to wait in order to get the runId from the response
       val submitResponse = Await.result(submitResponseF, 20.seconds)
 
       //do some work before querying for the result of above command as needed
@@ -121,11 +121,11 @@ class LongRunningCommandTest(ignore: Int)
       val assemblyInvalidSetup = Setup(prefix, invalidCmd, Some(obsId))
 
       // First test sends two commands that complete immediately successfully
+      // FIXME: Is this a problem, submitAll has no way to tie responses to Setups except order
       //#submitAll
       val assemblyInitSetup = Setup(prefix, initCmd, Some(obsId))
       val assemblyMoveSetup = Setup(prefix, moveCmd, Some(obsId))
 
-      // FIXME: Is this a problem, submitAll has no way to tie responses to Setups except order
       val multiResponse1: Future[List[SubmitResponse]] =
         assemblyCommandService.submitAll(List(assemblyInitSetup, assemblyMoveSetup))
       //#submitAll
