@@ -14,7 +14,7 @@ import csw.framework.scaladsl.ComponentHandlers
 import csw.framework.{ComponentInfos, CurrentStatePublisher, FrameworkTestSuite}
 import csw.params.commands.CommandIssue.OtherIssue
 import csw.params.commands.CommandResponse._
-import csw.params.commands.{CommandName, Observe, Setup}
+import csw.params.commands.{CommandName, ControlCommand, Observe, Setup}
 import csw.params.core.generics.KeyType
 import csw.params.core.models.{Id, ObsId, Prefix}
 import org.mockito.captor.ArgCaptor
@@ -125,8 +125,8 @@ class ComponentLifecycleTest extends FrameworkTestSuite with ArgumentMatchersSug
     val sc1 = Setup(Prefix("wfos.prog.cloudcover"), CommandName("wfos.prog.cloudcover"), Some(obsId))
       .add(KeyType.IntKey.make("encoder").set(22))
 
-    sampleHcdHandler.validateCommand(*, *) shouldAnswer ((id: Id, setup: Setup) => Accepted(id))
-    sampleHcdHandler.onSubmit(*, *) shouldAnswer ((id: Id, setup: Setup) => Completed(id))
+    sampleHcdHandler.validateCommand(*[Id], *[ControlCommand]) shouldAnswer ((id: Id, setup: Setup) => Accepted(id))
+    sampleHcdHandler.onSubmit(*[Id], *[ControlCommand]) shouldAnswer ((id: Id, setup: Setup) => Completed(id))
 
     componentBehaviorTestKit.run(Submit(sc1, submitResponseProbe.ref))
 
@@ -151,7 +151,7 @@ class ComponentLifecycleTest extends FrameworkTestSuite with ArgumentMatchersSug
     val sc1 = Observe(Prefix("wfos.prog.cloudcover"), CommandName("wfos.prog.cloudcover"), Some(obsId))
       .add(KeyType.IntKey.make("encoder").set(22))
     // A one way returns validation but is not entered into command response manager
-    sampleHcdHandler.validateCommand(*, *) shouldAnswer ((id: Id, obs: Observe) => Accepted(id))
+    sampleHcdHandler.validateCommand(*[Id], *[ControlCommand]) shouldAnswer ((id: Id, obs: Observe) => Accepted(id))
     // doNothing is the default...
 //    doNothing.when(sampleHcdHandler).onOneway(any[Id], any[Setup])
 
@@ -160,7 +160,7 @@ class ComponentLifecycleTest extends FrameworkTestSuite with ArgumentMatchersSug
     val newId = ArgCaptor[Id]
 
     sampleHcdHandler.validateCommand(newId, sc1) was called
-    sampleHcdHandler.onOneway(*, sc1) was called
+    sampleHcdHandler.onOneway(*[Id], sc1) was called
     onewayResponseProbe.expectMessage(Accepted(newId.value))
     commandStatusServiceProbe.expectNoMessage(3.seconds)
   }
@@ -178,8 +178,8 @@ class ComponentLifecycleTest extends FrameworkTestSuite with ArgumentMatchersSug
       .add(KeyType.IntKey.make("encoder").set(22))
     // validate returns Accepted and onSubmit returns Completed
 
-    sampleHcdHandler.validateCommand(*, *) shouldAnswer ((id: Id, setup: Setup) => Accepted(id))
-    sampleHcdHandler.onSubmit(*, *) shouldAnswer ((id: Id, setup: Setup) => Completed(id))
+    sampleHcdHandler.validateCommand(*[Id], *[ControlCommand]) shouldAnswer ((id: Id, setup: Setup) => Accepted(id))
+    sampleHcdHandler.onSubmit(*[Id], *[ControlCommand]) shouldAnswer ((id: Id, setup: Setup) => Completed(id))
 
     componentBehaviorTestKit.run(Submit(sc1, submitResponseProbe.ref))
 
@@ -204,8 +204,10 @@ class ComponentLifecycleTest extends FrameworkTestSuite with ArgumentMatchersSug
     val sc1 = Observe(Prefix("wfos.prog.cloudcover"), CommandName("wfos.prog.cloudcover"), Some(obsId))
       .add(KeyType.IntKey.make("encoder").set(22))
 
-    sampleHcdHandler.validateCommand(*, *) shouldAnswer ((id: Id,
-                                                          obs: Observe) => Invalid(id, OtherIssue("error from the test command")))
+    sampleHcdHandler.validateCommand(*[Id], *[ControlCommand]) shouldAnswer (
+        (id: Id,
+         obs: Observe) => Invalid(id, OtherIssue("error from the test command"))
+    )
 
     // doNothing is the default...
 //    doNothing.when(sampleHcdHandler).onOneway(newId, any[Setup])
@@ -217,7 +219,7 @@ class ComponentLifecycleTest extends FrameworkTestSuite with ArgumentMatchersSug
     // onValidate called
     sampleHcdHandler.validateCommand(newId, sc1) was called
     // onOneway called
-    sampleHcdHandler.onOneway(*, sc1) wasNever called
+    sampleHcdHandler.onOneway(*[Id], sc1) wasNever called
     onewayResponseProbe.expectMessage(Invalid(newId.value, OtherIssue("error from the test command")))
     // No contact on command response manager
     commandStatusServiceProbe.expectNoMessage(3.seconds)
