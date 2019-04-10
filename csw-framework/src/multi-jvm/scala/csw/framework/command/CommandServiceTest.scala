@@ -275,7 +275,7 @@ class CommandServiceTest(ignore: Int)
 
       //#query
       // Check on a command that was completed in the past
-      /* FIX FIX Does Query survive?
+      /* FIXME Does Query survive?
       val queryValue = Await.result(assemblyCmdService.query(longRunningSetup2.runId), timeout.duration)
       queryValue shouldBe a[CompletedWithResult]
       //#query
