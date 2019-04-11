@@ -1,8 +1,9 @@
 package csw.logging.client.javadsl;
 
 import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
+import akka.actor.typed.ActorSystem;
 import akka.actor.Props;
+import akka.actor.typed.SpawnProtocol;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -25,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 import static csw.logging.client.utils.Eventually.eventually;
 
 public class ILoggerActorTest extends JUnitSuite {
-    protected static ActorSystem actorSystem = ActorSystem.create("base-system");
+    protected static ActorSystem actorSystem = ActorSystem.apply(SpawnProtocol.behavior(), "base-system");
     protected static LoggingSystem loggingSystem;
 
     protected static List<JsonObject> logBuffer = new ArrayList<>();

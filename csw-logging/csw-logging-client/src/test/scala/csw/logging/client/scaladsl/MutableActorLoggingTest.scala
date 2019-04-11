@@ -1,13 +1,17 @@
 package csw.logging.client.scaladsl
 
+import akka.actor.typed.ActorRef
 import akka.actor.typed.scaladsl.Behaviors
 import csw.logging.api.models.LoggingLevels
 import csw.logging.api.models.LoggingLevels.Level
 import csw.logging.api.scaladsl.Logger
 import csw.logging.client.LogCommand
 import csw.logging.client.LogCommand._
+import csw.logging.client.commons.AkkaTypedExtension.UserActorFactory
 import csw.logging.client.internal.JsonExtensions.RichJsObject
 import csw.logging.client.utils.LoggingTestSuite
+
+import scala.concurrent.Future
 
 object TromboneMutableActor {
   def behavior(loggerFactory: LoggerFactory): Behaviors.Receive[LogCommand] = Behaviors.receive { (ctx, msg) ⇒
@@ -30,8 +34,8 @@ object TromboneMutableActor {
 class MutableActorLoggingTest extends LoggingTestSuite {
   import akka.actor.typed.scaladsl.adapter._
 
-  private val tromboneActorRef =
-    actorSystem.spawn(TromboneMutableActor.behavior(new LoggerFactory("tromboneMutableHcdActor")), "TromboneMutableActor")
+  private val tromboneActorRef: ActorRef[LogCommand] =
+    actorSystem.userActorOf(TromboneMutableActor.behavior(new LoggerFactory("tromboneMutableHcdActor")), "TromboneMutableActor")
 
   def sendMessagesToActor(): Unit = {
     tromboneActorRef ! LogTrace

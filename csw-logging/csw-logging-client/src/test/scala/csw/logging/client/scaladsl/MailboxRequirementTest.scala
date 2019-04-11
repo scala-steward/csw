@@ -1,7 +1,8 @@
 package csw.logging.client.scaladsl
 import java.net.InetAddress
 
-import akka.actor.{ActorRef, ActorSystem}
+import akka.actor.typed.SpawnProtocol
+import akka.actor.{typed, ActorRef, ActorSystem}
 import com.typesafe.config.{Config, ConfigFactory}
 import csw.logging.client.components.IRIS
 import csw.logging.client.components.IRIS._
@@ -49,7 +50,8 @@ class MailboxRequirementTest extends FunSuite with Matchers with BeforeAndAfterE
 
   test("should get all messages if msg count is under the capacity defined for mailbox") {
     val actorSystem        = ActorSystem("test", configWithCapacity(capacity = defaultCapacity))
-    lazy val loggingSystem = new LoggingSystem("logging", "version", hostName, actorSystem)
+    val typedSystem        = typed.ActorSystem(SpawnProtocol.behavior, "test2")
+    lazy val loggingSystem = new LoggingSystem("logging", "version", hostName, typedSystem)
 
     loggingSystem.setAppenders(List(testAppender))
 
@@ -60,12 +62,15 @@ class MailboxRequirementTest extends FunSuite with Matchers with BeforeAndAfterE
     logBuffer.size shouldEqual 8
 
     Await.result(actorSystem.terminate(), 5.seconds)
+    typedSystem.terminate()
+    Await.result(typedSystem.whenTerminated, 5.seconds)
   }
 
   // This shows that log actor is configured with the given capacity for Mailbox and it's a bounded Mailbox
   test("should get no messages if mailbox capacity is zero") {
     val actorSystem        = ActorSystem("test", configWithCapacity(capacity = zeroCapacity))
-    lazy val loggingSystem = new LoggingSystem("logging", "version", hostName, actorSystem)
+    val typedSystem        = typed.ActorSystem(SpawnProtocol.behavior, "test2")
+    lazy val loggingSystem = new LoggingSystem("logging", "version", hostName, typedSystem)
 
     loggingSystem.setAppenders(List(testAppender))
 
@@ -76,5 +81,7 @@ class MailboxRequirementTest extends FunSuite with Matchers with BeforeAndAfterE
     logBuffer.size shouldEqual 0
 
     Await.result(actorSystem.terminate(), 5.seconds)
+    typedSystem.terminate()
+    Await.result(typedSystem.whenTerminated, 5.seconds)
   }
 }
