@@ -6,11 +6,14 @@ import java.util.Optional
 import csw.params.extensions.OptionConverters.RichOption
 import csw.params.core.models.Units
 import csw.serializable.TMTSerializable
+import io.bullet.borer.{Codec, Encoder, Writer}
 import play.api.libs.json._
 
 import scala.collection.JavaConverters.seqAsJavaListConverter
 import scala.collection.mutable
 import scala.reflect.ClassTag
+
+import csw.params.core.formats.CborFormats._
 
 object Parameter {
 
@@ -57,6 +60,7 @@ object Parameter {
     }
 
   def apply[T](implicit x: Format[Parameter[T]]): Format[Parameter[T]] = x
+  def apply[T](implicit x: Codec[Parameter[T]]): Codec[Parameter[T]]   = x
 }
 
 /**
@@ -154,5 +158,6 @@ case class Parameter[S: Format: ClassTag](
   /**
    * Returns a JSON representation of this parameter
    */
-  def toJson: JsValue = Parameter[S].writes(this)
+  def toJson: JsValue           = Parameter[S].writes(this)
+  def toCbor(w: Writer): w.type = w.write(this)
 }

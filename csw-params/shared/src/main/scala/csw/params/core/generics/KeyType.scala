@@ -1,14 +1,15 @@
 package csw.params.core.generics
 
+import csw.params.core.formats.CborFormats._
 import csw.params.core.formats.JsonSupport
 import csw.params.core.models.Units.second
 import csw.params.core.models.{Units, _}
 import csw.time.core.models.{TAITime, UTCTime}
 import enumeratum.{Enum, EnumEntry, PlayJsonEnum}
+import io.bullet.borer.Codec
 import play.api.libs.json._
 
 import scala.collection.immutable
-import scala.io.Codec
 import scala.reflect.ClassTag
 
 /**
@@ -16,11 +17,12 @@ import scala.reflect.ClassTag
  *
  * @tparam S the type of values that will sit against the key in Parameter
  */
-sealed class KeyType[S: Format: ClassTag] extends EnumEntry with Serializable {
+sealed class KeyType[S: Format: ClassTag: Codec] extends EnumEntry with Serializable {
   override def hashCode: Int              = toString.hashCode
   override def equals(that: Any): Boolean = that.toString == this.toString
 
   private[params] def paramFormat: Format[Parameter[S]] = Parameter[S]
+  private[params] def paramFormat2: Codec[Parameter[S]] = pCodec2[S]
 }
 
 /**
@@ -28,7 +30,7 @@ sealed class KeyType[S: Format: ClassTag] extends EnumEntry with Serializable {
  *
  * @tparam S the type of values that will sit against the key in Parameter
  */
-class SimpleKeyType[S: Format: ClassTag] extends KeyType[S] {
+class SimpleKeyType[S: Format: ClassTag: Codec] extends KeyType[S] {
 
   /**
    * Make a Key from provided name
@@ -46,7 +48,7 @@ class SimpleKeyType[S: Format: ClassTag] extends KeyType[S] {
  * @param defaultUnits applicable units
  * @tparam S the type of values that will sit against the key in Parameter
  */
-sealed class SimpleKeyTypeWithUnits[S: Format: ClassTag](defaultUnits: Units) extends KeyType[S] {
+sealed class SimpleKeyTypeWithUnits[S: Format: ClassTag: Codec](defaultUnits: Units) extends KeyType[S] {
 
   /**
    * Make a Key from provided name
@@ -60,12 +62,12 @@ sealed class SimpleKeyTypeWithUnits[S: Format: ClassTag](defaultUnits: Units) ex
 /**
  * A KeyType that holds array
  */
-sealed class ArrayKeyType[S: Format: ClassTag] extends SimpleKeyType[ArrayData[S]]
+sealed class ArrayKeyType[S: Format: ClassTag: Codec] extends SimpleKeyType[ArrayData[S]]
 
 /**
  * A KeyType that holds Matrix
  */
-sealed class MatrixKeyType[S: Format: ClassTag] extends SimpleKeyType[MatrixData[S]]
+sealed class MatrixKeyType[S: Format: ClassTag: Codec] extends SimpleKeyType[MatrixData[S]]
 
 /**
  * KeyTypes defined for consumption in Scala code

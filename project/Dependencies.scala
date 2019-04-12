@@ -175,8 +175,8 @@ object Dependencies {
   val Params = Def.setting(
     Seq(
       Enumeratum.`enumeratum`.value,
-      Libs.`borer-core`,
-      Libs.`borer-derivation`,
+      Libs.`borer-core`.value,
+      Libs.`borer-derivation`.value,
       Enumeratum.`enumeratum-play-json`.value,
       Libs.`play-json`.value,
       Libs.`play-json-derived-codecs`.value,
@@ -256,8 +256,8 @@ object Dependencies {
       Libs.`ujson`,
       Libs.`ujson-play`,
       Libs.`upickle`,
-      Libs.`borer-core`,
-      Libs.`borer-derivation`,
+      Libs.`borer-core`.value,
+      Libs.`borer-derivation`.value,
       Libs.`scala-async`.value,
       Libs.`scala-java8-compat`,
       Akka.`akka-stream`,

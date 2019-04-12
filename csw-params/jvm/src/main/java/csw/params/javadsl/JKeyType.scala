@@ -5,13 +5,16 @@ import csw.params.core.generics.{KeyType, SimpleKeyType}
 import csw.params.core.models.{ArrayData, MatrixData}
 import play.api.libs.json.Format
 import com.github.ghik.silencer.silent
+import io.bullet.borer.Codec
 
 import scala.reflect.ClassTag
+
+import csw.params.core.formats.CborFormats._
 
 /**
  * SimpleKeyType with a name for java Keys. Holds instances of primitives such as char, int, String etc.
  */
-sealed class JSimpleKeyType[S: Format: ClassTag, T](implicit @silent conversion: T ⇒ S) extends SimpleKeyType[S]
+sealed class JSimpleKeyType[S: Format: ClassTag: Codec, T](implicit @silent conversion: T ⇒ S) extends SimpleKeyType[S]
 
 /**
  * A java KeyType that holds array
@@ -23,7 +26,7 @@ sealed class JArrayKeyType[S: Format: ClassTag, T](
 /**
  * A java KeyType that holds matrix
  */
-sealed class JMatrixKeyType[S: Format: ClassTag, T](
+sealed class JMatrixKeyType[S: Format: ClassTag: Codec, T](
     implicit conversion: T ⇒ S
 ) extends JSimpleKeyType[MatrixData[S], MatrixData[T]]
 

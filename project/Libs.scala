@@ -46,21 +46,21 @@ object Libs {
   val `json-schema-validator`    = "com.github.fge" % "json-schema-validator" % "2.2.8" //LGPL/ASL
   val `play-json-derived-codecs` = dep("org.julienrf" %%% "play-json-derived-codecs" % "5.0.0")
 
-  val `jna`              = "net.java.dev.jna"              % "jna"                % "5.2.0"
-  val `postgresql`       = "org.postgresql"                % "postgresql"         % "42.2.5"
-  val `hikaricp`         = "com.zaxxer"                    % "HikariCP"           % "3.3.1" //Apache License 2.0
-  val `otj-pg-embedded`  = "com.opentable.components"      % "otj-pg-embedded"    % "0.13.1"
-  val httpclient         = "org.apache.httpcomponents"     % "httpclient"         % "4.5.8"
-  val `jboss-logging`    = "org.jboss.logging"             % "jboss-logging"      % "3.3.2.Final"
-  val `config`           = "com.typesafe"                  % "config"             % "1.3.3"
-  val `os-lib`           = "com.lihaoyi"                   %% "os-lib"            % "0.2.9"
-  val `caffeine`         = "com.github.ben-manes.caffeine" % "caffeine"           % "2.7.0"
-  val `upack`            = "com.lihaoyi"                   %% "upack"             % "0.7.1"
-  val `ujson`            = "com.lihaoyi"                   %% "ujson"             % "0.7.1"
-  val `ujson-play`       = "com.lihaoyi"                   %% "ujson-play"        % "0.7.1"
-  val `upickle`          = "com.lihaoyi"                   %% "upickle"           % "0.7.1"
-  val `borer-core`       = "io.bullet"                     %%% "borer-core"       % "0.8.0-M1"
-  val `borer-derivation` = "io.bullet"                     %%% "borer-derivation" % "0.8.0-M1"
+  val `jna`              = "net.java.dev.jna" % "jna" % "5.2.0"
+  val `postgresql`       = "org.postgresql" % "postgresql" % "42.2.5"
+  val `hikaricp`         = "com.zaxxer" % "HikariCP" % "3.3.1" //Apache License 2.0
+  val `otj-pg-embedded`  = "com.opentable.components" % "otj-pg-embedded" % "0.13.1"
+  val httpclient         = "org.apache.httpcomponents" % "httpclient" % "4.5.8"
+  val `jboss-logging`    = "org.jboss.logging" % "jboss-logging" % "3.3.2.Final"
+  val `config`           = "com.typesafe" % "config" % "1.3.3"
+  val `os-lib`           = "com.lihaoyi" %% "os-lib" % "0.2.9"
+  val `caffeine`         = "com.github.ben-manes.caffeine" % "caffeine" % "2.7.0"
+  val `upack`            = "com.lihaoyi" %% "upack" % "0.7.1"
+  val `ujson`            = "com.lihaoyi" %% "ujson" % "0.7.1"
+  val `ujson-play`       = "com.lihaoyi" %% "ujson-play" % "0.7.1"
+  val `upickle`          = "com.lihaoyi" %% "upickle" % "0.7.1"
+  val `borer-core`       = dep("io.bullet" %%% "borer-core" % "0.8.0-M1")
+  val `borer-derivation` = dep("io.bullet" %%% "borer-derivation" % "0.8.0-M1")
 }
 
 object Jackson {
