@@ -175,6 +175,8 @@ object Dependencies {
   val Params = Def.setting(
     Seq(
       Enumeratum.`enumeratum`.value,
+      Libs.`borer-core`,
+      Libs.`borer-derivation`,
       Enumeratum.`enumeratum-play-json`.value,
       Libs.`play-json`.value,
       Libs.`play-json-derived-codecs`.value,

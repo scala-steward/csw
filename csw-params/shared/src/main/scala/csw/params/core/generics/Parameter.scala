@@ -69,7 +69,7 @@ object Parameter {
  * @param units applicable units
  * @tparam S the type of items this parameter holds
  */
-case class Parameter[S: Format: ClassTag] private[params] (
+case class Parameter[S: Format: ClassTag](
     keyName: String,
     keyType: KeyType[S],
     items: mutable.WrappedArray[S],

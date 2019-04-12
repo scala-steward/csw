@@ -8,6 +8,7 @@ import enumeratum.{Enum, EnumEntry, PlayJsonEnum}
 import play.api.libs.json._
 
 import scala.collection.immutable
+import scala.io.Codec
 import scala.reflect.ClassTag
 
 /**
