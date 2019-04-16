@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package proto;
+
+import "proto/inner_object.proto";
+import "scalapb/scalapb.proto";
+
+option (scalapb.options) = {
+  collection_type: "Array"
+};
+
+message PbBlob {
+    bytes bytes = 1;
+    repeated int32 ints = 2 ;
+    repeated float floats = 3 ;
+    repeated double doubles = 4 ;
+    repeated string strings = 5  [(scalapb.field).collection_type="Seq"];
+    repeated PbInnerObject innerObjects = 6 ;
+}
