@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package csw_protobuf2;
+
+import "google/protobuf/timestamp.proto";
+
+message PbParameter2 {
+   string keyName = 1;
+   string keyType = 2;
+   repeated PbParamValue2 items = 3;
+   string units = 4;
+}
+
+message PbParamValue2 {
+   oneof data {
+      PbPrimitive2 primitive = 1;
+      PbArrayData2 array = 2;
+      PbMatrixData2 matrix = 3;
+   }
+}
+
+message PbPrimitive2 {
+   oneof data {
+      int32 int = 1;
+      fixed64 long = 2;
+      double double = 3;
+      float float = 4;
+      bytes bytes = 5;
+      string string = 6;
+      bool bool = 7;
+
+      int32 char = 48;
+      PbChoice2 choice = 49;
+      PbRaDec2 pbradec = 50;
+      PbUTCTime2 utcTime = 51;
+      PbTAITime2 taiTime = 52;
+   }
+}
+
+message PbArrayData2 {
+   repeated PbPrimitive2 elements = 1;
+}
+
+message PbMatrixData2 {
+   repeated PbArrayData2 arrays = 1;
+}
+
+message PbChoice2 {
+   string string = 1;
+}
+
+message PbChar2 {
+   int32 char = 1;
+}
+
+message PbRaDec2 {
+   double ra = 1;
+   double dec = 2;
+}
+
+message PbUTCTime2 {
+   google.protobuf.Timestamp value = 1;
+}
+
+message PbTAITime2 {
+   google.protobuf.Timestamp value = 1;
+}
+
