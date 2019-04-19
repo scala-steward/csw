@@ -2,15 +2,13 @@ syntax = "proto3";
 
 package csw_protobuf;
 
+import "scalapb/scalapb.proto";
 import "csw_protobuf/units.proto";
 import "csw_protobuf/keytype.proto";
-import "scalapb/scalapb.proto";
-import "csw_protobuf/parameter_types.proto";
+import "google/protobuf/timestamp.proto";
 
 option (scalapb.options) = {
-    import: "csw.event.client.pb._"
     import: "csw.event.client.pb.TypeMapperSupport._"
-    import: "csw.params.core.models._"
     single_file: true
 };
 
@@ -18,46 +16,92 @@ message PbParameter {
     string name                             = 1;
     PbUnits units                           = 2;
     PbKeyType keyType                       = 3;
-    oneof items {
-        ChoiceItems choiceItems             = 50;
-        RaDecItems raDecItems               = 51;
-        StructItems structItems             = 52;
-        UTCTimeItems utcTimeItems           = 53;
-        TAITimeItems taiTimeItems           = 54;
+    repeated PbParamValue values            = 4;
+}
 
-        StringItems stringItems             = 55;
-        BooleanItems booleanItems           = 56;
-        CharItems charItems                 = 57;
-
-        ByteItems byteItems                 = 58;
-        ShortItems shortItems               = 59;
-        IntItems intItems                   = 60;
-        LongItems longItems                 = 61;
-        DoubleItems doubleItems             = 62;
-        FloatItems floatItems               = 63;
-
-        ByteArrayItems byteArrayItems       = 64;
-        ShortArrayItems shortArrayItems     = 65;
-        IntArrayItems intArrayItems         = 66;
-        LongArrayItems longArrayItems       = 67;
-        FloatArrayItems floatArrayItems     = 68;
-        DoubleArrayItems doubleArrayItems   = 69;
-
-        ByteMatrixItems byteMatrixItems     = 70;
-        ShortMatrixItems shortMatrixItems   = 71;
-        IntMatrixItems intMatrixItems       = 72;
-        LongMatrixItems longMatrixItems     = 73;
-        FloatMatrixItems floatMatrixItems   = 74;
-        DoubleMatrixItems doubleMatrixItems = 75;
+message PbParamValue {
+    oneof sealed_value {
+        PbInt int = 1;
+        PbLong long = 2;
+        PbShort short = 3;
+        PbDouble double = 4;
+        PbFloat float = 5;
+        PbBoolean bool = 6;
+        PbChar char = 7;
+        PbString string = 8;
+        PbChoice choice = 9;
+        PbRaDec radec = 10;
+        PbUTCTime utcTime = 11;
+        PbTAITime taiTime = 12;
+        PbBytes bytes = 13;
+        PbArray array = 14;
+        PbMatrix matrix = 15;
+        PbStruct struct = 16;
     }
+}
+
+
+message PbInt {
+    int32 value = 1;
+}
+
+message PbLong {
+    int64 value = 1;
+}
+
+message PbShort {
+    int32 value = 1;
+}
+
+message PbDouble {
+    double value = 1;
+}
+
+message PbFloat {
+    float value = 1;
+}
+
+message PbBoolean {
+    bool value = 1;
+}
+
+message PbChar {
+    int32 value = 1;
+}
+
+message PbString {
+    string value = 1;
+}
+
+message PbChoice {
+    string value = 1;
+}
+
+message PbRaDec {
+    double ra = 1;
+    double dec = 2;
+}
+
+message PbUTCTime {
+    google.protobuf.Timestamp value = 1;
+}
+
+message PbTAITime {
+    google.protobuf.Timestamp value = 1;
+}
+
+message PbBytes {
+    bytes value = 1;
+}
+
+message PbArray {
+    repeated PbParamValue values = 1;
+}
+
+message PbMatrix {
+    repeated PbArray values = 1;
 }
 
 message PbStruct {
     repeated PbParameter paramSet = 1;
-}
-
-message StructItems {
-    option (scalapb.message).extends = "ItemType[Struct]";
-    option (scalapb.message).companion_extends = "ItemTypeCompanion[StructItems]";
-    repeated PbStruct values = 1 [(scalapb.field).type = "Struct"];
 }

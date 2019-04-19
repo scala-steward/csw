@@ -3,8 +3,6 @@ syntax = "proto3";
 package csw_protobuf;
 
 import "csw_protobuf/parameter.proto";
-import "google/protobuf/timestamp.proto";
-import "csw_protobuf/models.proto";
 
 message PbEvent {
     enum PbEventType {

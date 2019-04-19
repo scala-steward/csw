@@ -86,7 +86,7 @@ public class JProtobufSerializationTest extends JUnitSuite {
     @Test
     public void shouldAbleToConvertToAndFromPbParameterAndEvent() {
         // ===== Test PbParameter SERDE =====
-        PbParameter pbParameter = TypeMapperSupport.parameterTypeMapper2().toBase(param);
+        PbParameter pbParameter = TypeMapperSupport.paramMapper().toBase(param);
         byte[] pbParameterBytes = pbParameter.toByteArray();
         PbParameter pbParameterFromBytes = (PbParameter) PbParameter.parseFrom(pbParameterBytes);
 

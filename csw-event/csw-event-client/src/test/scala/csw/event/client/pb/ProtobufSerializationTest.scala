@@ -33,7 +33,7 @@ class ProtobufSerializationTest extends FunSpec with Matchers with BeforeAndAfte
       PbConverter.fromPbEvent[ObserveEvent](pbEvent) shouldBe observeEvent
 
       //able to generate event from protobuf byteArray
-      PbConverter.fromPbEvent[ObserveEvent](PbEvent.parseFrom(pbEvent.toByteArray)) shouldBe a[ObserveEvent]
+      PbConverter.fromPbEvent[ObserveEvent](PbEvent.parseFrom(pbEvent.toByteArray)) shouldBe an[ObserveEvent]
       PbConverter.fromPbEvent[ObserveEvent](PbEvent.parseFrom(pbEvent.toByteArray)) shouldBe observeEvent
     }
 
