@@ -34,7 +34,6 @@ object TypeMapperSupport {
     case PbShort(value)   => value
     case PbDouble(value)  => value
     case PbChar(value)    => value
-    case PbBytes(value)   => value.toByteArray.head
     case PbBoolean(value) => value
     case PbString(value)  => value
     case PbChoice(value)  => Choice(value)
@@ -49,6 +48,7 @@ object TypeMapperSupport {
           .to[mutable.WrappedArray]
       )
     case PbStruct(xs) => Struct(xs.map(x => paramMapper.toCustom(x)).toSet)
+    case x            => throw new RuntimeException(s"can not decode paramValue=$x")
   } {
     case x: Int          => PbInt(x)
     case x: Long         => PbLong(x)
@@ -56,7 +56,6 @@ object TypeMapperSupport {
     case x: Short        => PbShort(x)
     case x: Double       => PbDouble(x)
     case x: Char         => PbChar(x)
-    case x: Byte         => PbBytes(ByteString.copyFrom(Array(x)))
     case x: Boolean      => PbBoolean(x)
     case x: String       => PbString(x)
     case Choice(value)   => PbChoice(value)
@@ -66,6 +65,7 @@ object TypeMapperSupport {
     case ArrayData(xs)   => PbArray().withValues(xs.map(paramValueMapper.toBase))
     case MatrixData(xss) => PbMatrix().withValues(xss.map(xs => paramValueMapper.toBase(ArrayData(xs)).asInstanceOf[PbArray]))
     case Struct(xs)      => PbStruct().withParamSet(xs.map(x => paramMapper.toBase(x.asInstanceOf[Parameter[Any]])).toSeq)
+    case x               => throw new RuntimeException(s"can not encode parameterValue=$x")
   }
 
   lazy val paramMapper: TypeMapper[PbParameter, Parameter[_]] = TypeMapper[PbParameter, Parameter[_]](
@@ -73,7 +73,7 @@ object TypeMapperSupport {
       Parameter(
         pbParameter.name,
         pbParameter.keyType.asInstanceOf[KeyType[Any]],
-        pbParameter.values.map(paramValueMapper.toCustom).to[mutable.WrappedArray],
+        decodeParamValues(pbParameter).asInstanceOf[mutable.WrappedArray[Any]],
         pbParameter.units
       )(pbParameter.keyType.sFormat.asInstanceOf[Format[Any]], pbParameter.keyType.sClassTag.asInstanceOf[ClassTag[Any]])
   )(
@@ -82,10 +82,25 @@ object TypeMapperSupport {
         .withName(parameter.keyName)
         .withKeyType(parameter.keyType)
         .withUnits(parameter.units)
-        .withValues(
-          parameter.items.map(paramValueMapper.toBase)
-      )
+        .withValues(encodeParamValues(parameter))
   )
+
+  private def encodeParamValues(parameter: Parameter[_]): Seq[PbParamValue] = {
+    if (parameter.items.nonEmpty && parameter.items.head.isInstanceOf[Byte]) {
+      val bytes = parameter.items.asInstanceOf[mutable.WrappedArray[Byte]]
+      Array(PbBytes(ByteString.copyFrom(bytes.array)))
+    } else {
+      parameter.items.map(paramValueMapper.toBase)
+    }
+  }
+
+  private def decodeParamValues(pbParameter: PbParameter): mutable.WrappedArray[_] = {
+    if (pbParameter.values.nonEmpty && pbParameter.values.head.isInstanceOf[PbBytes]) {
+      pbParameter.values.head.asInstanceOf[PbBytes].toByteArray
+    } else {
+      pbParameter.values.map(paramValueMapper.toCustom).to[mutable.WrappedArray]
+    }
+  }
 
   private[csw] implicit def eventTypeMapper[T <: Event]: TypeMapper[PbEvent, T] = new TypeMapper[PbEvent, T] {
     override def toCustom(base: PbEvent): T = {

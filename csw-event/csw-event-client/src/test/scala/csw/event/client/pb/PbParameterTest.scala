@@ -84,16 +84,13 @@ class PbParameterTest extends FunSuite with Matchers {
       .withUnits(Units.second)
       .withKeyType(KeyType.UTCTimeKey)
       .addValues(
-        PbBytes(ByteString.copyFrom(Seq[Byte](1).toArray)),
-        PbBytes(ByteString.copyFrom(Seq[Byte](2).toArray)),
-        PbBytes(ByteString.copyFrom(Seq[Byte](3).toArray)),
-        PbBytes(ByteString.copyFrom(Seq[Byte](4).toArray))
+        PbBytes().withValue(ByteString.copyFrom(Array[Byte](1, 2, 3, 4)))
       )
 
     parameter.name shouldBe "encoder"
     parameter.units shouldBe Units.second
     parameter.keyType shouldBe KeyType.UTCTimeKey
-    parameter.values.map(TypeMapperSupport.paramValueMapper.toCustom) shouldBe Seq(1, 2, 3, 4)
+    parameter.values.head.asInstanceOf[PbBytes].value.toByteArray shouldBe Array[Byte](1, 2, 3, 4)
   }
 
   test("should able to create PbParameter with Choice items") {
