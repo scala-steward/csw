@@ -17,7 +17,6 @@ import csw_protobuf.units.PbUnits
 import play.api.libs.json.Format
 import scalapb.TypeMapper
 
-import scala.collection.mutable
 import scala.reflect.ClassTag
 
 object TypeMapperSupport {
@@ -45,8 +44,8 @@ object TypeMapperSupport {
     )(p => make(p.keyType).toBase(p))
   }
 
-  private def cswItems[T: ClassTag](items: Items): mutable.WrappedArray[T] = items.value match {
-    case x: ItemType[_] ⇒ x.asInstanceOf[ItemType[T]].values.toArray[T]
+  private def cswItems[T: ClassTag](items: Items): Array[T] = items.value match {
+    case x: ItemType[_] ⇒ x.asInstanceOf[ItemType[T]].values
     case x              ⇒ throw new RuntimeException(s"unexpected type ${x.getClass} found, ItemType expected")
   }
 
@@ -101,7 +100,7 @@ object TypeMapperSupport {
     TypeMapper[PbUnits, Units](x ⇒ Units.withName(x.toString()))(x ⇒ PbUnits.fromName(x.toString).get)
 
   implicit def matrixDataTypeMapper[T: ClassTag, S <: ItemType[ArrayData[T]]: ItemTypeCompanion]: TypeMapper[S, MatrixData[T]] =
-    TypeMapper[S, MatrixData[T]](x ⇒ MatrixData.fromArrays(x.values.toArray.map(a ⇒ a.data.array)))(
+    TypeMapper[S, MatrixData[T]](x ⇒ MatrixData.fromArrays(x.values.map(a ⇒ a.data.array)))(
       x ⇒ ItemTypeCompanion.make(x.data.map(ArrayData.apply))
     )
 
@@ -124,7 +123,7 @@ object TypeMapperSupport {
     TypeMapper[PbKeyType, KeyType[_]](x ⇒ KeyType.withName(x.toString()))(x ⇒ PbKeyType.fromName(x.toString).get)
 
   implicit def arrayDataTypeMapper[T: ClassTag, S <: ItemType[T]: ItemTypeCompanion]: TypeMapper[S, ArrayData[T]] =
-    TypeMapper[S, ArrayData[T]](x ⇒ ArrayData(x.values.toArray[T]))(x ⇒ ItemTypeCompanion.make(x.data))
+    TypeMapper[S, ArrayData[T]](x ⇒ ArrayData(x.values))(x ⇒ ItemTypeCompanion.make(x.data))
 
   implicit val obsIdTypeMapper: TypeMapper[String, Option[ObsId]] = TypeMapper[String, Option[ObsId]] { x ⇒
     if (x.isEmpty) None else Some(ObsId(x))

@@ -5,8 +5,6 @@ import java.util
 import com.github.ghik.silencer.silent
 import play.api.libs.json.{Format, Json}
 
-import scala.collection.JavaConverters._
-import scala.collection.mutable
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
 
@@ -15,7 +13,7 @@ import scala.reflect.ClassTag
  *
  * @param data input array of array
  */
-case class MatrixData[T: ClassTag](data: mutable.WrappedArray[mutable.WrappedArray[T]]) {
+case class MatrixData[T](data: Array[Array[T]]) {
 
   /**
    * Returns a value stored at position represented by [row][col]
@@ -27,17 +25,29 @@ case class MatrixData[T: ClassTag](data: mutable.WrappedArray[mutable.WrappedArr
   /**
    * An Array of values this parameter holds
    */
-  def values: Array[Array[T]] = data.array.map(_.array)
+  def values: Array[Array[T]] = data
 
   /**
    * A Java helper that returns an Array of values this parameter holds
    */
-  def jValues: util.List[util.List[T]] = data.map(_.asJava).asJava
+  def jValues: util.List[util.List[T]] = {
+    val inners: Array[util.List[T]] = data.map(x => util.Arrays.asList(x: _*))
+    util.Arrays.asList(inners: _*)
+  }
 
   /**
    * A comma separated string representation of all values this MatrixData holds
    */
   override def toString: String = (for (l <- data) yield l.mkString("(", ",", ")")).mkString("(", ",", ")")
+
+  override def equals(obj: Any): Boolean = obj match {
+    case x: MatrixData[_] => underlying == x.underlying
+    case _                => false
+  }
+
+  override def hashCode(): Int = underlying.hashCode()
+
+  private def underlying: List[List[T]] = data.toList.map(_.toList)
 }
 
 object MatrixData {
@@ -52,8 +62,7 @@ object MatrixData {
    * @tparam T the type of values
    * @return an instance of MatrixData
    */
-  implicit def fromArrays[T: ClassTag](values: Array[Array[T]]): MatrixData[T] =
-    new MatrixData[T](values.map(x ⇒ x: mutable.WrappedArray[T]))
+  implicit def fromArrays[T: ClassTag](values: Array[Array[T]]): MatrixData[T] = new MatrixData[T](values)
 
   /**
    * Create a MatrixData from Array[T]
@@ -62,8 +71,7 @@ object MatrixData {
    * @tparam T the type of values
    * @return an instance of MatrixData
    */
-  def fromArrays[T: ClassTag](values: Array[T]*): MatrixData[T] =
-    new MatrixData[T](values.toArray.map(x ⇒ x: mutable.WrappedArray[T]))
+  def fromArrays[T: ClassTag](values: Array[T]*): MatrixData[T] = new MatrixData[T](values.toArray)
 
   /**
    * A Java helper to create an MatrixData from one or more arrays
@@ -72,8 +80,7 @@ object MatrixData {
    * @tparam T the type of values
    * @return an instance of MatrixData
    */
-  def fromJavaArrays[T](klass: Class[T], values: Array[Array[T]]): MatrixData[T] =
-    new MatrixData[T](values.map(x ⇒ x: mutable.WrappedArray[T]))(ClassTag(klass))
+  def fromJavaArrays[T](klass: Class[T], values: Array[Array[T]]): MatrixData[T] = new MatrixData[T](values)
 
   /**
    * Convert a Matrix of data from one type to other
@@ -83,6 +90,5 @@ object MatrixData {
    * @tparam B the destination type of data
    * @return a function of type MatrixData[A] ⇒ MatrixData[B]
    */
-  implicit def conversion[A, B](implicit @silent conversion: A ⇒ B): MatrixData[A] ⇒ MatrixData[B] =
-    _.asInstanceOf[MatrixData[B]]
+  implicit def conversion[A, B](implicit @silent conversion: A ⇒ B): MatrixData[A] ⇒ MatrixData[B] = _.asInstanceOf[MatrixData[B]]
 }

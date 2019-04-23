@@ -8,7 +8,7 @@ trait ItemType[T] {
   /**
    * Provides a Seq of values this ItemType holds
    */
-  def values: Seq[T]
+  def values: Array[T]
 
   /**
    * Create an ItemType with provided values
@@ -16,7 +16,7 @@ trait ItemType[T] {
    * @param values one or more values
    * @return a generic Any type
    */
-  def withValues(values: Seq[T]): Any
+  def withValues(values: Array[T]): Any
 
   /**
    * Create an ItemType with provided values
@@ -24,7 +24,16 @@ trait ItemType[T] {
    * @param values one or more values
    * @return an instance of ItemType
    */
-  def set(values: Seq[T]): this.type = withValues(values).asInstanceOf[this.type]
+  private[pb] def set(values: Array[T]): this.type = withValues(values).asInstanceOf[this.type]
+
+  override def equals(obj: Any): Boolean = obj match {
+    case x: ItemType[_] => underlying == x.underlying
+    case _              => false
+  }
+
+  override def hashCode(): Int = underlying.hashCode()
+
+  private def underlying = values.toList
 }
 
 /**
@@ -40,7 +49,7 @@ trait ItemTypeCompanion[S] {
 
 object ItemTypeCompanion {
   def apply[T](implicit x: ItemTypeCompanion[T]): ItemTypeCompanion[T] = x
-  def make[T, S <: ItemType[T]: ItemTypeCompanion](items: Seq[T]): S = {
+  def make[T, S <: ItemType[T]: ItemTypeCompanion](items: Array[T]): S = {
     ItemTypeCompanion[S].defaultInstance.set(items)
   }
 }

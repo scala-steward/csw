@@ -13,7 +13,7 @@ abstract class ItemsFactory[T] {
    *
    * @return Items
    */
-  def make(xs: Seq[T]): Items
+  def make(xs: Array[T]): Items
 }
 
 object ItemsFactory {

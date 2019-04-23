@@ -3,13 +3,11 @@ package csw.params.core.generics
 import java.util
 import java.util.Optional
 
-import csw.params.extensions.OptionConverters.RichOption
 import csw.params.core.models.Units
+import csw.params.extensions.OptionConverters.RichOption
 import csw.serializable.TMTSerializable
 import play.api.libs.json._
 
-import scala.collection.JavaConverters.seqAsJavaListConverter
-import scala.collection.mutable
 import scala.reflect.ClassTag
 
 object Parameter {
@@ -17,7 +15,7 @@ object Parameter {
   private[csw] def apply[S: Format: ClassTag](
       keyName: String,
       keyType: KeyType[S],
-      items: mutable.WrappedArray[S],
+      items: Array[S],
       units: Units
   ): Parameter[S] =
     new Parameter(keyName, keyType, items, units)
@@ -72,26 +70,26 @@ object Parameter {
 case class Parameter[S: Format: ClassTag] private[params] (
     keyName: String,
     keyType: KeyType[S],
-    items: mutable.WrappedArray[S],
+    items: Array[S],
     units: Units
 ) extends TMTSerializable {
 
   /**
    * An Array of values this parameter holds
    */
-  def values: Array[S] = items.array
+  def values: Array[S] = items
 
   /**
    * A Java helper that returns a List of values this parameter holds
    */
-  def jValues: util.List[S] = items.asJava
+  def jValues: util.List[S] = util.Arrays.asList(items: _*)
 
   /**
    * The number of values in this parameter (values.size)
    *
    * @return length of the array of items
    */
-  def size: Int = items.size
+  def size: Int = items.length
 
   /**
    * Returns the value at the given index, throwing an exception if the index is out of range
@@ -155,4 +153,13 @@ case class Parameter[S: Format: ClassTag] private[params] (
    * Returns a JSON representation of this parameter
    */
   def toJson: JsValue = Parameter[S].writes(this)
+
+  override def equals(obj: Any): Boolean = obj match {
+    case x: Parameter[_] => underlying == x.underlying
+    case _               => false
+  }
+
+  override def hashCode(): Int = underlying.hashCode()
+
+  private def underlying = (keyName, keyType, items.toList, units)
 }

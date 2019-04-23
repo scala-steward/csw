@@ -5,8 +5,6 @@ import java.util
 import com.github.ghik.silencer.silent
 import play.api.libs.json.{Format, Json}
 
-import scala.collection.JavaConverters._
-import scala.collection.mutable
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
 
@@ -15,22 +13,31 @@ import scala.reflect.ClassTag
  *
  * @param data input array
  */
-case class ArrayData[T](data: mutable.WrappedArray[T]) {
+case class ArrayData[T](data: Array[T]) {
 
   /**
    * An Array of values this parameter holds
    */
-  def values: Array[T] = data.array
+  def values: Array[T] = data
 
   /**
    * A Java helper that returns an Array of values this parameter holds
    */
-  def jValues: util.List[T] = data.asJava
+  def jValues: util.List[T] = util.Arrays.asList(data: _*)
 
   /**
    * A comma separated string representation of all values this ArrayData holds
    */
   override def toString: String = data.mkString("(", ",", ")")
+
+  override def equals(obj: Any): Boolean = obj match {
+    case x: ArrayData[_] => underlying == x.underlying
+    case _               => false
+  }
+
+  override def hashCode(): Int = underlying.hashCode()
+
+  private def underlying: List[T] = data.toList
 }
 
 object ArrayData {
