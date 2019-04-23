@@ -36,7 +36,7 @@ object TypeMapperSupport {
           .withName(x.keyName)
           .withUnits(x.units)
           .withKeyType(x.keyType)
-          .withItems(ItemsFactory[S].make(x.items))
+          .withItems(ItemsFactory[S].make(x.items.array))
     }
 
   implicit val parameterTypeMapper2: TypeMapper[PbParameter, Parameter[_]] = {
@@ -101,8 +101,8 @@ object TypeMapperSupport {
     TypeMapper[PbUnits, Units](x ⇒ Units.withName(x.toString()))(x ⇒ PbUnits.fromName(x.toString).get)
 
   implicit def matrixDataTypeMapper[T: ClassTag, S <: ItemType[ArrayData[T]]: ItemTypeCompanion]: TypeMapper[S, MatrixData[T]] =
-    TypeMapper[S, MatrixData[T]](x ⇒ MatrixData.fromArrays(x.values.toArray.map(a ⇒ a.data.array)))(
-      x ⇒ ItemTypeCompanion.make(x.data.map(ArrayData.apply))
+    TypeMapper[S, MatrixData[T]](x ⇒ MatrixData.fromArrays(x.values.map(a ⇒ a.data.array)))(
+      x ⇒ ItemTypeCompanion.make(x.data.map(ArrayData.apply).array)
     )
 
   implicit val raDecTypeMapper: TypeMapper[PbRaDec, RaDec] =
@@ -124,7 +124,7 @@ object TypeMapperSupport {
     TypeMapper[PbKeyType, KeyType[_]](x ⇒ KeyType.withName(x.toString()))(x ⇒ PbKeyType.fromName(x.toString).get)
 
   implicit def arrayDataTypeMapper[T: ClassTag, S <: ItemType[T]: ItemTypeCompanion]: TypeMapper[S, ArrayData[T]] =
-    TypeMapper[S, ArrayData[T]](x ⇒ ArrayData(x.values.toArray[T]))(x ⇒ ItemTypeCompanion.make(x.data))
+    TypeMapper[S, ArrayData[T]](x ⇒ ArrayData(x.values.toArray[T]))(x ⇒ ItemTypeCompanion.make(x.data.array))
 
   implicit val obsIdTypeMapper: TypeMapper[String, Option[ObsId]] = TypeMapper[String, Option[ObsId]] { x ⇒
     if (x.isEmpty) None else Some(ObsId(x))

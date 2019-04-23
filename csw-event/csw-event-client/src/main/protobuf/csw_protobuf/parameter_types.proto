@@ -13,6 +13,7 @@ option (scalapb.options) = {
     import: "csw.params.core.models._"
     import: "csw.time.core.models._"
     single_file: true
+    collection_type: "Array"
 };
 
 message StringItems {
@@ -42,7 +43,7 @@ message RaDecItems {
 message CharItems {
     option (scalapb.message).extends = "ItemType[Char]";
     option (scalapb.message).companion_extends = "ItemTypeCompanion[CharItems]";
-    string values = 1 [(scalapb.field).type = "Seq[Char]"];
+    string values = 1 [(scalapb.field).type = "Array[Char]"];
 }
 
 message UTCTimeItems {
@@ -62,7 +63,7 @@ message TAITimeItems {
 message ByteItems {
     option (scalapb.message).extends = "ItemType[Byte]";
     option (scalapb.message).companion_extends = "ItemTypeCompanion[ByteItems]";
-    bytes values = 1 [(scalapb.field).type = "Seq[Byte]"];
+    bytes values = 1 [(scalapb.field).type = "Array[Byte]"];
 }
 
 message ShortItems {

@@ -28,7 +28,7 @@ class PbParameterTest extends FunSuite with Matchers {
   test("should able to parse PbParameter with sequence of values") {
     val parameter: PbParameter = PbParameter()
       .withName("encoder")
-      .withIntItems(IntItems().withValues(Seq(1, 2, 3, 4)))
+      .withIntItems(IntItems().withValues(Array(1, 2, 3, 4)))
 
     val parameter1: PbParameter = PbParameter.parseFrom(parameter.toByteArray)
     val parsedParameter         = PbParameter.parseFrom(parameter1.toByteString.toByteArray)
@@ -49,7 +49,7 @@ class PbParameterTest extends FunSuite with Matchers {
       .withName("encoder")
       .withUnits(Units.second)
       .withKeyType(KeyType.UTCTimeKey)
-      .withUtcTimeItems(UTCTimeItems(Seq(now)))
+      .withUtcTimeItems(UTCTimeItems(Array(now)))
 
     parameter.name shouldBe "encoder"
     parameter.units shouldBe Units.second
@@ -64,7 +64,7 @@ class PbParameterTest extends FunSuite with Matchers {
       .withName("encoder")
       .withUnits(Units.second)
       .withKeyType(KeyType.TAITimeKey)
-      .withTaiTimeItems(TAITimeItems(Seq(now)))
+      .withTaiTimeItems(TAITimeItems(Array(now)))
 
     parameter.name shouldBe "encoder"
     parameter.units shouldBe Units.second
@@ -77,7 +77,7 @@ class PbParameterTest extends FunSuite with Matchers {
       .withName("encoder")
       .withUnits(Units.second)
       .withKeyType(KeyType.UTCTimeKey)
-      .withByteItems(ByteItems(Seq(1, 2, 3, 4)))
+      .withByteItems(ByteItems(Array(1, 2, 3, 4)))
 
     parameter.name shouldBe "encoder"
     parameter.units shouldBe Units.second
@@ -86,7 +86,8 @@ class PbParameterTest extends FunSuite with Matchers {
   }
 
   test("should able to create PbParameter with Choice items") {
-    val choices = ChoiceItems().set(Seq("a345", "b234", "c567", "d890"))
+    val strings: Seq[Choice] = Seq("a345", "b234", "c567", "d890")
+    val choices              = ChoiceItems(strings.toArray)
     val parameter = PbParameter()
       .withName("encoder")
       .withUnits(Units.second)
@@ -103,7 +104,7 @@ class PbParameterTest extends FunSuite with Matchers {
       .withName("encoder")
       .withUnits(Units.second)
       .withKeyType(KeyType.IntKey)
-      .withCharItems(CharItems().set(Seq('a', 'b')))
+      .withCharItems(CharItems(Array('a', 'b')))
       .withIntItems(IntItems().addValues(1))
 
     parameter.name shouldBe "encoder"
@@ -155,8 +156,11 @@ class PbParameterTest extends FunSuite with Matchers {
   }
 
   test("should able to create PbParameter with MatrixItems") {
-    val matrixItems: IntMatrixItems = IntMatrixItems().set(
-      Seq(MatrixData.fromArrays(Array(1, 2, 3), Array(6, 7)), MatrixData.fromArrays(Array(11, 12, 13), Array(16, 17)))
+    val matrixItems: IntMatrixItems = IntMatrixItems(
+      Array(
+        MatrixData.fromArrays(Array(1, 2, 3), Array(6, 7)),
+        MatrixData.fromArrays(Array(11, 12, 13), Array(16, 17))
+      )
     )
     matrixItems.values.head.values.head.head shouldBe 1
   }
@@ -210,10 +214,12 @@ class PbParameterTest extends FunSuite with Matchers {
   }
 
   test("should able to change the type from/to PbParameter to/from Parameter using java api") {
-    val key         = JKeyType.IntKey.make("encoder")
-    val param       = key.set(1, 2, 3, 4)
-    val mapper      = TypeMapperSupport.parameterTypeMapper2
-    val parsedParam = mapper.toCustom(mapper.toBase(param))
+    val key    = JKeyType.IntKey.make("encoder")
+    val param  = key.set(1, 2, 3, 4)
+    val mapper = TypeMapperSupport.parameterTypeMapper2
+
+    val bytes       = mapper.toBase(param).toByteArray
+    val parsedParam = mapper.toCustom(PbParameter.parseFrom(bytes))
 
     parsedParam shouldEqual param
   }

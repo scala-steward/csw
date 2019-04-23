@@ -34,16 +34,16 @@ object Implicits {
     }
 
   /**
-   * Implicit conversion of Seq[Byte](supported by csw) to ByteString(supported by Protobuf)
+   * Implicit conversion of Array[Byte](supported by csw) to ByteString(supported by Protobuf)
    */
-  implicit val bytesMapper: TypeMapper[ByteString, Seq[Byte]] =
-    TypeMapper[ByteString, Seq[Byte]](_.toByteArray)(xs ⇒ ByteString.copyFrom(xs.toArray))
+  implicit val bytesMapper: TypeMapper[ByteString, Array[Byte]] =
+    TypeMapper[ByteString, Array[Byte]](_.toByteArray)(xs ⇒ ByteString.copyFrom(xs))
 
   /**
-   * Implicit conversion of Seq[Char](supported by csw) to String(supported by Protobuf)
+   * Implicit conversion of Array[Char](supported by csw) to String(supported by Protobuf)
    */
-  implicit val charsMapper: TypeMapper[String, Seq[Char]] =
-    TypeMapper[String, Seq[Char]](s ⇒ s)(xs ⇒ String.copyValueOf(xs.toArray))
+  implicit val charsMapper: TypeMapper[String, Array[Char]] =
+    TypeMapper[String, Array[Char]](s ⇒ s.toCharArray)(xs ⇒ String.copyValueOf(xs))
 
   /**
    * Implicit conversion of Short(supported by csw) to Int(Protobuf doesn't support Short, hence promoted to Int)
