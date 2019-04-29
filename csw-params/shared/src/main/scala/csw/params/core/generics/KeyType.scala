@@ -17,14 +17,14 @@ import scala.reflect.ClassTag
  *
  * @tparam S the type of values that will sit against the key in Parameter
  */
-sealed class KeyType[S: Format: ClassTag: Encoder: Decoder] extends EnumEntry with Serializable {
+sealed class KeyType[S: Format: ClassTag: ArrayEnc: ArrayDec] extends EnumEntry with Serializable {
   override def hashCode: Int              = toString.hashCode
   override def equals(that: Any): Boolean = that.toString == this.toString
 
   private[params] lazy val paramFormat: Format[Parameter[S]] = Parameter.parameterFormat[S]
 
   private[params] lazy val paramEncoder: Encoder[Parameter[S]]         = CborSupport.paramCodec[S].encoder
-  private[params] lazy val waDecoder: Decoder[mutable.WrappedArray[S]] = Decoder.forIterable[S, mutable.WrappedArray]
+  private[params] lazy val waDecoder: Decoder[mutable.WrappedArray[S]] = CborSupport.waDec
 }
 
 /**
@@ -32,7 +32,7 @@ sealed class KeyType[S: Format: ClassTag: Encoder: Decoder] extends EnumEntry wi
  *
  * @tparam S the type of values that will sit against the key in Parameter
  */
-class SimpleKeyType[S: Format: ClassTag: Encoder: Decoder] extends KeyType[S] {
+class SimpleKeyType[S: Format: ClassTag: ArrayEnc: ArrayDec] extends KeyType[S] {
 
   /**
    * Make a Key from provided name
@@ -50,7 +50,7 @@ class SimpleKeyType[S: Format: ClassTag: Encoder: Decoder] extends KeyType[S] {
  * @param defaultUnits applicable units
  * @tparam S the type of values that will sit against the key in Parameter
  */
-sealed class SimpleKeyTypeWithUnits[S: Format: ClassTag: Encoder: Decoder](defaultUnits: Units) extends KeyType[S] {
+sealed class SimpleKeyTypeWithUnits[S: Format: ClassTag: ArrayEnc: ArrayDec](defaultUnits: Units) extends KeyType[S] {
 
   /**
    * Make a Key from provided name
@@ -64,12 +64,12 @@ sealed class SimpleKeyTypeWithUnits[S: Format: ClassTag: Encoder: Decoder](defau
 /**
  * A KeyType that holds array
  */
-class ArrayKeyType[S: Format: ClassTag: Encoder: Decoder] extends SimpleKeyType[ArrayData[S]]
+class ArrayKeyType[S: Format: ClassTag: ArrayEnc: ArrayDec] extends SimpleKeyType[ArrayData[S]]
 
 /**
  * A KeyType that holds Matrix
  */
-class MatrixKeyType[S: Format: ClassTag: Encoder: Decoder] extends SimpleKeyType[MatrixData[S]]
+class MatrixKeyType[S: Format: ClassTag: ArrayEnc: ArrayDec] extends SimpleKeyType[MatrixData[S]]
 
 /**
  * KeyTypes defined for consumption in Scala code

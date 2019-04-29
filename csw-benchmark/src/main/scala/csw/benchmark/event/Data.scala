@@ -53,7 +53,6 @@ object Data {
     )
   )
   private val structKey: Key[Struct] = KeyType.StructKey.make("abc")
-  //  private val structKey2: Key[Struct] = KeyType.StructKey.make("abc2")
-  val data: Parameter[Struct] = structKey.set((1 to 150).map(_ => Struct(paramSet)): _*)
-  val event: SystemEvent      = SystemEvent(Prefix("a.b"), EventName("eventName1")).copy(paramSet = Set(data))
+  val data: Parameter[Struct]        = structKey.set((1 to 150).map(_ => Struct(paramSet)): _*)
+  val event: SystemEvent             = SystemEvent(Prefix("a.b"), EventName("eventName1")).copy(paramSet = Set(data))
 }

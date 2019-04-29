@@ -15,6 +15,12 @@ import scala.reflect.ClassTag
 
 object CborSupport {
 
+  type ArrayEnc[T] = Encoder[Array[T]]
+  type ArrayDec[T] = Decoder[Array[T]]
+
+//  type ArrayDataEnc[T] = Encoder[ArrayData[T]]
+//  type ArrayDataDec[T] = Decoder[ArrayData[T]]
+
   // ************************ Base Type Codecs ********************
 
   implicit lazy val choiceCodec: Codec[Choice] = deriveCodec[Choice]
@@ -30,8 +36,8 @@ object CborSupport {
 
   // ************************ Composite Codecs ********************
 
-  implicit def arrayDataEnc[T: Encoder: Decoder: ClassTag]: Codec[ArrayData[T]]   = deriveCodec[ArrayData[T]]
-  implicit def matrixDataEnc[T: Encoder: Decoder: ClassTag]: Codec[MatrixData[T]] = deriveCodec[MatrixData[T]]
+  implicit def arrayDataEnc[T: ClassTag: ArrayEnc: ArrayDec]: Codec[ArrayData[T]]   = deriveCodec[ArrayData[T]]
+  implicit def matrixDataEnc[T: ClassTag: ArrayEnc: ArrayDec]: Codec[MatrixData[T]] = deriveCodec[MatrixData[T]]
 
   // ************************ Enum Codecs ********************
 
@@ -45,7 +51,11 @@ object CborSupport {
 
   // ************************ Parameter Codecs ********************
 
-  implicit def paramCodec[T: ClassTag: Encoder: Decoder]: Codec[Parameter[T]] = deriveCodec[Parameter[T]]
+  implicit def waEnc[T: ClassTag: ArrayEnc]: Encoder[mutable.WrappedArray[T]] = implicitly[ArrayEnc[T]].compose(_.array)
+  implicit def waDec[T: ClassTag: ArrayDec]: Decoder[mutable.WrappedArray[T]] =
+    implicitly[ArrayDec[T]].map(x => x: mutable.WrappedArray[T])
+
+  implicit def paramCodec[T: ClassTag: ArrayEnc: ArrayDec]: Codec[Parameter[T]] = deriveCodec[Parameter[T]]
 
   implicit lazy val paramEncExistential: Encoder[Parameter[_]] = { (w: Writer, value: Parameter[_]) =>
     val encoder: Encoder[Parameter[Any]] = value.keyType.paramEncoder.asInstanceOf[Encoder[Parameter[Any]]]
@@ -69,7 +79,7 @@ object CborSupport {
 
   implicit lazy val structCodec: Codec[Struct] = deriveCodec[Struct]
 
-  // ************************ EVENT CODECS ********************
+  // ************************ Event Codecs ********************
 
   implicit lazy val idCodec: Codec[Id]               = deriveCodec[Id]
   implicit lazy val prefixCodec: Codec[Prefix]       = deriveCodec[Prefix]
