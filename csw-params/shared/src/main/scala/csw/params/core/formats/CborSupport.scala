@@ -13,6 +13,8 @@ import io.bullet.borer.derivation.MapBasedCodecs._
 import scala.collection.mutable
 import scala.reflect.ClassTag
 
+import java.lang.{Byte ⇒ JByte}
+
 object CborSupport {
 
   type ArrayEnc[T] = Encoder[Array[T]]
@@ -50,6 +52,9 @@ object CborSupport {
   implicit def keyTypeCodec[T]: Codec[KeyType[T]]              = keyTypeCodecExistential.asInstanceOf[Codec[KeyType[T]]]
 
   // ************************ Parameter Codecs ********************
+
+  implicit val javaByteArrayEnc: Encoder[Array[JByte]] = Encoder.forByteArray.compose(javaArray ⇒ javaArray.map(x ⇒ x: Byte))
+  implicit val javaByteArrayDec: Decoder[Array[JByte]] = Decoder.forByteArray.map(scalaArray ⇒ scalaArray.map(x ⇒ x: JByte))
 
   implicit def waEnc[T: ClassTag: ArrayEnc]: Encoder[mutable.WrappedArray[T]] = implicitly[ArrayEnc[T]].compose(_.array)
   implicit def waDec[T: ClassTag: ArrayDec]: Decoder[mutable.WrappedArray[T]] =

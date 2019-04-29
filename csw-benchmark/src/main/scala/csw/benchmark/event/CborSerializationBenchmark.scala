@@ -15,14 +15,6 @@ import csw.params.core.formats.CborSupport._
 class CborSerializationBenchmark {
 
   @Benchmark
-  @BenchmarkMode(Array(Mode.Throughput))
-  @OutputTimeUnit(TimeUnit.MILLISECONDS)
-  def cborThrpt(): SystemEvent = {
-    val bytes: Array[Byte] = Cbor.encode(Data.event).toByteArray
-    Cbor.decode(bytes).to[SystemEvent].value
-  }
-
-  @Benchmark
   @BenchmarkMode(Array(Mode.AverageTime))
   @OutputTimeUnit(TimeUnit.MICROSECONDS)
   def cborAvgTime(): SystemEvent = {
@@ -44,16 +36,29 @@ object BigCborTest extends App {
 }
 
 object SimpleCborTest extends App {
-  private val jintKey                   = JKeyType.IntKey.make("ints")
-  private val param: Parameter[Integer] = jintKey.set(1, 2, 3)
-  val bytes: Array[Byte]                = Cbor.encode(param).toByteArray
+  private val jintKey                          = JKeyType.ByteKey.make("ints")
+  private val param: Parameter[java.lang.Byte] = jintKey.set("abc".getBytes().map(x ⇒ x: java.lang.Byte))
+  val bytes: Array[Byte]                       = Cbor.encode(param).toByteArray
 
   val result = Cbor
     .decode(bytes)
     .withPrintLogging()
     .to[Parameter[_]]
     .value
-    .asInstanceOf[Parameter[Int]]
+    .asInstanceOf[Parameter[Byte]]
+
+  println(result)
+}
+
+object InterOpTest extends App {
+  private val ints       = Array(1, 2, 3)
+  val bytes: Array[Byte] = Cbor.encode(ints).toByteArray
+
+  val result = Cbor
+    .decode(bytes)
+    .withPrintLogging()
+    .to[Array[Integer]]
+    .value
 
   println(result)
 }
