@@ -1,11 +1,12 @@
 package csw.params.core.formats
 
+import java.lang.{Byte ⇒ JByte}
 import java.time.Instant
 
 import csw.params.core.generics.{KeyType, Parameter}
 import csw.params.core.models._
 import csw.params.events.{Event, EventName, ObserveEvent, SystemEvent}
-import csw.time.core.models.{TAITime, TMTTime, UTCTime}
+import csw.time.core.models.{TAITime, UTCTime}
 import enumeratum._
 import io.bullet.borer._
 import io.bullet.borer.derivation.MapBasedCodecs._
@@ -13,15 +14,15 @@ import io.bullet.borer.derivation.MapBasedCodecs._
 import scala.collection.mutable
 import scala.reflect.ClassTag
 
-import java.lang.{Byte ⇒ JByte}
-
 object CborSupport {
 
   type ArrayEnc[T] = Encoder[Array[T]]
   type ArrayDec[T] = Decoder[Array[T]]
 
-//  type ArrayDataEnc[T] = Encoder[ArrayData[T]]
-//  type ArrayDataDec[T] = Decoder[ArrayData[T]]
+  def transform[A: Encoder: Decoder, B](to: A ⇒ B, from: B ⇒ A) = Codec(
+    implicitly[Encoder[A]].compose(from),
+    implicitly[Decoder[A]].map(to)
+  )
 
   // ************************ Base Type Codecs ********************
 
@@ -29,12 +30,11 @@ object CborSupport {
   implicit lazy val raDecCodec: Codec[RaDec]   = deriveCodec[RaDec]
 
   implicit lazy val tsCodec: Codec[Timestamp] = deriveCodec[Timestamp]
-  implicit lazy val insEnc: Encoder[Instant]  = Encoder.fromCodec[Timestamp].compose(x => Timestamp(x.getEpochSecond, x.getNano))
-  implicit lazy val insDec: Decoder[Instant]  = Decoder.fromCodec[Timestamp].map(x => Instant.ofEpochSecond(x.seconds, x.nanos))
+  implicit lazy val insEnc: Encoder[Instant]  = Encoder.fromCodec[Timestamp].compose(Timestamp.fromInstant)
+  implicit lazy val insDec: Decoder[Instant]  = Decoder.fromCodec[Timestamp].map(_.toInstant)
 
-  implicit lazy val utcTimeEncoder: Codec[UTCTime] = deriveCodec[UTCTime]
-  implicit lazy val taiTimeEncoder: Codec[TAITime] = deriveCodec[TAITime]
-  implicit lazy val tmtTimeEncoder: Codec[TMTTime] = deriveCodec[TMTTime]
+  implicit lazy val utcTimeCodec: Codec[UTCTime] = Codec.forCaseClass[UTCTime]
+  implicit lazy val taiTimeCodec: Codec[TAITime] = Codec.forCaseClass[TAITime]
 
   // ************************ Composite Codecs ********************
 
@@ -86,13 +86,20 @@ object CborSupport {
 
   // ************************ Event Codecs ********************
 
-  implicit lazy val idCodec: Codec[Id]               = deriveCodec[Id]
-  implicit lazy val prefixCodec: Codec[Prefix]       = deriveCodec[Prefix]
-  implicit lazy val eventNameCodec: Codec[EventName] = deriveCodec[EventName]
+  implicit lazy val idCodec: Codec[Id]               = transform[String, Id](Id(_), _.id)
+  implicit lazy val prefixCodec: Codec[Prefix]       = transform[String, Prefix](Prefix(_), _.prefix)
+  implicit lazy val eventNameCodec: Codec[EventName] = transform[String, EventName](EventName(_), _.name)
 
   implicit lazy val sysEventCodec: Codec[SystemEvent]  = deriveCodec[SystemEvent]
   implicit lazy val obsEventCodec: Codec[ObserveEvent] = deriveCodec[ObserveEvent]
   implicit lazy val eventCodec: Codec[Event]           = deriveCodec[Event]
 }
 
-case class Timestamp(seconds: Long, nanos: Long)
+case class Timestamp(seconds: Long, nanos: Long) {
+  def toInstant: Instant = Instant.ofEpochSecond(seconds, nanos)
+
+}
+
+object Timestamp {
+  def fromInstant(instant: Instant): Timestamp = Timestamp(instant.getEpochSecond, instant.getNano)
+}
