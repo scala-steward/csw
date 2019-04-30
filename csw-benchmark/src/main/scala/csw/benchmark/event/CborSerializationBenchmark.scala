@@ -1,5 +1,7 @@
 package csw.benchmark.event
 
+import java.io.{BufferedOutputStream, FileOutputStream}
+import java.nio.file.{Files, Paths}
 import java.util.concurrent.TimeUnit
 
 import csw.params.core.generics.Parameter
@@ -61,4 +63,16 @@ object InterOpTest extends App {
     .value
 
   println(result)
+}
+
+object CrossLanguageCbor extends App {
+  val bytes: Array[Byte] = Cbor.encode(Data.smallEvent).toByteArray
+
+  val bos = new BufferedOutputStream(new FileOutputStream("/tmp/input.cbor"))
+  bos.write(bytes)
+  bos.close()
+
+  val readBytes = Files.readAllBytes(Paths.get("/tmp/input.cbor"))
+  val event     = Cbor.decode(readBytes).to[SystemEvent].value
+  println(event)
 }

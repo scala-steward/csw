@@ -1,0 +1,19 @@
+event = {
+    eventId: tstr
+    source: tstr
+    eventName: tstr
+    eventTime: timestamp
+    paramSet: [* parameter]
+}
+
+timestamp = {
+    seconds: uint
+    nanos: uint
+}
+
+parameter = {
+    keyName: tstr
+    keyType: tstr
+    items: [* any]
+    units: tstr
+}
