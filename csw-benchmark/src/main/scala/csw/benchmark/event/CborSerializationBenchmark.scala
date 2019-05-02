@@ -37,6 +37,17 @@ object BigCborTest extends App {
   println(bytes.length)
 }
 
+object SmallCborTest extends App {
+  val bytes: Array[Byte] = Cbor.encode(Data.smallEvent).toByteArray
+  val event: SystemEvent = Cbor
+    .decode(bytes)
+//    .withPrintLogging()
+    .to[SystemEvent]
+    .value
+  assert(event == Data.smallEvent)
+  println(bytes.length)
+}
+
 object SimpleCborTest extends App {
   private val jintKey                          = JKeyType.ByteKey.make("ints")
   private val param: Parameter[java.lang.Byte] = jintKey.set("abc".getBytes().map(x ⇒ x: java.lang.Byte))
