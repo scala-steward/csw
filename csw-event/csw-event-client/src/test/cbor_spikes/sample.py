@@ -18,10 +18,10 @@ class Parameter:
         self.units = obj['units']
 
     def __repr__(self):
-        return "keyName="+self.key_name + \
+        return "Parameter(keyName="+self.key_name + \
            " keyType=" + self.key_type + \
            " items=" + str(self.items) + \
-           " units=" + self.units
+           " units=" + self.units + ")"
 
 class Event:
     def __init__(self, obj):
@@ -32,11 +32,11 @@ class Event:
         self.param_set = toParameterSet(obj['paramSet'])
 
     def __repr__(self):
-        return "id="+self.id + \
-               " prefix=" + self.prefix +\
-               " name=" + self.event_name +\
-               " time=" + str(self.event_time) +\
-               " paramSet=" + str(self.param_set)
+        return "id="+self.id + "\n" + \
+               "prefix=" + self.prefix +"\n" + \
+               "name=" + self.event_name +"\n" + \
+               "time=" + str(self.event_time) +"\n" + \
+               "paramSet=" + str(self.param_set)
 
 
 with open('/tmp/input.cbor', 'rb') as fp:
@@ -45,4 +45,4 @@ with open('/tmp/input.cbor', 'rb') as fp:
     # pp.pprint(obj)
 
     event = Event(obj)
-    print "Decoded Event ======" + str(event)
+    print "Decoded Event ======\n" + str(event)

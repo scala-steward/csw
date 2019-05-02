@@ -19,7 +19,7 @@ object CborSupport {
   type ArrayEnc[T] = Encoder[Array[T]]
   type ArrayDec[T] = Decoder[Array[T]]
 
-  def transform[A: Encoder: Decoder, B](to: A ⇒ B, from: B ⇒ A) = Codec(
+  def transform[A: Encoder: Decoder, B](to: A ⇒ B, from: B ⇒ A): Codec[B] = Codec(
     implicitly[Encoder[A]].compose(from),
     implicitly[Decoder[A]].map(to)
   )

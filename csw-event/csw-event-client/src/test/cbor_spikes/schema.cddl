@@ -7,8 +7,13 @@ event = {
 }
 
 timestamp = {
-    seconds: uint
-    nanos: uint
+    seconds: int
+    nanos: int
+}
+
+radec = {
+    ra: float64
+    dec: float64
 }
 
 parameter = {
