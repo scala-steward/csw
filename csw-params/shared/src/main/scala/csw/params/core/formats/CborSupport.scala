@@ -27,7 +27,7 @@ object CborSupport {
   // ************************ Base Type Codecs ********************
 
   implicit lazy val choiceCodec: Codec[Choice] = Codec.forCaseClass[Choice]
-  implicit lazy val raDecCodec: Codec[RaDec]   = Codec.forCaseClass[RaDec]
+  implicit lazy val raDecCodec: Codec[RaDec]   = deriveCodec[RaDec]
 
   implicit lazy val tsCodec: Codec[Timestamp] = deriveCodec[Timestamp]
   implicit lazy val insEnc: Encoder[Instant]  = Encoder.fromCodec[Timestamp].compose(Timestamp.fromInstant)
