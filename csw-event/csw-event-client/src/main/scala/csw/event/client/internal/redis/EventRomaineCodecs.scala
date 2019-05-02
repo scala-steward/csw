@@ -2,8 +2,9 @@ package csw.event.client.internal.redis
 
 import java.nio.ByteBuffer
 
-import csw.params.events.{Event, EventKey}
+import com.typesafe.config.ConfigFactory
 import csw.event.client.pb.PbConverter
+import csw.params.events.{Event, EventKey}
 import csw_protobuf.events.PbEvent
 import io.bullet.borer.Cbor
 import romaine.codec.{RomaineByteCodec, RomaineStringCodec}
@@ -21,10 +22,30 @@ private[event] object EventRomaineCodecs {
     override def fromString(str: String): EventKey    = EventKey(str)
   }
 
-  implicit object EventRomaineCodec extends RomaineByteCodec[Event] {
+  private lazy val isProtobufOn: Boolean = ConfigFactory.load().getBoolean("csw-event.protobuf-serialization")
+
+  implicit lazy val EventRomaineCodec: RomaineByteCodec[Event] = if (isProtobufOn) EventRomainePbCodec else EventRomaineCborCodec
+
+  object EventRomainePbCodec extends RomaineByteCodec[Event] {
+    println("****************** Using Pb Codec *********************")
     override def toBytes(event: Event): ByteBuffer = {
-//      val pbEvent = PbConverter.toPbEvent(event)
-//      ByteBuffer.wrap(pbEvent.toByteArray)
+      val pbEvent = PbConverter.toPbEvent(event)
+      ByteBuffer.wrap(pbEvent.toByteArray)
+    }
+    override def fromBytes(byteBuffer: ByteBuffer): Event = {
+      try {
+        val bytes = new Array[Byte](byteBuffer.remaining)
+        byteBuffer.get(bytes)
+        PbConverter.fromPbEvent(PbEvent.parseFrom(bytes))
+      } catch {
+        case NonFatal(_) ⇒ Event.badEvent()
+      }
+    }
+  }
+
+  object EventRomaineCborCodec extends RomaineByteCodec[Event] {
+    println("****************** Using Cbor Codec *********************")
+    override def toBytes(event: Event): ByteBuffer = {
       ByteBuffer.wrap(Cbor.encode(event).toByteArray)
     }
     override def fromBytes(byteBuffer: ByteBuffer): Event = {
@@ -32,7 +53,6 @@ private[event] object EventRomaineCodecs {
         val bytes = new Array[Byte](byteBuffer.remaining)
         byteBuffer.get(bytes)
         Cbor.decode(bytes).to[Event].value
-//        PbConverter.fromPbEvent(PbEvent.parseFrom(bytes))
       } catch {
         case NonFatal(_) ⇒ Event.badEvent()
       }
