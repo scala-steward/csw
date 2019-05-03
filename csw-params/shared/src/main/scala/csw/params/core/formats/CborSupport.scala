@@ -19,7 +19,7 @@ object CborSupport {
   type ArrayEnc[T] = Encoder[Array[T]]
   type ArrayDec[T] = Decoder[Array[T]]
 
-  def transform[A: Encoder: Decoder, B](to: A ⇒ B, from: B ⇒ A): Codec[B] = Codec(
+  private def transform[A: Encoder: Decoder, B](to: A ⇒ B, from: B ⇒ A): Codec[B] = Codec(
     implicitly[Encoder[A]].compose(from),
     implicitly[Decoder[A]].map(to)
   )
@@ -38,8 +38,11 @@ object CborSupport {
 
   // ************************ Composite Codecs ********************
 
-  implicit def arrayDataEnc[T: ClassTag: ArrayEnc: ArrayDec]: Codec[ArrayData[T]]   = deriveCodec[ArrayData[T]]
-  implicit def matrixDataEnc[T: ClassTag: ArrayEnc: ArrayDec]: Codec[MatrixData[T]] = deriveCodec[MatrixData[T]]
+  implicit def arrayDataEnc[T: ClassTag: ArrayEnc: ArrayDec]: Codec[ArrayData[T]] =
+    transform[mutable.WrappedArray[T], ArrayData[T]](ArrayData(_), _.data)
+
+  implicit def matrixDataEnc[T: ClassTag: ArrayEnc: ArrayDec]: Codec[MatrixData[T]] =
+    transform[mutable.WrappedArray[mutable.WrappedArray[T]], MatrixData[T]](MatrixData(_), _.data)
 
   // ************************ Enum Codecs ********************
 
