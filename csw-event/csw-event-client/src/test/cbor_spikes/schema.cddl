@@ -19,35 +19,24 @@ radec = {
 parameter = {
     keyName: tstr
     keyType: tstr
-    items: [* int ] /
+    items: [* radec ] /
+           [* tstr ] /
+           [* parameter ] /
+           [* timestamp ] /
+           [* bool ] /
+           bstr /
+           [* int ] /
            [* float32 ] /
            [* float64 ] /
-           [* bool ] /
-           [* tstr ] /
-           [* bstr ] /
-           [* timestamp ] /
-           [* radec ] /
-           [* parameter ] /
 
+           [* bstr ] /
            [* [* int ] ] /
            [* [* float32 ] ] /
            [* [* float64 ] ] /
-           [* [* bool ] ] /
-           [* [* tstr ] ] /
-           [* [* bstr ] ] /
-           [* [* timestamp ] ] /
-           [* [* radec ] ] /
-           [* [* parameter ] ] /
 
+           [* [* bstr ] ] /
            [* [* [* int ] ] ] /
            [* [* [* float32 ] ] ] /
            [* [* [* float64 ] ] ] /
-           [* [* [* bool ] ] ] /
-           [* [* [* tstr ] ] ] /
-           [* [* [* bstr ] ] ] /
-           [* [* [* timestamp ] ] ] /
-           [* [* [* radec ] ] ] /
-           [* [* [* parameter ] ] ]
-
     units: tstr
 }
