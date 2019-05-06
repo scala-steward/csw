@@ -1,4 +1,5 @@
 from cbor2 import *
+import os.path
 import pprint
 
 
@@ -39,7 +40,10 @@ class Event:
                "paramSet=" + str(self.param_set)
 
 
-with open('/tmp/input.cbor', 'rb') as fp:
+my_path = os.path.abspath(os.path.dirname(__file__))
+input_cbor_path = os.path.join(my_path, "input.cbor")
+
+with open(input_cbor_path, 'rb') as fp:
     obj = load(fp)
     # pp = pprint.PrettyPrinter(indent=1, depth=5)
     # pp.pprint(obj)
