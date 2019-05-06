@@ -13,7 +13,7 @@
 
 This command helps while writing schema. It guides you with what all data can fit into the schema.
 
-`cddl csw-params/shared/src/test/cbor_spikes/schema.cddl json-generate 5`
+`cddl csw-params/shared/src/test/cbor_spikes/schema.cddl json-generate`
 
 #### more tools 
 Explore: https://github.com/cabo/cbor-diag
