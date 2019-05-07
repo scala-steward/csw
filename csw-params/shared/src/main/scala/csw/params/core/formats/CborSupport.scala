@@ -3,6 +3,7 @@ package csw.params.core.formats
 import java.lang.{Byte ⇒ JByte}
 import java.time.Instant
 
+import csw.params.commands._
 import csw.params.core.generics.{KeyType, Parameter}
 import csw.params.core.models._
 import csw.params.events.{Event, EventName, ObserveEvent, SystemEvent}
@@ -96,6 +97,19 @@ object CborSupport {
   implicit lazy val sysEventCodec: Codec[SystemEvent]  = deriveCodec[SystemEvent]
   implicit lazy val obsEventCodec: Codec[ObserveEvent] = deriveCodec[ObserveEvent]
   implicit lazy val eventCodec: Codec[Event]           = deriveCodec[Event]
+
+  // ************************ Command Codecs ********************
+
+  implicit lazy val commandNameCodec: Codec[CommandName] = transform[String, CommandName](CommandName(_), _.name)
+  implicit lazy val obsIdCodec: Codec[ObsId]             = transform[String, ObsId](ObsId(_), _.obsId)
+
+  implicit lazy val observeCommandCodec: Codec[Observe]          = deriveCodec[Observe]
+  implicit lazy val setupCommandCodec: Codec[Setup]              = deriveCodec[Setup]
+  implicit lazy val waitCommandCodec: Codec[Wait]                = deriveCodec[Wait]
+  implicit lazy val controlCommandCodec: Codec[ControlCommand]   = deriveCodec[ControlCommand]
+  implicit lazy val sequenceCommandCodec: Codec[SequenceCommand] = deriveCodec[SequenceCommand]
+  implicit lazy val commandCodec: Codec[Command]                 = deriveCodec[Command]
+
 }
 
 case class Timestamp(seconds: Long, nanos: Long) {
