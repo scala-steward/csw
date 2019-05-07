@@ -3,12 +3,12 @@
 
 /*
  * Reads data from a file. Example file:
- * input.cbor
+ * event.cbor
  */
 void print_cbor(cbor_item_t* item, int indent);
 int main(int argc, char * argv[])
 {
-    FILE * f = fopen("../input.cbor", "rb");
+    FILE * f = fopen("../sample_encoded_data/event.cbor", "rb");
 
     /* Calculate size of the file */
     fseek(f, 0, SEEK_END);

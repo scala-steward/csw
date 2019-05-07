@@ -1,0 +1,124 @@
+command = {
+    runId: tstr
+    source: tstr
+    commandName: tstr
+    maybeObsId: tstr
+    paramSet: [* parameter]
+}
+
+parameter = {
+    keyName: tstr
+    keyType: keytype-choices
+    items: [* radec ] /
+           [* tstr ] /
+           [* struct ] /
+           [* timestamp ] /
+           [* bool ] /
+           bstr /
+           [* int ] /
+           [* float32 ] /
+           [* float64 ] /
+
+           [* bstr ] /
+           [* [* int ] ] /
+           [* [* float32 ] ] /
+           [* [* float64 ] ] /
+
+           [* [* bstr ] ] /
+           [* [* [* int ] ] ] /
+           [* [* [* float32 ] ] ] /
+           [* [* [* float64 ] ] ]
+    units: unit-choices
+}
+
+struct = {
+    paramSet: [* parameter]
+}
+
+timestamp = {
+    seconds: int
+    nanos: int
+}
+
+radec = {
+    ra: float64
+    dec: float64
+}
+
+unit-choices = "angstrom" /
+                "arcmin" /
+                "arcsec" /
+                "day" /
+                "degree" /
+                "elvolt" /
+                "gram" /
+                "hour" /
+                "hertz" /
+                "joule" /
+                "kelvin" /
+                "kilogram" /
+                "kilometer" /
+                "liter" /
+                "meter" /
+                "marcsec" /
+                "millimeter" /
+                "millisecond" /
+                "micron" /
+                "micrometer" /
+                "minute" /
+                "newton" /
+                "pascal" /
+                "radian" /
+                "second" /
+                "sday" /
+                "steradian" /
+                "microarcsec" /
+                "volt" /
+                "watt" /
+                "week" /
+                "year" /
+                "coulomb" /
+                "centimeter" /
+                "erg" /
+                "au" /
+                "jansky" /
+                "lightyear" /
+                "mag" /
+                "cal" /
+                "foot" /
+                "inch" /
+                "pound" /
+                "mile" /
+                "ounce" /
+                "yard" /
+                "NoUnits" /
+                "encoder" /
+                "count" /
+                "pix"
+
+keytype-choices = "ChoiceKey" /
+                  "RaDecKey" /
+                  "StringKey" /
+                  "StructKey" /
+                  "UTCTimeKey" /
+                  "TAITimeKey" /
+                  "BooleanKey" /
+                  "CharKey" /
+                  "ByteKey" /
+                  "ShortKey" /
+                  "LongKey" /
+                  "IntKey" /
+                  "FloatKey" /
+                  "DoubleKey" /
+                  "ByteArrayKey" /
+                  "ShortArrayKey" /
+                  "LongArrayKey" /
+                  "IntArrayKey" /
+                  "FloatArrayKey" /
+                  "DoubleArrayKey" /
+                  "ByteMatrixKey" /
+                  "ShortMatrixKey" /
+                  "LongMatrixKey" /
+                  "IntMatrixKey" /
+                  "FloatMatrixKey" /
+                  "DoubleMatrixKey"

@@ -88,10 +88,13 @@ object CborSupport {
 
   implicit lazy val structCodec: Codec[Struct] = deriveCodec[Struct]
 
+  // ************************ Simple Model Codecs ********************
+
+  implicit lazy val idCodec: Codec[Id]         = transform[String, Id](Id(_), _.id)
+  implicit lazy val prefixCodec: Codec[Prefix] = transform[String, Prefix](Prefix(_), _.prefix)
+
   // ************************ Event Codecs ********************
 
-  implicit lazy val idCodec: Codec[Id]               = transform[String, Id](Id(_), _.id)
-  implicit lazy val prefixCodec: Codec[Prefix]       = transform[String, Prefix](Prefix(_), _.prefix)
   implicit lazy val eventNameCodec: Codec[EventName] = transform[String, EventName](EventName(_), _.name)
 
   implicit lazy val sysEventCodec: Codec[SystemEvent]  = deriveCodec[SystemEvent]
@@ -106,8 +109,8 @@ object CborSupport {
   implicit lazy val observeCommandCodec: Codec[Observe]          = deriveCodec[Observe]
   implicit lazy val setupCommandCodec: Codec[Setup]              = deriveCodec[Setup]
   implicit lazy val waitCommandCodec: Codec[Wait]                = deriveCodec[Wait]
-  implicit lazy val controlCommandCodec: Codec[ControlCommand]   = deriveCodec[ControlCommand]
   implicit lazy val sequenceCommandCodec: Codec[SequenceCommand] = deriveCodec[SequenceCommand]
+  implicit lazy val controlCommandCodec: Codec[ControlCommand]   = deriveCodec[ControlCommand]
   implicit lazy val commandCodec: Codec[Command]                 = deriveCodec[Command]
 
 }

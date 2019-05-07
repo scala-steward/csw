@@ -6,6 +6,7 @@ import pprint
 def toParameterSet(paramSet):
     return map(lambda param: Parameter(param), paramSet)
 
+
 class Parameter:
     def __init__(self, obj):
 
@@ -14,15 +15,17 @@ class Parameter:
 
         if obj['keyType'] == 'StructKey':
             self.items = map(lambda item: toParameterSet(item['paramSet']), obj['items'])
-        else: self.items = obj['items']
+        else:
+            self.items = obj['items']
 
         self.units = obj['units']
 
     def __repr__(self):
-        return "Parameter(keyName="+self.key_name + \
-           " keyType=" + self.key_type + \
-           " items=" + str(self.items) + \
-           " units=" + self.units + ")"
+        return "Parameter(keyName=" + self.key_name + \
+               " keyType=" + self.key_type + \
+               " items=" + str(self.items) + \
+               " units=" + self.units + ")"
+
 
 class Event:
     def __init__(self, obj):
@@ -33,15 +36,15 @@ class Event:
         self.param_set = toParameterSet(obj['paramSet'])
 
     def __repr__(self):
-        return "id="+self.id + "\n" + \
-               "prefix=" + self.prefix +"\n" + \
-               "name=" + self.event_name +"\n" + \
-               "time=" + str(self.event_time) +"\n" + \
+        return "id=" + self.id + "\n" + \
+               "prefix=" + self.prefix + "\n" + \
+               "name=" + self.event_name + "\n" + \
+               "time=" + str(self.event_time) + "\n" + \
                "paramSet=" + str(self.param_set)
 
 
 my_path = os.path.abspath(os.path.dirname(__file__))
-input_cbor_path = os.path.join(my_path, "input.cbor")
+input_cbor_path = os.path.join(my_path, "sample_encoded_data/event.cbor")
 
 with open(input_cbor_path, 'rb') as fp:
     obj = load(fp)
@@ -49,4 +52,4 @@ with open(input_cbor_path, 'rb') as fp:
     # pp.pprint(obj)
 
     event = Event(obj)
-    print "Decoded Event ======\n" + str(event)
+    print "====== Decoded Event ======\n" + str(event)
