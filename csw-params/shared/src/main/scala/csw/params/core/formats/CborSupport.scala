@@ -3,6 +3,7 @@ package csw.params.core.formats
 import java.lang.{Byte ⇒ JByte}
 import java.time.Instant
 
+import com.github.ghik.silencer.silent
 import csw.params.commands._
 import csw.params.core.generics.{KeyType, Parameter}
 import csw.params.core.models._
@@ -20,9 +21,9 @@ object CborSupport {
   type ArrayEnc[T] = Encoder[Array[T]]
   type ArrayDec[T] = Decoder[Array[T]]
 
-  private def transform[A: Encoder: Decoder, B](to: A ⇒ B, from: B ⇒ A): Codec[B] = Codec(
-    implicitly[Encoder[A]].compose(from),
-    implicitly[Decoder[A]].map(to)
+  private def transform[From: Encoder: Decoder, To](to: From ⇒ To, from: To ⇒ From): Codec[To] = Codec(
+    implicitly[Encoder[From]].compose(from),
+    implicitly[Decoder[From]].map(to)
   )
 
   // ************************ Base Type Codecs ********************
@@ -97,9 +98,16 @@ object CborSupport {
 
   implicit lazy val eventNameCodec: Codec[EventName] = transform[String, EventName](EventName(_), _.name)
 
-  implicit lazy val sysEventCodec: Codec[SystemEvent]  = deriveCodec[SystemEvent]
-  implicit lazy val obsEventCodec: Codec[ObserveEvent] = deriveCodec[ObserveEvent]
-  implicit lazy val eventCodec: Codec[Event]           = deriveCodec[Event]
+  // this is done to ensure concrete type of event is encoded.
+  implicit lazy val sysEventCodec: Codec[SystemEvent] = transform[Event, SystemEvent](_.asInstanceOf[SystemEvent], x ⇒ x: Event)
+  implicit lazy val obsEventCodec: Codec[ObserveEvent] =
+    transform[Event, ObserveEvent](_.asInstanceOf[ObserveEvent], x ⇒ x: Event)
+
+  implicit lazy val eventCodec: Codec[Event] = {
+    implicit val seCodec: Codec[SystemEvent]  = deriveCodec[SystemEvent]
+    implicit val oeCodec: Codec[ObserveEvent] = deriveCodec[ObserveEvent]
+    deriveCodec[Event]
+  }
 
   // ************************ Command Codecs ********************
 

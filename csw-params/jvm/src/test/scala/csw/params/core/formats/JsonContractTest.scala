@@ -10,7 +10,7 @@ import csw.params.core.models._
 import csw.params.core.states.{CurrentState, DemandState, StateName}
 import csw.params.events._
 import csw.params.testdata.ParamSetData
-import csw.time.core.models.{TAITime, UTCTime}
+import csw.time.core.models.UTCTime
 import org.scalatest.{FunSpec, Matchers}
 import play.api.libs.json.Json
 
