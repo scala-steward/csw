@@ -24,7 +24,11 @@ For usage example, see the `sample.c` file.
 
 ##Compilation
 
+1.Using command line:
 ```console
-$   gcc sample.c -lcbor -o serialized-cbor
+$   cd <$PATH>/libcbor-example
+$   gcc main.c -lcbor -o serialized-cbor
 $   ./serialized-cbor
 ```
+
+2.Install Jetbrains [CLions](https://www.jetbrains.com/clion/download/#section=mac) IDE to build the project using `CMakeLists.txt`
