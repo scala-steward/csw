@@ -40,26 +40,36 @@ cbor_item_t* encode_time(struct utctime time)
 /* Encode the event structure with the right keys */
 cbor_item_t* encode_event(struct event e)
 {
-    cbor_item_t* root = cbor_new_definite_map(5);
-    cbor_map_add(root, (struct cbor_pair) {
+    cbor_item_t* root = cbor_new_definite_array(2);
+    cbor_array_push(root, cbor_move(cbor_build_string("SystemEvent")));
+
+    cbor_item_t* eve = cbor_new_definite_map(5);
+    cbor_map_add(eve, (struct cbor_pair) {
             .key = cbor_move(cbor_build_string("eventId")),
             .value = cbor_move(cbor_build_string(e.eventId))
     });
 
-    cbor_map_add(root, (struct cbor_pair) {
+    cbor_map_add(eve, (struct cbor_pair) {
             .key = cbor_move(cbor_build_string("source")),
             .value = cbor_move(cbor_build_string(e.source))
     });
 
-    cbor_map_add(root, (struct cbor_pair) {
+    cbor_map_add(eve, (struct cbor_pair) {
             .key = cbor_move(cbor_build_string("eventName")),
             .value = cbor_move(cbor_build_string(e.eventName))
     });
 
-    cbor_map_add(root, (struct cbor_pair) {
+    cbor_map_add(eve, (struct cbor_pair) {
             .key = cbor_move(cbor_build_string("eventTime")),
             .value = encode_time(e.eventTime)
     });
+
+    cbor_map_add(eve, (struct cbor_pair) {
+            .key = cbor_move(cbor_build_string("paramSet")),
+            .value = cbor_new_definite_array(0)
+    });
+
+    cbor_array_push(root, eve);
     return root;
 }
 
