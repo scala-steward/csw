@@ -8,7 +8,7 @@ import csw.params.events.SystemEvent;
 import csw.params.javadsl.JKeyType;
 import csw.time.core.models.UTCTime;
 import io.bullet.borer.Cbor;
-import io.bullet.borer.InputAccess;
+import io.bullet.borer.Input;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -87,7 +87,7 @@ public class JCborTest extends JUnitSuite {
     public void shouldAbleToConvertToAndFromParameterAndEvent() {
         // ===== Test Parameter SERDE =====
         byte[] byteArray = Cbor.encode(param, CborSupport.paramEncExistential()).toByteArray();
-        Parameter parameterFromBytes = Cbor.decode(byteArray, InputAccess.ForByteArray()).to(CborSupport.paramDecExistential()).value();
+        Parameter parameterFromBytes = Cbor.decode(byteArray, Input.ByteArrayWrapper$.MODULE$).to(CborSupport.paramDecExistential()).value();
 
         Assert.assertEquals(param, parameterFromBytes);
 
@@ -97,7 +97,7 @@ public class JCborTest extends JUnitSuite {
         SystemEvent originalEvent = new SystemEvent(source, eventName).add(param);
 
         byte[] bytes = Cbor.encode(originalEvent, CborSupport.eventCodec().encoder()).toByteArray();
-        Event eventFromBytes = Cbor.decode(bytes, InputAccess.ForByteArray()).to(CborSupport.eventCodec().decoder()).value();
+        Event eventFromBytes = Cbor.decode(bytes, Input.ByteArrayWrapper$.MODULE$).to(CborSupport.eventCodec().decoder()).value();
         Assert.assertEquals(originalEvent, eventFromBytes);
     }
 }

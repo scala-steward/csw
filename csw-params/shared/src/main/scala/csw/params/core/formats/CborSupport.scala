@@ -1,9 +1,8 @@
 package csw.params.core.formats
 
-import java.lang.{Byte ⇒ JByte}
+import java.lang.{Byte => JByte}
 import java.time.Instant
 
-import com.github.ghik.silencer.silent
 import csw.params.commands._
 import csw.params.core.generics.{KeyType, Parameter}
 import csw.params.core.models._
@@ -22,7 +21,7 @@ object CborSupport {
   type ArrayDec[T] = Decoder[Array[T]]
 
   private def transform[From: Encoder: Decoder, To](to: From ⇒ To, from: To ⇒ From): Codec[To] = Codec(
-    implicitly[Encoder[From]].compose(from),
+    implicitly[Encoder[From]].contramap(from),
     implicitly[Decoder[From]].map(to)
   )
 
@@ -32,7 +31,7 @@ object CborSupport {
   implicit lazy val raDecCodec: Codec[RaDec]   = deriveCodec[RaDec]
 
   implicit lazy val tsCodec: Codec[Timestamp] = deriveCodec[Timestamp]
-  implicit lazy val insEnc: Encoder[Instant]  = Encoder.fromCodec[Timestamp].compose(Timestamp.fromInstant)
+  implicit lazy val insEnc: Encoder[Instant]  = Encoder.fromCodec[Timestamp].contramap(Timestamp.fromInstant)
   implicit lazy val insDec: Decoder[Instant]  = Decoder.fromCodec[Timestamp].map(_.toInstant)
 
   implicit lazy val utcTimeCodec: Codec[UTCTime] = Codec.forCaseClass[UTCTime]
@@ -48,7 +47,7 @@ object CborSupport {
 
   // ************************ Enum Codecs ********************
 
-  def enumEnc[T <: EnumEntry]: Encoder[T]       = Encoder.forString.compose[T](_.entryName)
+  def enumEnc[T <: EnumEntry]: Encoder[T]       = Encoder.forString.contramap[T](_.entryName)
   def enumDec[T <: EnumEntry: Enum]: Decoder[T] = Decoder.forString.map[T](implicitly[Enum[T]].withNameInsensitive)
   def enumCodec[T <: EnumEntry: Enum]: Codec[T] = Codec(enumEnc[T], enumDec[T])
 
@@ -58,10 +57,10 @@ object CborSupport {
 
   // ************************ Parameter Codecs ********************
 
-  implicit val javaByteArrayEnc: Encoder[Array[JByte]] = Encoder.forByteArray.compose(javaArray ⇒ javaArray.map(x ⇒ x: Byte))
+  implicit val javaByteArrayEnc: Encoder[Array[JByte]] = Encoder.forByteArray.contramap(javaArray ⇒ javaArray.map(x ⇒ x: Byte))
   implicit val javaByteArrayDec: Decoder[Array[JByte]] = Decoder.forByteArray.map(scalaArray ⇒ scalaArray.map(x ⇒ x: JByte))
 
-  implicit def waEnc[T: ClassTag: ArrayEnc]: Encoder[mutable.WrappedArray[T]] = implicitly[ArrayEnc[T]].compose(_.array)
+  implicit def waEnc[T: ClassTag: ArrayEnc]: Encoder[mutable.WrappedArray[T]] = implicitly[ArrayEnc[T]].contramap(_.array)
   implicit def waDec[T: ClassTag: ArrayDec]: Decoder[mutable.WrappedArray[T]] =
     implicitly[ArrayDec[T]].map(x => x: mutable.WrappedArray[T])
 
