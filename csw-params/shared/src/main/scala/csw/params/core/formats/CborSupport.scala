@@ -12,7 +12,7 @@ import enumeratum._
 import io.bullet.borer._
 import io.bullet.borer.derivation.MapBasedCodecs._
 
-import scala.collection.mutable
+import scala.collection.mutable.{WrappedArray => WArray}
 import scala.reflect.ClassTag
 
 object CborSupport {
@@ -20,19 +20,19 @@ object CborSupport {
   type ArrayEnc[T] = Encoder[Array[T]]
   type ArrayDec[T] = Decoder[Array[T]]
 
-  private def transform[From: Encoder: Decoder, To](to: From ⇒ To, from: To ⇒ From): Codec[To] = Codec(
+  private def bimap[From: Encoder: Decoder, To](to: From ⇒ To, from: To ⇒ From): Codec[To] = Codec(
     implicitly[Encoder[From]].contramap(from),
     implicitly[Decoder[From]].map(to)
   )
 
   // ************************ Base Type Codecs ********************
 
+  //Ensure that Codec.forCaseClass is used ONLY for unary case classes see https://github.com/sirthias/borer/issues/26
   implicit lazy val choiceCodec: Codec[Choice] = Codec.forCaseClass[Choice]
   implicit lazy val raDecCodec: Codec[RaDec]   = deriveCodec[RaDec]
 
-  implicit lazy val tsCodec: Codec[Timestamp] = deriveCodec[Timestamp]
-  implicit lazy val insEnc: Encoder[Instant]  = Encoder.fromCodec[Timestamp].contramap(Timestamp.fromInstant)
-  implicit lazy val insDec: Decoder[Instant]  = Decoder.fromCodec[Timestamp].map(_.toInstant)
+  implicit lazy val tsCodec: Codec[Timestamp]    = deriveCodec[Timestamp]
+  implicit lazy val instantCodec: Codec[Instant] = bimap[Timestamp, Instant](_.toInstant, Timestamp.fromInstant)
 
   implicit lazy val utcTimeCodec: Codec[UTCTime] = Codec.forCaseClass[UTCTime]
   implicit lazy val taiTimeCodec: Codec[TAITime] = Codec.forCaseClass[TAITime]
@@ -40,16 +40,14 @@ object CborSupport {
   // ************************ Composite Codecs ********************
 
   implicit def arrayDataEnc[T: ClassTag: ArrayEnc: ArrayDec]: Codec[ArrayData[T]] =
-    transform[mutable.WrappedArray[T], ArrayData[T]](ArrayData(_), _.data)
+    bimap[WArray[T], ArrayData[T]](ArrayData(_), _.data)
 
   implicit def matrixDataEnc[T: ClassTag: ArrayEnc: ArrayDec]: Codec[MatrixData[T]] =
-    transform[mutable.WrappedArray[mutable.WrappedArray[T]], MatrixData[T]](MatrixData(_), _.data)
+    bimap[WArray[WArray[T]], MatrixData[T]](MatrixData(_), _.data)
 
   // ************************ Enum Codecs ********************
 
-  def enumEnc[T <: EnumEntry]: Encoder[T]       = Encoder.forString.contramap[T](_.entryName)
-  def enumDec[T <: EnumEntry: Enum]: Decoder[T] = Decoder.forString.map[T](implicitly[Enum[T]].withNameInsensitive)
-  def enumCodec[T <: EnumEntry: Enum]: Codec[T] = Codec(enumEnc[T], enumDec[T])
+  def enumCodec[T <: EnumEntry: Enum]: Codec[T] = bimap[String, T](implicitly[Enum[T]].withNameInsensitive, _.entryName)
 
   implicit lazy val unitsCodec: Codec[Units]                   = enumCodec[Units]
   implicit lazy val keyTypeCodecExistential: Codec[KeyType[_]] = enumCodec[KeyType[_]]
@@ -57,12 +55,12 @@ object CborSupport {
 
   // ************************ Parameter Codecs ********************
 
+  //Do not replace these with bimap, due to an issue with borer https://github.com/sirthias/borer/issues/24
   implicit val javaByteArrayEnc: Encoder[Array[JByte]] = Encoder.forByteArray.contramap(javaArray ⇒ javaArray.map(x ⇒ x: Byte))
   implicit val javaByteArrayDec: Decoder[Array[JByte]] = Decoder.forByteArray.map(scalaArray ⇒ scalaArray.map(x ⇒ x: JByte))
 
-  implicit def waEnc[T: ClassTag: ArrayEnc]: Encoder[mutable.WrappedArray[T]] = implicitly[ArrayEnc[T]].contramap(_.array)
-  implicit def waDec[T: ClassTag: ArrayDec]: Decoder[mutable.WrappedArray[T]] =
-    implicitly[ArrayDec[T]].map(x => x: mutable.WrappedArray[T])
+  implicit def waCodec[T: ClassTag: ArrayEnc: ArrayDec]: Codec[WArray[T]] =
+    bimap[Array[T], WArray[T]](x => x: WArray[T], _.array)
 
   implicit def paramCodec[T: ClassTag: ArrayEnc: ArrayDec]: Codec[Parameter[T]] = deriveCodec[Parameter[T]]
 
@@ -81,7 +79,7 @@ object CborSupport {
     val wa = keyType.waDecoder.read(r)
     r.tryReadString("units")
     val units = unitsCodec.decoder.read(r)
-    Parameter(keyName, keyType.asInstanceOf[KeyType[Any]], wa.asInstanceOf[mutable.WrappedArray[Any]], units)
+    Parameter(keyName, keyType.asInstanceOf[KeyType[Any]], wa.asInstanceOf[WArray[Any]], units)
   }
 
   // ************************ Struct Codecs ********************
@@ -90,17 +88,18 @@ object CborSupport {
 
   // ************************ Simple Model Codecs ********************
 
-  implicit lazy val idCodec: Codec[Id]         = transform[String, Id](Id(_), _.id)
-  implicit lazy val prefixCodec: Codec[Prefix] = transform[String, Prefix](Prefix(_), _.prefix)
+  //Codec.forCaseClass does not work for id due to https://github.com/sirthias/borer/issues/23
+  implicit lazy val idCodec: Codec[Id]         = bimap[String, Id](Id(_), _.id)
+  implicit lazy val prefixCodec: Codec[Prefix] = Codec.forCaseClass[Prefix]
 
   // ************************ Event Codecs ********************
 
-  implicit lazy val eventNameCodec: Codec[EventName] = transform[String, EventName](EventName(_), _.name)
+  implicit lazy val eventNameCodec: Codec[EventName] = Codec.forCaseClass[EventName]
 
   // this is done to ensure concrete type of event is encoded.
-  implicit lazy val sysEventCodec: Codec[SystemEvent] = transform[Event, SystemEvent](_.asInstanceOf[SystemEvent], x ⇒ x: Event)
+  implicit lazy val sysEventCodec: Codec[SystemEvent] = bimap[Event, SystemEvent](_.asInstanceOf[SystemEvent], x ⇒ x: Event)
   implicit lazy val obsEventCodec: Codec[ObserveEvent] =
-    transform[Event, ObserveEvent](_.asInstanceOf[ObserveEvent], x ⇒ x: Event)
+    bimap[Event, ObserveEvent](_.asInstanceOf[ObserveEvent], x ⇒ x: Event)
 
   implicit lazy val eventCodec: Codec[Event] = {
     implicit val seCodec: Codec[SystemEvent]  = deriveCodec[SystemEvent]
@@ -110,8 +109,8 @@ object CborSupport {
 
   // ************************ Command Codecs ********************
 
-  implicit lazy val commandNameCodec: Codec[CommandName] = transform[String, CommandName](CommandName(_), _.name)
-  implicit lazy val obsIdCodec: Codec[ObsId]             = transform[String, ObsId](ObsId(_), _.obsId)
+  implicit lazy val commandNameCodec: Codec[CommandName] = Codec.forCaseClass[CommandName]
+  implicit lazy val obsIdCodec: Codec[ObsId]             = Codec.forCaseClass[ObsId]
 
   implicit lazy val observeCommandCodec: Codec[Observe]          = deriveCodec[Observe]
   implicit lazy val setupCommandCodec: Codec[Setup]              = deriveCodec[Setup]

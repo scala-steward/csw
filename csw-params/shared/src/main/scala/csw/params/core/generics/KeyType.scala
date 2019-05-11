@@ -24,7 +24,7 @@ sealed class KeyType[S: Format: ClassTag: ArrayEnc: ArrayDec] extends EnumEntry 
   private[params] lazy val paramFormat: Format[Parameter[S]] = Parameter.parameterFormat[S]
 
   private[params] lazy val paramEncoder: Encoder[Parameter[S]]         = CborSupport.paramCodec[S].encoder
-  private[params] lazy val waDecoder: Decoder[mutable.WrappedArray[S]] = CborSupport.waDec
+  private[params] lazy val waDecoder: Decoder[mutable.WrappedArray[S]] = CborSupport.waCodec[S].decoder
 }
 
 /**
