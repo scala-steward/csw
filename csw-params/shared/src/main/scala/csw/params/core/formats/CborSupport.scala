@@ -3,7 +3,6 @@ package csw.params.core.formats
 import java.lang.{Byte => JByte}
 import java.time.Instant
 
-import com.github.ghik.silencer.silent
 import csw.params.commands._
 import csw.params.core.generics.{KeyType, Parameter}
 import csw.params.core.models._
@@ -16,7 +15,6 @@ import io.bullet.borer.derivation.MapBasedCodecs._
 import scala.collection.mutable.{WrappedArray => WArray}
 import scala.reflect.ClassTag
 
-@silent
 object CborSupport {
 
   type ArrayEnc[T] = Encoder[Array[T]]
@@ -58,12 +56,10 @@ object CborSupport {
   // ************************ Parameter Codecs ********************
 
   //Do not replace these with bimap, due to an issue with borer https://github.com/sirthias/borer/issues/24
-  implicit val javaByteArrayEnc: Encoder[Array[JByte]] = Encoder.forByteArray.contramap(javaArray ⇒ javaArray.map(x ⇒ x: Byte))
-  implicit val javaByteArrayDec: Decoder[Array[JByte]] = Decoder.forByteArray.map(scalaArray ⇒ scalaArray.map(x ⇒ x: JByte))
+  implicit lazy val javaByteArrayEnc: Encoder[Array[JByte]] = Encoder.forByteArray.contramap(_.map(x ⇒ x: Byte))
+  implicit lazy val javaByteArrayDec: Decoder[Array[JByte]] = Decoder.forByteArray.map(_.map(x ⇒ x: JByte))
 
-  implicit def waCodec[T: ClassTag: ArrayEnc: ArrayDec]: Codec[WArray[T]] =
-    bimap[Array[T], WArray[T]](x => x: WArray[T], _.array)
-
+  implicit def waCodec[T: ClassTag: ArrayEnc: ArrayDec]: Codec[WArray[T]]       = bimap[Array[T], WArray[T]](x => x: WArray[T], _.array)
   implicit def paramCodec[T: ClassTag: ArrayEnc: ArrayDec]: Codec[Parameter[T]] = deriveCodec[Parameter[T]]
 
   implicit lazy val paramEncExistential: Encoder[Parameter[_]] = { (w: Writer, value: Parameter[_]) =>
@@ -88,25 +84,16 @@ object CborSupport {
 
   implicit lazy val structCodec: Codec[Struct] = deriveCodec[Struct]
 
-  // ************************ Simple Model Codecs ********************
-
-  //Codec.forCaseClass does not work for id due to https://github.com/sirthias/borer/issues/23
-  implicit lazy val idCodec: Codec[Id]         = bimap[String, Id](Id(_), _.id)
-  implicit lazy val prefixCodec: Codec[Prefix] = Codec.forCaseClass[Prefix]
-
   // ************************ Event Codecs ********************
 
+  //Codec.forCaseClass does not work for id due to https://github.com/sirthias/borer/issues/23
+  implicit lazy val idCodec: Codec[Id]               = bimap[String, Id](Id(_), _.id)
+  implicit lazy val prefixCodec: Codec[Prefix]       = Codec.forCaseClass[Prefix]
   implicit lazy val eventNameCodec: Codec[EventName] = Codec.forCaseClass[EventName]
 
-  // this is done to ensure concrete type of event is encoded.
-  implicit lazy val sysEventCodec: Codec[SystemEvent]  = bimap[Event, SystemEvent](_.asInstanceOf[SystemEvent], x ⇒ x: Event)
-  implicit lazy val obsEventCodec: Codec[ObserveEvent] = bimap[Event, ObserveEvent](_.asInstanceOf[ObserveEvent], x ⇒ x: Event)
-
-  implicit lazy val eventCodec: Codec[Event] = {
-    implicit val seCodec: Codec[SystemEvent]  = deriveCodec[SystemEvent]
-    implicit val oeCodec: Codec[ObserveEvent] = deriveCodec[ObserveEvent]
-    deriveCodec[Event]
-  }
+  implicit lazy val seCodec: Codec[SystemEvent]  = deriveCodec[SystemEvent]
+  implicit lazy val oeCodec: Codec[ObserveEvent] = deriveCodec[ObserveEvent]
+  implicit lazy val eventCodec: Codec[Event]     = deriveCodec[Event]
 
   // ************************ Command Codecs ********************
 
