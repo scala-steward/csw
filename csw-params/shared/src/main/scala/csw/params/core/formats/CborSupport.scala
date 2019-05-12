@@ -3,6 +3,7 @@ package csw.params.core.formats
 import java.lang.{Byte => JByte}
 import java.time.Instant
 
+import com.github.ghik.silencer.silent
 import csw.params.commands._
 import csw.params.core.generics.{KeyType, Parameter}
 import csw.params.core.models._
@@ -15,6 +16,7 @@ import io.bullet.borer.derivation.MapBasedCodecs._
 import scala.collection.mutable.{WrappedArray => WArray}
 import scala.reflect.ClassTag
 
+@silent
 object CborSupport {
 
   type ArrayEnc[T] = Encoder[Array[T]]
@@ -97,9 +99,8 @@ object CborSupport {
   implicit lazy val eventNameCodec: Codec[EventName] = Codec.forCaseClass[EventName]
 
   // this is done to ensure concrete type of event is encoded.
-  implicit lazy val sysEventCodec: Codec[SystemEvent] = bimap[Event, SystemEvent](_.asInstanceOf[SystemEvent], x ⇒ x: Event)
-  implicit lazy val obsEventCodec: Codec[ObserveEvent] =
-    bimap[Event, ObserveEvent](_.asInstanceOf[ObserveEvent], x ⇒ x: Event)
+  implicit lazy val sysEventCodec: Codec[SystemEvent]  = bimap[Event, SystemEvent](_.asInstanceOf[SystemEvent], x ⇒ x: Event)
+  implicit lazy val obsEventCodec: Codec[ObserveEvent] = bimap[Event, ObserveEvent](_.asInstanceOf[ObserveEvent], x ⇒ x: Event)
 
   implicit lazy val eventCodec: Codec[Event] = {
     implicit val seCodec: Codec[SystemEvent]  = deriveCodec[SystemEvent]
