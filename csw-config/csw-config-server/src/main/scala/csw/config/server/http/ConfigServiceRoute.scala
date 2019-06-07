@@ -30,31 +30,49 @@ class ConfigServiceRoute(
     securityDirectives: SecurityDirectives
 ) extends HttpSupport {
 
+  import io.circe.generic.auto._
   import actorRuntime._
   import securityDirectives._
+  import tapir._
+  import tapir.json.circe._
 
   private val UnknownUser = "Unknown"
   private val AdminRole   = "admin"
+
+  case class Custom(msg: String)
 
   private def configService(userName: String = UnknownUser): ConfigService = configServiceFactory.make(userName)
 
   def baseEndpoint: Endpoint[Unit, Unit, String, Nothing] = endpoint.out(stringBody).in("test")
 
-  def testHelloEndpoint: Endpoint[Unit, Unit, String, Nothing] =
+  def testHelloEndpoint: Endpoint[Custom, Unit, String, Nothing] =
     baseEndpoint.post
       .in("hello")
+      .in(jsonBody[Custom])
 
-  def testHelloLogic: Unit => Future[Right[Unit, String]] = _ => {
+  def testHelloLogic: Custom => Future[Right[Unit, String]] = _ => {
     Future.successful(Right[Unit, String]("Okay"))
   }
 
-  val swaggerYml: String = List(testHelloEndpoint).toOpenAPI("api", "hello").toYaml
+  def securedTestHelloEndpoint: Endpoint[String, Unit, String, Nothing] =
+    baseEndpoint.post
+      .in("secured/hello")
+      .in(auth.bearer)
+
+  def securedTestHelloLogic: String => Future[Right[Unit, String]] = _ => {
+    Future.successful(Right[Unit, String]("Okay"))
+  }
+
+  val swaggerYml: String = List(testHelloEndpoint, securedTestHelloEndpoint).toOpenAPI("api", "hello").toYaml
   println(swaggerYml)
 
   def route: Route = cors() {
     routeLogger {
       handleExceptions(configHandlers.jsonExceptionHandler) {
         handleRejections(configHandlers.jsonRejectionHandler) {
+          sPost(EmptyPolicy) {
+            securedTestHelloEndpoint.toRoute(securedTestHelloLogic)
+          } ~
           sPost(EmptyPolicy) {
             testHelloEndpoint.toRoute(testHelloLogic)
           } ~

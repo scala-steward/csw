@@ -1,0 +1,31 @@
+openapi: 3.0.1
+info:
+  title: api
+  version: hello
+paths:
+  /test/hello:
+    post:
+      operationId: postTestHello
+      responses:
+        '200':
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+  /test/secured/hello:
+    post:
+      operationId: postTestSecured/hello
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string

@@ -59,6 +59,7 @@ object Libs {
   val `tapir`                    = "com.softwaremill.tapir"        %% "tapir-akka-http-server"   % tapirVersion
   val `tapir-openapi-docs`       = "com.softwaremill.tapir"        %% "tapir-openapi-docs"       % tapirVersion
   val `tapir-openapi-circe-yaml` = "com.softwaremill.tapir"        %% "tapir-openapi-circe-yaml" % tapirVersion
+  val `tapir-json-circe`         = "com.softwaremill.tapir"        %% "tapir-json-circe"         % tapirVersion
 }
 
 object Jackson {

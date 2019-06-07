@@ -126,6 +126,7 @@ object Dependencies {
       Libs.`tapir`,
       Libs.`tapir-openapi-docs`,
       Libs.`tapir-openapi-circe-yaml`,
+      Libs.`tapir-json-circe`
     )
   )
 
