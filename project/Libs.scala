@@ -4,8 +4,9 @@ import sbt._
 import scalapb.compiler.Version.scalapbVersion
 
 object Libs {
-  val ScalaVersion    = "2.12.8"
-  val silencerVersion = "1.3.3"
+  val ScalaVersion         = "2.12.8"
+  val silencerVersion      = "1.3.3"
+  private val tapirVersion = "0.8.2"
 
   val `scalatest` = dep("org.scalatest" %%% "scalatest" % "3.0.6") //Apache License 2.0
 
@@ -46,15 +47,18 @@ object Libs {
   val `json-schema-validator`    = "com.github.fge" % "json-schema-validator" % "2.2.8" //LGPL/ASL
   val `play-json-derived-codecs` = dep("org.julienrf" %%% "play-json-derived-codecs" % "5.0.0")
 
-  val `jna`             = "net.java.dev.jna"              % "jna"             % "5.3.1"
-  val `postgresql`      = "org.postgresql"                % "postgresql"      % "42.2.5"
-  val `hikaricp`        = "com.zaxxer"                    % "HikariCP"        % "3.3.1" //Apache License 2.0
-  val `otj-pg-embedded` = "com.opentable.components"      % "otj-pg-embedded" % "0.13.1"
-  val httpclient        = "org.apache.httpcomponents"     % "httpclient"      % "4.5.8"
-  val `jboss-logging`   = "org.jboss.logging"             % "jboss-logging"   % "3.4.0.Final"
-  val `config`          = "com.typesafe"                  % "config"          % "1.3.4"
-  val `os-lib`          = "com.lihaoyi"                   %% "os-lib"         % "0.2.9"
-  val `caffeine`        = "com.github.ben-manes.caffeine" % "caffeine"        % "2.7.0"
+  val `jna`                      = "net.java.dev.jna"              % "jna"                       % "5.3.1"
+  val `postgresql`               = "org.postgresql"                % "postgresql"                % "42.2.5"
+  val `hikaricp`                 = "com.zaxxer"                    % "HikariCP"                  % "3.3.1" //Apache License 2.0
+  val `otj-pg-embedded`          = "com.opentable.components"      % "otj-pg-embedded"           % "0.13.1"
+  val httpclient                 = "org.apache.httpcomponents"     % "httpclient"                % "4.5.8"
+  val `jboss-logging`            = "org.jboss.logging"             % "jboss-logging"             % "3.4.0.Final"
+  val `config`                   = "com.typesafe"                  % "config"                    % "1.3.4"
+  val `os-lib`                   = "com.lihaoyi"                   %% "os-lib"                   % "0.2.9"
+  val `caffeine`                 = "com.github.ben-manes.caffeine" % "caffeine"                  % "2.7.0"
+  val `tapir`                    = "com.softwaremill.tapir"        %% "tapir-akka-http-server"   % tapirVersion
+  val `tapir-openapi-docs`       = "com.softwaremill.tapir"        %% "tapir-openapi-docs"       % tapirVersion
+  val `tapir-openapi-circe-yaml` = "com.softwaremill.tapir"        %% "tapir-openapi-circe-yaml" % tapirVersion
 }
 
 object Jackson {

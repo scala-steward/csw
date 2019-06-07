@@ -122,7 +122,10 @@ object Dependencies {
       Libs.`scopt`,
       Libs.`scalatest`.value       % Test,
       AkkaHttp.`akka-http-testkit` % Test,
-      Akka.`akka-stream-testkit`   % Test
+      Akka.`akka-stream-testkit`   % Test,
+      Libs.`tapir`,
+      Libs.`tapir-openapi-docs`,
+      Libs.`tapir-openapi-circe-yaml`,
     )
   )
 
