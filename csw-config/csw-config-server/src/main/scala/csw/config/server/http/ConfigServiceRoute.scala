@@ -3,12 +3,14 @@ package csw.config.server.http
 import akka.Done
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Route
-import csw.aas.http.AuthorizationPolicy.ClientRolePolicy
+import csw.aas.http.AuthorizationPolicy.{ClientRolePolicy, EmptyPolicy}
 import csw.aas.http.SecurityDirectives
 import csw.config.api.scaladsl.ConfigService
 import csw.config.server.ActorRuntime
 import csw.config.server.svn.SvnConfigServiceFactory
 import ch.megard.akka.http.cors.scaladsl.CorsDirectives._
+
+import scala.concurrent.Future
 
 /**
  * Routes supported by config server
@@ -25,26 +27,45 @@ class ConfigServiceRoute(
 ) extends HttpSupport {
 
   import actorRuntime._
+  import io.circe.generic.auto._
   import securityDirectives._
+  import tapir._
+  import tapir.json.circe._
+  import tapir.server.akkahttp._
+
+//  val configEndpointRoute = new ConfigEndpointRoutes(configServiceFactory, actorRuntime)
 
   private val UnknownUser = "Unknown"
   private val AdminRole   = "admin"
 
   private def configService(userName: String = UnknownUser): ConfigService = configServiceFactory.make(userName)
 
+  def baseEndpoint: Endpoint[Unit, Unit, String, Nothing] = endpoint.out(stringBody).in("test")
+
+  case class Custom(msg: String)
+  def testHelloEndpoint: Endpoint[Unit, Unit, String, Nothing] =
+    baseEndpoint.post
+      .in("hello")
+
   def route: Route = cors() {
     routeLogger {
       handleExceptions(configHandlers.jsonExceptionHandler) {
         handleRejections(configHandlers.jsonRejectionHandler) {
-
+          sMethod2(EmptyPolicy) {
+            post {
+              testHelloEndpoint.toRoute { _ ⇒
+                Future.successful(Right("Okay secure"))
+              }
+            }
+          } ~
           prefix("config") { filePath ⇒
-            (get & rejectEmptyResponse) { // fetch the file - http://{{hostname}}:{{port}}/config/{{path}}
+            /*(get & rejectEmptyResponse) { // fetch the file - http://{{hostname}}:{{port}}/config/{{path}}
               (dateParam & idParam) {
                 case (Some(date), _) ⇒ complete(configService().getByTime(filePath, date))
                 case (_, Some(id))   ⇒ complete(configService().getById(filePath, id))
                 case (_, _)          ⇒ complete(configService().getLatest(filePath))
               }
-            } ~
+            } ~*/
             head { // check if file exists - http://{{hostname}}:{{port}}/config/{{path}}
               idParam { id ⇒
                 complete {

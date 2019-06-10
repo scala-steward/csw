@@ -120,6 +120,11 @@ object Dependencies {
       AkkaHttp.`akka-http-cors`,
       Libs.svnkit,
       Libs.`scopt`,
+      Tapir.`tapir-core`,
+      Tapir.`tapir-json-circe`,
+      Tapir.`tapir-akka-http-server`,
+      Tapir.`tapir-openapi-circe-yaml`,
+      Tapir.`tapir-openapi-docs`,
       Libs.`scalatest`.value       % Test,
       AkkaHttp.`akka-http-testkit` % Test,
       Akka.`akka-stream-testkit`   % Test

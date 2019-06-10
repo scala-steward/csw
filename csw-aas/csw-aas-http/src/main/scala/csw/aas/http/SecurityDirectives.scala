@@ -33,7 +33,8 @@ class SecurityDirectives private[csw] (authentication: Authentication, realm: St
   private[aas] def authenticate: AuthenticationDirective[AccessToken] =
     authenticateOAuth2Async(realm, authentication.authenticator)
 
-  private[aas] def authorize(authorizationPolicy: AuthorizationPolicy, accessToken: AccessToken): Directive0 =
+  private[aas] def authorize(authorizationPolicy: AuthorizationPolicy, accessToken: AccessToken): Directive0 = {
+    println("******** autorization")
     authorizationPolicy match {
       case ClientRolePolicy(name)           => keycloakAuthorize(accessToken.hasClientRole(name, resourceName))
       case RealmRolePolicy(name)            => keycloakAuthorize(accessToken.hasRealmRole(name))
@@ -67,9 +68,15 @@ class SecurityDirectives private[csw] (authentication: Authentication, realm: St
           case Or  => authorize(left, accessToken) | authorize(right, accessToken)
         }
     }
+  }
 
   private def sMethod(httpMethod: HttpMethod, authorizationPolicy: AuthorizationPolicy): Directive1[AccessToken] =
     method(httpMethod) & authenticate.flatMap(token => authorize(authorizationPolicy, token) & provide(token))
+
+  def sMethod2(authorizationPolicy: AuthorizationPolicy): Directive1[AccessToken] = {
+    println("******* authication")
+    authenticate.flatMap(token => authorize(authorizationPolicy, token) & provide(token))
+  }
 
   /**
    * Rejects all un-authorized and non-POST requests

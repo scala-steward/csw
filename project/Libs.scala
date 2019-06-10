@@ -119,3 +119,12 @@ object Jooq {
   val `jooq-meta`    = "org.jooq" % "jooq-meta" % Version
   val `jooq-codegen` = "org.jooq" % "jooq-codegen" % Version
 }
+
+object Tapir {
+  val Version                    = "0.8.3"
+  val `tapir-core`               = "com.softwaremill.tapir" %% "tapir-core" % Version
+  val `tapir-json-circe`         = "com.softwaremill.tapir" %% "tapir-json-circe" % Version
+  val `tapir-akka-http-server`   = "com.softwaremill.tapir" %% "tapir-akka-http-server" % Version
+  val `tapir-openapi-docs`       = "com.softwaremill.tapir" %% "tapir-openapi-docs" % Version
+  val `tapir-openapi-circe-yaml` = "com.softwaremill.tapir" %% "tapir-openapi-circe-yaml" % Version
+}
