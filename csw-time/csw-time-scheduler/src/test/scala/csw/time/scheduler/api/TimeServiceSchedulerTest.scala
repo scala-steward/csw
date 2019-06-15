@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import akka.actor.testkit.typed.scaladsl
 import akka.actor.testkit.typed.scaladsl.{ManualTime, ScalaTestWithActorTestKit}
 import akka.actor.typed
-import akka.actor.typed.Behavior
+import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.scaladsl.adapter.TypedActorSystemOps
 import akka.testkit.TestProbe
 import csw.time.core.models.{TAITime, UTCTime}
@@ -22,7 +22,7 @@ class TimeServiceSchedulerTest extends ScalaTestWithActorTestKit(ManualTime.conf
   private val manualTime = ManualTime()(system)
   private val jitter     = 10
 
-//  private implicit val system1: typed.ActorSystem[_] = typed.ActorSystem(Behavior.empty, "test")
+//  private implicit val system1: typed.ActorSystem[_] = typed.ActorSystem(Behaviors.empty, "test")
   private val timeService = TimeServiceSchedulerFactory.make()
 
   // DEOPSCSW-542: Schedule a task to execute in future
@@ -79,7 +79,7 @@ class TimeServiceSchedulerTest extends ScalaTestWithActorTestKit(ManualTime.conf
   test("should schedule multiple tasks at same start time") {
     // we do not want manual config in this test to compare start time with task execution time
     // hence separate instance of actor system is created here which does not use ManualConfig
-    val system      = typed.ActorSystem(Behavior.empty, "test1")
+    val system      = typed.ActorSystem(Behaviors.empty, "test1")
     val timeService = TimeServiceSchedulerFactory.make()(system)
     val testProbe   = scaladsl.TestProbe[UTCTime]("blah")(system)
 
@@ -105,7 +105,7 @@ class TimeServiceSchedulerTest extends ScalaTestWithActorTestKit(ManualTime.conf
   test("repeating task that also saves time") {
     // we do not want manual config in this test to compare start time with task execution time
     // hence separate instance of actor system is created here which does not use ManualConfig
-    val system      = typed.ActorSystem(Behavior.empty, "test1")
+    val system      = typed.ActorSystem(Behaviors.empty, "test1")
     val timeService = TimeServiceSchedulerFactory.make()(system)
     val testProbe   = scaladsl.TestProbe[UTCTime]()(system)
 
@@ -142,7 +142,7 @@ class TimeServiceSchedulerTest extends ScalaTestWithActorTestKit(ManualTime.conf
   test("repeating task that also saves time but with an offset") {
     // we do not want manual config in this test to compare start time with task execution time
     // hence separate instance of actor system is created here which does not use ManualConfig
-    val system      = typed.ActorSystem(Behavior.empty, "test1")
+    val system      = typed.ActorSystem(Behaviors.empty, "test1")
     val timeService = TimeServiceSchedulerFactory.make()(system)
     val testProbe   = scaladsl.TestProbe[UTCTime]()(system)
 

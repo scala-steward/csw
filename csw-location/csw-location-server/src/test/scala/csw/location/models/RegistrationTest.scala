@@ -4,7 +4,7 @@ import java.net.URI
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.scaladsl.adapter.TypedActorRefOps
-import akka.actor.typed.{ActorSystem, Behavior, SpawnProtocol}
+import akka.actor.typed.{ActorSystem, SpawnProtocol}
 import akka.actor.{ActorPath, typed}
 import akka.serialization.Serialization
 import com.typesafe.config.{Config, ConfigFactory}
@@ -22,7 +22,7 @@ import scala.concurrent.duration.DurationDouble
 
 class RegistrationTest extends FunSuite with Matchers with BeforeAndAfterAll with BeforeAndAfterEach {
 
-  implicit val actorSystem: typed.ActorSystem[_] = ActorSystemFactory.remote(Behavior.empty, "my-actor-1")
+  implicit val actorSystem: typed.ActorSystem[_] = ActorSystemFactory.remote(Behaviors.empty, "my-actor-1")
 
   test("should able to create the AkkaRegistration which should internally create AkkaLocation") {
     val hostname = Networks().hostname
