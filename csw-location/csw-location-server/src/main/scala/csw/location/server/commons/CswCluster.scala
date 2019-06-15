@@ -3,8 +3,8 @@ package csw.location.server.commons
 import akka.actor.CoordinatedShutdown.Reason
 import akka.actor.typed.scaladsl.AskPattern._
 import akka.actor.typed.scaladsl.adapter.TypedActorSystemOps
-import akka.actor.typed.{ActorRef, ActorSystem, SpawnProtocol}
-import akka.actor.{CoordinatedShutdown, Scheduler}
+import akka.actor.typed.{ActorRef, ActorSystem, Scheduler, SpawnProtocol}
+import akka.actor.CoordinatedShutdown
 import akka.cluster.ddata.SelfUniqueAddress
 import akka.cluster.ddata.typed.scaladsl
 import akka.cluster.ddata.typed.scaladsl.{DistributedData, Replicator}
@@ -12,7 +12,7 @@ import akka.cluster.typed.{Cluster, Join}
 import akka.management.scaladsl.AkkaManagement
 import akka.stream.typed.scaladsl.ActorMaterializer
 import akka.util.Timeout
-import akka.{actor, Done}
+import akka.{Done, actor}
 import csw.location.api.exceptions.CouldNotJoinCluster
 import csw.location.server.commons.ClusterConfirmationMessages.{HasJoinedCluster, Shutdown}
 import csw.location.server.commons.CoordinatedShutdownReasons.FailureReason

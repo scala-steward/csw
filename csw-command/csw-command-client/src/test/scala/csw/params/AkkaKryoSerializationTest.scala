@@ -4,7 +4,7 @@ import java.nio.file.Files
 
 import akka.actor.testkit.typed.scaladsl.TestProbe
 import akka.actor.typed
-import akka.actor.typed.Behavior
+import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.scaladsl.adapter.TypedActorSystemOps
 import akka.serialization.SerializationExtension
 import com.twitter.chill.akka.AkkaSerializer
@@ -42,7 +42,7 @@ import scala.concurrent.duration.DurationDouble
 
 // DEOPSCSW-187: Efficient serialization to/from binary
 class AkkaKryoSerializationTest extends FunSpec with Matchers with BeforeAndAfterAll {
-  private final val system        = typed.ActorSystem(Behavior.empty, "example")
+  private final val system        = typed.ActorSystem(Behaviors.empty, "example")
   private final val serialization = SerializationExtension(system.toUntyped)
   private final val prefix        = Prefix("wfos.prog.cloudcover")
 
