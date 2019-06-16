@@ -27,17 +27,17 @@ object Libs {
 
   val `play-json` = dep("com.typesafe.play" %%% "play-json" % "2.7.4") //Apache 2.0
 
-  val `akka-http-play-json`      = "de.heikoseeberger"    %% "akka-http-play-json"      % "1.26.0" //Apache 2.0
-  val `jwt-play-json`            = "com.pauldijou"        %% "jwt-play-json"            % "3.0.0"
-  val `lettuce`                  = "io.lettuce"           % "lettuce-core"              % "5.1.7.RELEASE"
-  val `reactor-core`             = "io.projectreactor"    % "reactor-core"              % "3.2.10.RELEASE"
-  val `reactive-streams`         = "org.reactivestreams"  % "reactive-streams"          % "1.0.2"
-  val `akka-stream-kafka`        = "com.typesafe.akka"    %% "akka-stream-kafka"        % "0.22"
-  val `scalatest-embedded-kafka` = "net.manub"            %% "scalatest-embedded-kafka" % "1.1.0"
-  val `embedded-redis`           = "com.github.kstyrc"    % "embedded-redis"            % "0.6"
-  val `scala-compiler`           = "org.scala-lang"       % "scala-compiler"            % ScalaVersion
-  val `HdrHistogram`             = "org.hdrhistogram"     % "HdrHistogram"              % "2.1.11"
-  val `testng`                   = "org.testng"           % "testng"                    % "6.14.3"
+  val `akka-http-play-json`      = "de.heikoseeberger"   %% "akka-http-play-json"      % "1.26.0" //Apache 2.0
+  val `jwt-play-json`            = "com.pauldijou"       %% "jwt-play-json"            % "3.0.0"
+  val `lettuce`                  = "io.lettuce"          % "lettuce-core"              % "5.1.7.RELEASE"
+  val `reactor-core`             = "io.projectreactor"   % "reactor-core"              % "3.2.10.RELEASE"
+  val `reactive-streams`         = "org.reactivestreams" % "reactive-streams"          % "1.0.2"
+  val `akka-stream-kafka`        = "com.typesafe.akka"   %% "akka-stream-kafka"        % "0.22"
+  val `scalatest-embedded-kafka` = "net.manub"           %% "scalatest-embedded-kafka" % "1.1.0"
+  val `embedded-redis`           = "com.github.kstyrc"   % "embedded-redis"            % "0.6"
+  val `scala-compiler`           = "org.scala-lang"      % "scala-compiler"            % ScalaVersion
+  val `HdrHistogram`             = "org.hdrhistogram"    % "HdrHistogram"              % "2.1.11"
+  val `testng`                   = "org.testng"          % "testng"                    % "6.14.3"
 
   val `scala-csv`                = "com.github.tototoshi" %% "scala-csv" % "1.3.6"
   val `scalajs-java-time`        = dep("org.scala-js" %%% "scalajs-java-time" % "0.2.5")
@@ -70,29 +70,24 @@ object Enumeratum {
   val `enumeratum-play-json` = dep("com.beachape" %%% "enumeratum-play-json" % "1.5.16") //MIT License
 }
 
-object Chill {
-  val Version           = "0.9.3"
-  val `chill-akka`      = "com.twitter" %% "chill-akka" % Version //Apache License 2.0
-  val `chill-bijection` = "com.twitter" %% "chill-bijection" % Version //Apache License 2.0
-}
-
 object Akka {
-  val Version                    = "2.6.0-M3" //all akka is Apache License 2.0
-  val `akka-stream`              = "com.typesafe.akka" %% "akka-stream" % Version
-  val `akka-stream-typed`        = "com.typesafe.akka" %% "akka-stream-typed" % Version
-  val `akka-remote`              = "com.typesafe.akka" %% "akka-remote" % Version
-  val `akka-stream-testkit`      = "com.typesafe.akka" %% "akka-stream-testkit" % Version
-  val `akka-actor`               = "com.typesafe.akka" %% "akka-actor" % Version
-  val `akka-actor-typed`         = "com.typesafe.akka" %% "akka-actor-typed" % Version
-  val `akka-actor-testkit-typed` = "com.typesafe.akka" %% "akka-actor-testkit-typed" % Version
-  val `akka-distributed-data`    = "com.typesafe.akka" %% "akka-distributed-data" % Version
-  val `akka-multi-node-testkit`  = "com.typesafe.akka" %% "akka-multi-node-testkit" % Version
-  val `akka-cluster-tools`       = "com.typesafe.akka" %% "akka-cluster-tools" % Version
-  val `akka-cluster`             = "com.typesafe.akka" %% "akka-cluster" % Version
-  val `akka-cluster-typed`       = "com.typesafe.akka" %% "akka-cluster-typed" % Version
-  val `akka-slf4j`               = "com.typesafe.akka" %% "akka-slf4j" % Version
-  val `cluster-sharding`         = "com.typesafe.akka" %% "akka-cluster-sharding" % Version
-  val `akka-persistence`         = "com.typesafe.akka" %% "akka-persistence" % Version
+  val Version                      = "2.6.0-M3" //all akka is Apache License 2.0
+  val `akka-stream`                = "com.typesafe.akka" %% "akka-stream" % Version
+  val `akka-stream-typed`          = "com.typesafe.akka" %% "akka-stream-typed" % Version
+  val `akka-remote`                = "com.typesafe.akka" %% "akka-remote" % Version
+  val `akka-stream-testkit`        = "com.typesafe.akka" %% "akka-stream-testkit" % Version
+  val `akka-actor`                 = "com.typesafe.akka" %% "akka-actor" % Version
+  val `akka-actor-typed`           = "com.typesafe.akka" %% "akka-actor-typed" % Version
+  val `akka-actor-testkit-typed`   = "com.typesafe.akka" %% "akka-actor-testkit-typed" % Version
+  val `akka-distributed-data`      = "com.typesafe.akka" %% "akka-distributed-data" % Version
+  val `akka-multi-node-testkit`    = "com.typesafe.akka" %% "akka-multi-node-testkit" % Version
+  val `akka-cluster-tools`         = "com.typesafe.akka" %% "akka-cluster-tools" % Version
+  val `akka-cluster`               = "com.typesafe.akka" %% "akka-cluster" % Version
+  val `akka-cluster-typed`         = "com.typesafe.akka" %% "akka-cluster-typed" % Version
+  val `akka-slf4j`                 = "com.typesafe.akka" %% "akka-slf4j" % Version
+  val `cluster-sharding`           = "com.typesafe.akka" %% "akka-cluster-sharding" % Version
+  val `akka-persistence`           = "com.typesafe.akka" %% "akka-persistence" % Version
+  val `akka-serialization-jackson` = "com.typesafe.akka" %% "akka-serialization-jackson" % Version
 }
 
 object AkkaHttp {

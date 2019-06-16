@@ -7,7 +7,6 @@ import akka.actor.typed
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.scaladsl.adapter.TypedActorSystemOps
 import akka.serialization.SerializationExtension
-import com.twitter.chill.akka.AkkaSerializer
 import csw.command.client.messages.ComponentCommonMessage.{
   ComponentStateSubscription,
   GetSupervisorLifecycleState,
@@ -60,7 +59,7 @@ class AkkaKryoSerializationTest extends FunSpec with Matchers with BeforeAndAfte
       val setup           = Setup(prefix, CommandName("move"), Some(ObsId("Obs001"))).add(param)
       val setupSerializer = serialization.findSerializerFor(setup)
 
-      setupSerializer.getClass shouldBe classOf[AkkaSerializer]
+      setupSerializer.getClass.getSimpleName shouldBe "JacksonJsonSerializer"
 
       val setupBytes: Array[Byte] = setupSerializer.toBinary(setup)
       setupSerializer.fromBinary(setupBytes) shouldBe setup
@@ -79,7 +78,7 @@ class AkkaKryoSerializationTest extends FunSpec with Matchers with BeforeAndAfte
       val observe           = Observe(prefix, CommandName("move"), Some(ObsId("Obs001"))).add(param)
       val observeSerializer = serialization.findSerializerFor(observe)
 
-      observeSerializer.getClass shouldBe classOf[AkkaSerializer]
+      observeSerializer.getClass.getSimpleName shouldBe "JacksonJsonSerializer"
 
       val observeBytes: Array[Byte] = observeSerializer.toBinary(observe)
       observeSerializer.fromBinary(observeBytes) shouldBe observe
@@ -98,7 +97,7 @@ class AkkaKryoSerializationTest extends FunSpec with Matchers with BeforeAndAfte
       val wait: Wait     = Wait(prefix, CommandName("move"), Some(ObsId("Obs001"))).add(param)
       val waitSerializer = serialization.findSerializerFor(wait)
 
-      waitSerializer.getClass shouldBe classOf[AkkaSerializer]
+      waitSerializer.getClass.getSimpleName shouldBe "JacksonJsonSerializer"
 
       val waitBytes: Array[Byte] = waitSerializer.toBinary(wait)
       waitSerializer.fromBinary(waitBytes) shouldBe wait
@@ -118,7 +117,7 @@ class AkkaKryoSerializationTest extends FunSpec with Matchers with BeforeAndAfte
       val observeEvent: ObserveEvent = ObserveEvent(Id(), prefix, EventName("filter wheel"), UTCTime.now(), Set.empty).add(param)
       val observeEventSerializer     = serialization.findSerializerFor(observeEvent)
 
-      observeEventSerializer.getClass shouldBe classOf[AkkaSerializer]
+      observeEventSerializer.getClass.getSimpleName shouldBe "JacksonJsonSerializer"
 
       val observeEventBytes: Array[Byte] = observeEventSerializer.toBinary(observeEvent)
       observeEventSerializer.fromBinary(observeEventBytes) shouldBe observeEvent
@@ -137,7 +136,7 @@ class AkkaKryoSerializationTest extends FunSpec with Matchers with BeforeAndAfte
       val systemEvent: SystemEvent = SystemEvent(Id(), prefix, EventName("filter wheel"), UTCTime.now(), Set.empty).add(param)
       val systemEventSerializer    = serialization.findSerializerFor(systemEvent)
 
-      systemEventSerializer.getClass shouldBe classOf[AkkaSerializer]
+      systemEventSerializer.getClass.getSimpleName shouldBe "JacksonJsonSerializer"
 
       val systemEventBytes: Array[Byte] = systemEventSerializer.toBinary(systemEvent)
       systemEventSerializer.fromBinary(systemEventBytes) shouldBe systemEvent
@@ -158,7 +157,7 @@ class AkkaKryoSerializationTest extends FunSpec with Matchers with BeforeAndAfte
       val currentState           = CurrentState(prefix, StateName("testStateName")).madd(charParam, intArrayParam)
       val currentStateSerializer = serialization.findSerializerFor(currentState)
 
-      currentStateSerializer.getClass shouldBe classOf[AkkaSerializer]
+      currentStateSerializer.getClass.getSimpleName shouldBe "JacksonJsonSerializer"
 
       val currentStateBytes: Array[Byte] = currentStateSerializer.toBinary(currentState)
       currentStateSerializer.fromBinary(currentStateBytes) shouldBe currentState
@@ -178,7 +177,7 @@ class AkkaKryoSerializationTest extends FunSpec with Matchers with BeforeAndAfte
       val demandState           = DemandState(prefix, StateName("testStateName")).madd(charParam, intParam, booleanParam, utcTime)
       val demandStateSerializer = serialization.findSerializerFor(demandState)
 
-      demandStateSerializer.getClass shouldBe classOf[AkkaSerializer]
+      demandStateSerializer.getClass.getSimpleName shouldBe "JacksonJsonSerializer"
 
       val demandStateBytes: Array[Byte] = demandStateSerializer.toBinary(demandState)
       demandStateSerializer.fromBinary(demandStateBytes) shouldBe demandState
@@ -189,18 +188,18 @@ class AkkaKryoSerializationTest extends FunSpec with Matchers with BeforeAndAfte
     implicit val typedSystem: typed.ActorSystem[_] = system
 
     it("should serialize ToComponentLifecycle messages") {
-      serialization.findSerializerFor(GoOffline).getClass shouldBe classOf[AkkaSerializer]
-      serialization.findSerializerFor(GoOnline).getClass shouldBe classOf[AkkaSerializer]
+      serialization.findSerializerFor(GoOffline).getClass.getSimpleName shouldBe "JacksonJsonSerializer"
+      serialization.findSerializerFor(GoOnline).getClass.getSimpleName shouldBe "JacksonJsonSerializer"
     }
 
     it("should serialize Lifecycle messages") {
-      serialization.findSerializerFor(Lifecycle(GoOffline)).getClass shouldBe classOf[AkkaSerializer]
-      serialization.findSerializerFor(Lifecycle(GoOnline)).getClass shouldBe classOf[AkkaSerializer]
+      serialization.findSerializerFor(Lifecycle(GoOffline)).getClass.getSimpleName shouldBe "JacksonJsonSerializer"
+      serialization.findSerializerFor(Lifecycle(GoOnline)).getClass.getSimpleName shouldBe "JacksonJsonSerializer"
     }
 
     it("should serialize Common messages for all components") {
-      serialization.findSerializerFor(Shutdown).getClass shouldBe classOf[AkkaSerializer]
-      serialization.findSerializerFor(Restart).getClass shouldBe classOf[AkkaSerializer]
+      serialization.findSerializerFor(Shutdown).getClass.getSimpleName shouldBe "JacksonJsonSerializer"
+      serialization.findSerializerFor(Restart).getClass.getSimpleName shouldBe "JacksonJsonSerializer"
     }
 
     it("should serialize Common messages for supervisor") {
@@ -212,10 +211,10 @@ class AkkaKryoSerializationTest extends FunSpec with Matchers with BeforeAndAfte
       val currentStateSubscription        = ComponentStateSubscription(Subscribe(currentStateProbe.ref))
       val supervisorLifecycleStateMessage = GetSupervisorLifecycleState(supStateProbe.ref)
 
-      serialization.findSerializerFor(lifecycleStateSubscription).getClass shouldBe classOf[AkkaSerializer]
-      serialization.findSerializerFor(currentStateSubscription).getClass shouldBe classOf[AkkaSerializer]
-      serialization.findSerializerFor(supervisorLifecycleStateMessage).getClass shouldBe classOf[AkkaSerializer]
-      serialization.findSerializerFor(SupervisorLifecycleState.Idle).getClass shouldBe classOf[AkkaSerializer]
+      serialization.findSerializerFor(lifecycleStateSubscription).getClass.getSimpleName shouldBe "JacksonJsonSerializer"
+      serialization.findSerializerFor(currentStateSubscription).getClass.getSimpleName shouldBe "JacksonJsonSerializer"
+      serialization.findSerializerFor(supervisorLifecycleStateMessage).getClass.getSimpleName shouldBe "JacksonJsonSerializer"
+      serialization.findSerializerFor(SupervisorLifecycleState.Idle).getClass.getSimpleName shouldBe "JacksonJsonSerializer"
     }
 
     it("should serialize Common messages for container") {
@@ -238,24 +237,24 @@ class AkkaKryoSerializationTest extends FunSpec with Matchers with BeforeAndAfte
       val getComponentsMessage              = GetComponents(componentsProbe.ref)
       val getContainerLifecycleStateMessage = GetContainerLifecycleState(containerLifecycleStateProbe.ref)
 
-      serialization.findSerializerFor(getComponentsMessage).getClass shouldBe classOf[AkkaSerializer]
-      serialization.findSerializerFor(getContainerLifecycleStateMessage).getClass shouldBe classOf[AkkaSerializer]
-      serialization.findSerializerFor(components).getClass shouldBe classOf[AkkaSerializer]
-      serialization.findSerializerFor(ContainerLifecycleState.Idle).getClass shouldBe classOf[AkkaSerializer]
-      serialization.findSerializerFor(ContainerLifecycleState.Running).getClass shouldBe classOf[AkkaSerializer]
-      serialization.findSerializerFor(component).getClass shouldBe classOf[AkkaSerializer]
-      serialization.findSerializerFor(componentInfo).getClass shouldBe classOf[AkkaSerializer]
-      serialization.findSerializerFor(componentInfo.componentType).getClass shouldBe classOf[AkkaSerializer]
-      serialization.findSerializerFor(componentInfo.locationServiceUsage).getClass shouldBe classOf[AkkaSerializer]
-      serialization.findSerializerFor(componentInfo.connections.head).getClass shouldBe classOf[AkkaSerializer]
-      serialization.findSerializerFor(connection.componentId).getClass shouldBe classOf[AkkaSerializer]
+      serialization.findSerializerFor(getComponentsMessage).getClass.getSimpleName shouldBe "JacksonJsonSerializer"
+      serialization.findSerializerFor(getContainerLifecycleStateMessage).getClass.getSimpleName shouldBe "JacksonJsonSerializer"
+      serialization.findSerializerFor(components).getClass.getSimpleName shouldBe "JacksonJsonSerializer"
+      serialization.findSerializerFor(ContainerLifecycleState.Idle).getClass.getSimpleName shouldBe "JacksonJsonSerializer"
+      serialization.findSerializerFor(ContainerLifecycleState.Running).getClass.getSimpleName shouldBe "JacksonJsonSerializer"
+      serialization.findSerializerFor(component).getClass.getSimpleName shouldBe "JacksonJsonSerializer"
+      serialization.findSerializerFor(componentInfo).getClass.getSimpleName shouldBe "JacksonJsonSerializer"
+      serialization.findSerializerFor(componentInfo.componentType).getClass.getSimpleName shouldBe "JacksonJsonSerializer"
+      serialization.findSerializerFor(componentInfo.locationServiceUsage).getClass.getSimpleName shouldBe "JacksonJsonSerializer"
+      serialization.findSerializerFor(componentInfo.connections.head).getClass.getSimpleName shouldBe "JacksonJsonSerializer"
+      serialization.findSerializerFor(connection.componentId).getClass.getSimpleName shouldBe "JacksonJsonSerializer"
     }
 
     it("should serialize CommandValidationResponse messages") {
-      serialization.findSerializerFor(CommandResponse.Accepted(Id())).getClass shouldBe classOf[AkkaSerializer]
+      serialization.findSerializerFor(CommandResponse.Accepted(Id())).getClass.getSimpleName shouldBe "JacksonJsonSerializer"
       serialization
         .findSerializerFor(Invalid(Id(), CommandIssue.OtherIssue("test issue")))
-        .getClass shouldBe classOf[AkkaSerializer]
+        .getClass.getSimpleName shouldBe "JacksonJsonSerializer"
     }
 
     it("should serialize CommandExecutionResponse messages") {
@@ -271,7 +270,7 @@ class AkkaKryoSerializationTest extends FunSpec with Matchers with BeforeAndAfte
       forAll(testData) { commandResponse ⇒
         serialization
           .findSerializerFor(commandResponse)
-          .getClass shouldBe classOf[AkkaSerializer]
+          .getClass.getSimpleName shouldBe "JacksonJsonSerializer"
 
       }
     }

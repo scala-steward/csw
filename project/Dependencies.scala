@@ -52,7 +52,7 @@ object Dependencies {
       AkkaHttp.`akka-http`,
       Libs.`akka-http-play-json`,
       Libs.`play-json`.value,
-      Chill.`chill-akka`,
+      Akka.`akka-serialization-jackson`,
       Akka.`akka-actor-testkit-typed` % Test,
       Libs.`scalatest`.value          % Test,
       Libs.`junit`                    % Test,
@@ -188,8 +188,8 @@ object Dependencies {
 
   val ParamsJvm = Def.setting(
     Seq(
-      Chill.`chill-bijection` % Test,
-      Libs.`junit`            % Test
+      Akka.`akka-serialization-jackson` % Test,
+      Libs.`junit`                      % Test
     )
   )
 
@@ -223,7 +223,7 @@ object Dependencies {
       Akka.`akka-stream-typed`,
       Akka.`akka-actor`,
       Akka.`akka-actor-typed`,
-      Chill.`chill-akka`,
+      Akka.`akka-serialization-jackson`,
       Libs.`caffeine`,
       Akka.`akka-actor-testkit-typed` % Test,
       Akka.`akka-stream-testkit`      % Test,
