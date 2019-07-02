@@ -6,17 +6,17 @@ import akka.actor.testkit.typed.scaladsl.TestProbe
 import akka.actor.typed
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.adapter.TypedActorSystemOps
-import akka.serialization.SerializationExtension
+import akka.serialization.{SerializationExtension, Serializer}
 import com.twitter.chill.akka.AkkaSerializer
 import csw.command.client.messages.ComponentCommonMessage.{
   ComponentStateSubscription,
   GetSupervisorLifecycleState,
   LifecycleStateSubscription
 }
-import csw.command.client.messages.ComponentMessage
 import csw.command.client.messages.ContainerCommonMessage.{GetComponents, GetContainerLifecycleState}
 import csw.command.client.messages.RunningMessage.Lifecycle
 import csw.command.client.messages.SupervisorContainerCommonMessages.{Restart, Shutdown}
+import csw.command.client.messages.{ComponentMessage, SetComponentLogLevel}
 import csw.command.client.models.framework.LocationServiceUsage.DoNotRegister
 import csw.command.client.models.framework.PubSub.Subscribe
 import csw.command.client.models.framework.ToComponentLifecycleMessages.{GoOffline, GoOnline}
@@ -24,6 +24,7 @@ import csw.command.client.models.framework._
 import csw.commons.ResourceReader
 import csw.location.api.models.ComponentType.HCD
 import csw.location.api.models.Connection
+import csw.logging.api.models.Level
 import csw.params.commands._
 import csw.params.core.generics.KeyType.{ByteArrayKey, ChoiceKey, DoubleMatrixKey, IntKey, StructKey}
 import csw.params.core.generics.{Key, KeyType, Parameter}
@@ -242,6 +243,18 @@ class AkkaKryoSerializationTest extends FunSpec with Matchers with BeforeAndAfte
       serialization.findSerializerFor(ContainerLifecycleState.Running).getClass shouldBe classOf[AkkaSerializer]
       serialization.findSerializerFor(component).getClass shouldBe classOf[AkkaSerializer]
       serialization.findSerializerFor(componentInfo).getClass shouldBe classOf[AkkaSerializer]
+    }
+
+    it("dd") {
+      val warn  = Level.WARN
+      val level = SetComponentLogLevel("my component", warn)
+      println(serialization.findSerializerFor(warn).getClass)
+      val serializer = serialization.findSerializerFor(level)
+      println(serializer.getClass)
+      val bytes = serializer.toBinary(level)
+      println(new String(bytes))
+      println(serializer.fromBinary(bytes, level.getClass))
+
     }
   }
 }

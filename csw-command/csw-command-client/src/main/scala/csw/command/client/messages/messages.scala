@@ -11,10 +11,11 @@ import csw.params.commands.CommandResponse.{RemoteMsg => _, _}
 import csw.params.commands.ControlCommand
 import csw.params.core.models.{Id, Prefix}
 import csw.params.core.states.CurrentState
-import csw.serializable.TMTSerializable
+import csw.serializable.{LogControlMessagesSerializable, TMTSerializable}
 
 import scala.concurrent.duration.FiniteDuration
 import CommandSerializationMarker._
+import csw.command.client.MySerializable
 
 object CommandSerializationMarker {
   sealed trait RemoteMsg
@@ -162,7 +163,7 @@ private[csw] sealed trait SupervisorMessage
 /**
  * Represents messages that a component can receive in it's whole lifecycle
  */
-sealed trait ComponentMessage extends SupervisorMessage with TMTSerializable
+sealed trait ComponentMessage extends SupervisorMessage
 
 /**
  * Represents messages that a component can receive in running state
@@ -317,7 +318,7 @@ object CommandResponseManagerMessage {
 }
 
 // Parent trait for Messages which will be send to components for interacting with its logging system
-sealed trait LogControlMessages extends ComponentMessage with TMTSerializable
+sealed trait LogControlMessages extends ComponentMessage with LogControlMessagesSerializable
 
 // Message to get Logging configuration metadata of the receiver
 case class GetComponentLogMetadata(componentName: String, replyTo: ActorRef[LogMetadata])

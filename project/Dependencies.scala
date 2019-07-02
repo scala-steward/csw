@@ -176,7 +176,7 @@ object Dependencies {
       Libs.`junit`           % Test,
       Libs.`borer-core`.value,
       Libs.`borer-derivation`.value,
-      Libs.`gson`            % Test
+      Libs.`gson` % Test
     )
   )
 
@@ -235,7 +235,8 @@ object Dependencies {
       Akka.`akka-stream-testkit`      % Test,
       Libs.`scalatest`.value          % Test,
       Libs.`junit`                    % Test,
-      Libs.`mockito-scala`            % Test
+      Libs.`mockito-scala`            % Test,
+      Akka.`akka-serialization-jackson`
     )
   )
 
